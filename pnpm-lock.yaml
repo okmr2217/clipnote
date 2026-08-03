@@ -35,6 +35,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.6.0
         version: 1.6.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      '@clipnote/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@opennextjs/cloudflare':
         specifier: ^1.20.2
         version: 1.20.2(next@16.3.0(@babel/core@7.29.7)(@types/node@20.19.43)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(wrangler@4.118.0(@cloudflare/workers-types@5.20260801.1))

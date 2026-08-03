@@ -22,12 +22,63 @@ const timestamps = {
     .default(sql`(unixepoch())`),
 };
 
-// Placeholder only: better-auth owns the real `users` schema and will
-// generate/manage it once the auth adapter is wired up (design.md 12-2).
-// This stub exists solely so pages.user_id / collections.user_id have a
-// real FK target for local D1 testing in this phase.
+// better-auth-managed schema (design.md 11章 `users`テーブル). Field/table
+// names follow better-auth's default core schema (user/session/account/
+// verification), with table names pluralized to match this file's naming
+// convention; the mapping is configured via `modelName` in apps/web's
+// betterAuth() call.
 export const users = sqliteTable("users", {
   id: id(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
+  image: text("image"),
+  ...timestamps,
+});
+
+export const sessions = sqliteTable(
+  "sessions",
+  {
+    id: id(),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    token: text("token").notNull().unique(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ...timestamps,
+  },
+  (table) => [index("sessions_user_id_idx").on(table.userId)],
+);
+
+export const accounts = sqliteTable(
+  "accounts",
+  {
+    id: id(),
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: integer("access_token_expires_at", { mode: "timestamp" }),
+    refreshTokenExpiresAt: integer("refresh_token_expires_at", { mode: "timestamp" }),
+    scope: text("scope"),
+    password: text("password"),
+    ...timestamps,
+  },
+  (table) => [index("accounts_user_id_idx").on(table.userId)],
+);
+
+export const verifications = sqliteTable("verifications", {
+  id: id(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  ...timestamps,
 });
 
 export const pages = sqliteTable(

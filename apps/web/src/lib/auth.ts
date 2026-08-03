@@ -1,10 +1,40 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { createDb, schema } from "@clipnote/db";
 import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
-// DBアダプタは未接続（packages/dbが存在する後続フェーズで接続する。設計書12-2節）。
-// これは設定の形だけを整えるブートストラップであり、実際の認証呼び出しは
-// アダプタ接続まで機能しない。
-export const auth = betterAuth({
-  emailAndPassword: {
-    enabled: true,
-  },
-});
+function createAuth(db: D1Database) {
+  return betterAuth({
+    database: drizzleAdapter(createDb(db), {
+      provider: "sqlite",
+      schema,
+    }),
+    // packages/db pluralizes better-auth's default model names (design.md
+    // 11章: `users`テーブル) to match this repo's table naming convention.
+    user: { modelName: "users" },
+    session: { modelName: "sessions" },
+    account: { modelName: "accounts" },
+    verification: { modelName: "verifications" },
+    emailAndPassword: {
+      enabled: true,
+    },
+    // セッションCookieのスコープ（design.md 1章）：`paritto.dev`はcontent/mcp
+    // サブドメインとも共有される親ドメインのため、advanced.crossSubDomainCookies
+    // は有効化しない。Domain属性を省略することで、Cookieは発行元ホスト
+    // （clipnote.paritto.dev）単体にスコープされ、親ドメイン全体には広がらない。
+  });
+}
+
+// The D1 binding is only reachable at request time (Workers have no
+// top-level binding access), so the betterAuth() instance is built lazily
+// on first use and cached for the life of the isolate.
+let authInstance: ReturnType<typeof createAuth> | undefined;
+
+export async function getAuth() {
+  if (authInstance) return authInstance;
+
+  const { env } = await getCloudflareContext({ async: true });
+  authInstance = createAuth(env.DB);
+
+  return authInstance;
+}

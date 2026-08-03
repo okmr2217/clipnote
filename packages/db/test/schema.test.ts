@@ -8,7 +8,7 @@ import { collectionPages, collections, pages, pageVersions, users } from "../src
 // storage isolation between `it()` blocks in the same file isn't guaranteed.
 async function createTestUser(db: ReturnType<typeof createDb>) {
   const userId = crypto.randomUUID();
-  await db.insert(users).values({ id: userId });
+  await db.insert(users).values({ id: userId, name: "Test User", email: `${userId}@example.com` });
   return userId;
 }
 

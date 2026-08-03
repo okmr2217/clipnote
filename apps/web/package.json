@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@clipnote/db": "workspace:*",
     "@opennextjs/cloudflare": "^1.20.2",
     "better-auth": "^1.6.25",
     "class-variance-authority": "^0.7.1",

@@ -7,5 +7,16 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
-  }
+  },
+  // Same D1 database as packages/db (which owns the schema/migrations,
+  // see packages/db/wrangler.jsonc). better-auth reads/writes users,
+  // sessions, accounts, verifications through this binding.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "clipnote-db",
+      "database_id": "285e1a62-521d-4427-8799-a0c4b8710012",
+      "migrations_dir": "../../packages/db/migrations"
+    }
+  ]
 }
