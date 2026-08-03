@@ -39,31 +39,35 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  /* Clipnote デザイントークン（設計書2-2節、Claude Designハンドオフバンドルで確定した値）。
+     角丸はモックアップの実測px値に直接対応させており、単一の--radiusの倍率では
+     再現できないため個別に定義する。 */
+  --radius-sm: 0.625rem;  /* 10px */
+  --radius-md: 0.75rem;   /* 12px — 入力欄・小要素 */
+  --radius-lg: 0.875rem;  /* 14px — ボタン */
+  --radius-xl: 1.125rem;  /* 18px — ドロップゾーン・モバイルカード */
+  --radius-2xl: 1.5rem;   /* 24px — デスクトップのカード／一覧コンテナ */
+  --radius-3xl: 1.75rem;  /* 28px — ダイアログ */
+  --radius-4xl: 2rem;     /* 32px — モバイル外枠等の大きめの面 */
   --shadow-card: 0 10px 28px -18px rgba(43, 35, 32, 0.18);
   --shadow-accent: 0 6px 16px -8px rgba(193, 80, 58, 0.5);
 }
 
 :root {
-  /* Clipnote デザイントークン（設計書2-2節） */
+  /* Clipnote デザイントークン（設計書2-2節）。Claude Designハンドオフバンドルの
+     正式なデザインシステム定義を正として反映（フェーズ1の目視近似値を上書き）。 */
   --background: #fbf6f0;
   --foreground: #2b2320;
-  --card: #f3e9dd;
+  --card: #ffffff;
   --card-foreground: #2b2320;
-  --popover: #f3e9dd;
+  --popover: #ffffff;
   --popover-foreground: #2b2320;
   --primary: #c1503a;
-  --primary-foreground: #fbf6f0;
+  --primary-foreground: #ffffff;
   --secondary: #f3e4da;
-  --secondary-foreground: #2b2320;
+  --secondary-foreground: #6b5d52;
   --muted: #f1e7db;
-  --muted-foreground: #6b5d52;
+  --muted-foreground: #8a7a6d;
   --accent: #e4c4b4;
   --accent-foreground: #7a3226;
   --destructive: oklch(0.577 0.245 27.325);
@@ -75,7 +79,6 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.75rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);

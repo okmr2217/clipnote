@@ -2,6 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createDb, schema } from "@clipnote/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { headers } from "next/headers";
 
 function createAuth(db: D1Database) {
   return betterAuth({
@@ -37,4 +38,14 @@ export async function getAuth() {
   authInstance = createAuth(env.DB);
 
   return authInstance;
+}
+
+// app/api/**のroute handlerは/adminと違いlayout.tsxのセッションチェックを
+// 経由しない（proxy.tsのmatcherは/admin/:path*のみ）ため、各handlerが個別に
+// 呼び出して401判定する。
+export async function requireSessionUser() {
+  const auth = await getAuth();
+  const session = await auth.api.getSession({ headers: await headers() });
+
+  return session?.user ?? null;
 }
