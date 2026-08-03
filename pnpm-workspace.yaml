@@ -1,0 +1,10 @@
+packages:
+  - apps/*
+
+# pnpm v10 blocks native postinstall scripts by default; these are required
+# for wrangler (workerd), Tailwind v4 (@tailwindcss/oxide), and esbuild to work.
+onlyBuiltDependencies:
+  - workerd
+  - esbuild
+  - sharp
+  - "@tailwindcss/oxide"
