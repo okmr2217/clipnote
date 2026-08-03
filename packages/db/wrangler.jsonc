@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // This package is never deployed as a Worker. `main` only exists to
+  // satisfy `wrangler`/`vitest-pool-workers`, which both need an entry
+  // script to boot a runtime instance around the DB binding for
+  // migrations and tests.
+  "name": "clipnote-db-migrations",
+  "main": "src/test-worker.ts",
+  "compatibility_date": "2026-07-30",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "clipnote-db",
+      "database_id": "285e1a62-521d-4427-8799-a0c4b8710012",
+      "migrations_dir": "./migrations"
+    }
+  ]
+}
