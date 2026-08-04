@@ -11,7 +11,7 @@ export function VisibilityField({
   onChange: (value: Visibility) => void;
 }) {
   return (
-    <div className="inline-flex rounded-full bg-secondary p-1">
+    <div className="inline-flex self-start rounded-full bg-secondary p-1">
       {(["private", "public"] as const).map((option) => (
         <button
           key={option}

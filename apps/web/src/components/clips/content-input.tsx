@@ -103,7 +103,7 @@ export function ContentInput({
   const mismatchWarning = looksLikeFormatMismatch(content, contentType);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col">
       <div
         onDragOver={(event) => {
           event.preventDefault();
@@ -112,7 +112,7 @@ export function ContentInput({
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={cn(
-          "rounded-xl border-2 border-dashed border-accent bg-background p-5 transition-colors sm:p-7",
+          "mb-[22px] rounded-xl border-2 border-dashed border-accent bg-background p-5 transition-colors sm:p-7",
           isDragging && "bg-accent/20",
         )}
       >
@@ -148,48 +148,50 @@ export function ContentInput({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-        <Label className="text-sm font-bold">形式</Label>
-        <RadioGroup
-          value={contentType}
-          onValueChange={(value) => {
-            onContentTypeChange(value as ContentType);
-            setAutoDetected(false);
-          }}
-          className="w-auto grid-flow-col items-center gap-5"
-        >
-          <label className="flex cursor-pointer items-center gap-2 text-sm whitespace-nowrap">
-            <RadioGroupItem value="html" /> HTML
-          </label>
-          <label className="flex cursor-pointer items-center gap-2 text-sm whitespace-nowrap">
-            <RadioGroupItem value="markdown" /> Markdown
-          </label>
-        </RadioGroup>
-        {autoDetected && (
-          <span className="ml-auto text-xs whitespace-nowrap text-muted-foreground">
-            自動判定されました
-          </span>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+          <Label className="text-sm font-bold">形式</Label>
+          <RadioGroup
+            value={contentType}
+            onValueChange={(value) => {
+              onContentTypeChange(value as ContentType);
+              setAutoDetected(false);
+            }}
+            className="w-auto grid-flow-col items-center gap-5"
+          >
+            <label className="flex cursor-pointer items-center gap-2 text-sm whitespace-nowrap">
+              <RadioGroupItem value="html" /> HTML
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-sm whitespace-nowrap">
+              <RadioGroupItem value="markdown" /> Markdown
+            </label>
+          </RadioGroup>
+          {autoDetected && (
+            <span className="ml-auto text-xs whitespace-nowrap text-muted-foreground">
+              自動判定されました
+            </span>
+          )}
+        </div>
+
+        {fileSizeError && <p className="text-xs text-destructive">{fileSizeError}</p>}
+        {extensionWarning && (
+          <p className="text-xs text-primary">
+            対応する拡張子（.html / .htm / .md / .markdown / .txt）以外のファイルです。
+          </p>
         )}
+        {mojibakeWarning && (
+          <p className="text-xs text-primary">
+            文字化けの可能性があります（UTF-8として正しく読み込めているか確認してください）。
+          </p>
+        )}
+        {!mojibakeWarning && mismatchWarning && (
+          <p className="text-xs text-primary">
+            選択中の形式と本文の内容が一致していない可能性があります。
+          </p>
+        )}
+
+        {showByteCounter && <ByteCounter byteLength={byteLength} />}
       </div>
-
-      {fileSizeError && <p className="text-xs text-destructive">{fileSizeError}</p>}
-      {extensionWarning && (
-        <p className="text-xs text-primary">
-          対応する拡張子（.html / .htm / .md / .markdown / .txt）以外のファイルです。
-        </p>
-      )}
-      {mojibakeWarning && (
-        <p className="text-xs text-primary">
-          文字化けの可能性があります（UTF-8として正しく読み込めているか確認してください）。
-        </p>
-      )}
-      {!mojibakeWarning && mismatchWarning && (
-        <p className="text-xs text-primary">
-          選択中の形式と本文の内容が一致していない可能性があります。
-        </p>
-      )}
-
-      {showByteCounter && <ByteCounter byteLength={byteLength} />}
     </div>
   );
 }

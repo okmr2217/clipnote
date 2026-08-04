@@ -95,23 +95,25 @@ export function NewClipDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="max-w-lg gap-5 rounded-3xl p-6 sm:max-w-lg sm:p-8">
-        <DialogHeader>
+      <DialogContent className="max-w-lg gap-0 rounded-3xl p-6 sm:max-w-lg sm:p-8">
+        <DialogHeader className="mb-6">
           <DialogTitle className="text-xl font-extrabold">新規クリップ登録</DialogTitle>
         </DialogHeader>
 
-        <ContentInput
-          content={content}
-          onContentChange={setContent}
-          contentType={contentType}
-          onContentTypeChange={setContentType}
-          onFileNameGuess={(name) => {
-            if (!titleTouched) setTitle(name);
-          }}
-          showByteCounter={false}
-        />
+        <div className="mb-5">
+          <ContentInput
+            content={content}
+            onContentChange={setContent}
+            contentType={contentType}
+            onContentTypeChange={setContentType}
+            onFileNameGuess={(name) => {
+              if (!titleTouched) setTitle(name);
+            }}
+            showByteCounter={false}
+          />
+        </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="mb-5 flex flex-col gap-2">
           <Label htmlFor="new-clip-title" className="text-sm font-bold">
             タイトル
           </Label>
@@ -127,12 +129,12 @@ export function NewClipDialog({
           />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="mb-5 flex flex-col gap-2">
           <Label className="text-sm font-bold">公開設定</Label>
           <VisibilityField value={visibility} onChange={setVisibility} />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="mb-2.5 flex flex-col gap-2">
           <Label className="text-sm font-bold">
             コレクション <span className="font-normal text-muted-foreground">（任意）</span>
           </Label>
@@ -143,9 +145,9 @@ export function NewClipDialog({
           />
         </div>
 
-        <ByteCounter byteLength={getUtf8ByteLength(content)} />
+        <ByteCounter className="mb-[22px]" byteLength={getUtf8ByteLength(content)} />
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
 
         <DialogFooter className="mx-0 mb-0 border-none bg-transparent p-0">
           <Button

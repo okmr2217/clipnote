@@ -66,12 +66,12 @@ export function EditMetadataDialog({
 
   return (
     <Dialog open={clip !== null} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md gap-5 rounded-3xl p-6 sm:max-w-md sm:p-8">
-        <DialogHeader>
+      <DialogContent className="max-w-md gap-0 rounded-3xl p-6 sm:max-w-md sm:p-8">
+        <DialogHeader className="mb-6">
           <DialogTitle className="text-xl font-extrabold">クリップ情報を編集</DialogTitle>
         </DialogHeader>
 
-        <div className="flex flex-col gap-2">
+        <div className="mb-5 flex flex-col gap-2">
           <Label htmlFor="edit-clip-title" className="text-sm font-bold">
             タイトル
           </Label>
@@ -83,12 +83,12 @@ export function EditMetadataDialog({
           />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="mb-5 flex flex-col gap-2">
           <Label className="text-sm font-bold">公開設定</Label>
           <VisibilityField value={visibility} onChange={setVisibility} />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="mb-[22px] flex flex-col gap-2">
           <Label className="text-sm font-bold">コレクション</Label>
           <CollectionMultiselect
             options={collectionOptions}
@@ -97,7 +97,7 @@ export function EditMetadataDialog({
           />
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
 
         <DialogFooter className="mx-0 mb-0 border-none bg-transparent p-0">
           <Button
