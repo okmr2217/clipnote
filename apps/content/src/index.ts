@@ -17,7 +17,6 @@ const app = new Hono<{ Bindings: Env }>();
 // を拒否する。ワーカーの存在自体を隠すため404で応答する。
 app.use("*", async (c, next) => {
   const host = c.req.header("host");
-  console.log("DEBUG host check", JSON.stringify({ host, envHost: c.env.CONTENT_HOST }));
   if (host !== c.env.CONTENT_HOST) {
     return c.text("not found", 404);
   }
