@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { ContentInput } from "@/components/clips/content-input";
 import { VisibilityField } from "@/components/clips/visibility-field";
 import { CollectionMultiselect } from "@/components/clips/collection-multiselect";
-import { validateContent, type ContentType, type Visibility } from "@/lib/validation";
+import { ByteCounter } from "@/components/clips/byte-counter";
+import { getUtf8ByteLength, validateContent, type ContentType, type Visibility } from "@/lib/validation";
 import type { CollectionOption } from "@/components/clips/types";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -107,6 +108,7 @@ export function NewClipDialog({
           onFileNameGuess={(name) => {
             if (!titleTouched) setTitle(name);
           }}
+          showByteCounter={false}
         />
 
         <div className="flex flex-col gap-2">
@@ -140,6 +142,8 @@ export function NewClipDialog({
             onChange={setCollectionIds}
           />
         </div>
+
+        <ByteCounter byteLength={getUtf8ByteLength(content)} />
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 

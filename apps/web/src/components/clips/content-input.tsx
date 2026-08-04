@@ -48,12 +48,14 @@ export function ContentInput({
   contentType,
   onContentTypeChange,
   onFileNameGuess,
+  showByteCounter = true,
 }: {
   content: string;
   onContentChange: (value: string) => void;
   contentType: ContentType;
   onContentTypeChange: (value: ContentType) => void;
   onFileNameGuess?: (nameWithoutExt: string) => void;
+  showByteCounter?: boolean;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -187,7 +189,7 @@ export function ContentInput({
         </p>
       )}
 
-      <ByteCounter byteLength={byteLength} />
+      {showByteCounter && <ByteCounter byteLength={byteLength} />}
     </div>
   );
 }

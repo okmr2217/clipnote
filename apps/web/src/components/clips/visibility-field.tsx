@@ -20,11 +20,11 @@ export function VisibilityField({
           className={cn(
             "rounded-full px-4 py-2 text-xs font-bold transition-colors",
             value === option
-              ? "bg-secondary-foreground text-background"
+              ? "bg-secondary-foreground text-primary-foreground"
               : "text-muted-foreground",
           )}
         >
-          {option === "private" ? "Private" : "Public"}
+          {option === "private" ? "非公開" : "公開"}
         </button>
       ))}
     </div>
