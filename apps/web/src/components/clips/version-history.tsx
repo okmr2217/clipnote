@@ -70,7 +70,7 @@ export function VersionHistory({
         <div className="flex flex-wrap items-center gap-3">
           <FormatBadge contentType={clip.contentType} />
           <Badge variant={clip.visibility === "public" ? "secondary" : "outline"}>
-            {clip.visibility === "public" ? "Public" : "Private"}
+            {clip.visibility === "public" ? "公開" : "非公開"}
           </Badge>
         </div>
         <h1 className="mt-3 text-2xl font-extrabold tracking-tight">{clip.title}</h1>

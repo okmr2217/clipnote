@@ -80,7 +80,7 @@ export function LpProductShowcase() {
                           : "bg-muted text-secondary-foreground",
                       )}
                     >
-                      {item.visibility === "public" ? "Public" : "Private"}
+                      {item.visibility === "public" ? "公開" : "非公開"}
                     </span>
                     <span className="text-xs text-muted-foreground">{item.date}</span>
                   </div>

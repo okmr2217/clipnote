@@ -7,7 +7,7 @@ export function CollectionChips({ collections }: { collections: ClipRow["collect
   return (
     <div className="flex flex-wrap gap-1.5">
       {collections.map((collection) => (
-        <Badge key={collection.id} variant="secondary">
+        <Badge key={collection.id} variant="secondary" className="bg-muted">
           {collection.name}
         </Badge>
       ))}

@@ -25,7 +25,7 @@ export function VisibilityToggle({
         isPublic ? "bg-secondary text-primary" : "bg-muted text-secondary-foreground",
       )}
     >
-      {isPublic ? "Public" : "Private"}
+      {isPublic ? "公開" : "非公開"}
     </button>
   );
 }

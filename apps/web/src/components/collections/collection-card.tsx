@@ -26,7 +26,7 @@ export function CollectionCard({
               visibility={collection.visibility}
               onToggle={() => onToggleVisibility(collection)}
             />
-            <Badge variant="secondary" className="ml-auto">
+            <Badge variant="secondary" className="ml-auto bg-muted">
               {collection.pageCount}件
             </Badge>
           </div>

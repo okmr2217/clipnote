@@ -55,7 +55,7 @@ export function LpHero() {
                     : "rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold whitespace-nowrap text-secondary-foreground"
                 }
               >
-                {item.visibility === "public" ? "Public" : "Private"}
+                {item.visibility === "public" ? "公開" : "非公開"}
               </span>
             </div>
           ))}

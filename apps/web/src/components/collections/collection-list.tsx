@@ -106,8 +106,8 @@ export function CollectionList({ collections }: { collections: CollectionSummary
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">公開設定: すべて</SelectItem>
-              <SelectItem value="private">Private</SelectItem>
-              <SelectItem value="public">Public</SelectItem>
+              <SelectItem value="private">非公開</SelectItem>
+              <SelectItem value="public">公開</SelectItem>
             </SelectContent>
           </Select>
         </div>
