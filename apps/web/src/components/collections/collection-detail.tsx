@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { VisibilityToggle } from "@/components/clips/visibility-toggle";
+import { ChevronRightIcon, ExternalLinkIcon, PencilIcon, TriangleAlertIcon, Trash2Icon } from "lucide-react";
 import { CopyUrlButton } from "@/components/clips/copy-url-button";
 import { EditCollectionDialog } from "@/components/collections/edit-collection-dialog";
 import { DeleteCollectionAlert } from "@/components/collections/delete-collection-alert";
@@ -14,6 +12,12 @@ import type {
   CollectionDetail as CollectionDetailData,
   CollectionMemberClip,
 } from "@/components/collections/types";
+
+const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
 
 export function CollectionDetail({
   collection: initialCollection,
@@ -30,6 +34,9 @@ export function CollectionDetail({
   const [members, setMembers] = useState(initialMembers);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const isPublic = collection.visibility === "public";
+  const privateMemberCount = members.filter((member) => member.visibility === "private").length;
 
   async function handleToggleVisibility() {
     const previous = collection.visibility;
@@ -49,45 +56,91 @@ export function CollectionDetail({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        href="/admin/collections"
-        className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-secondary-foreground hover:text-foreground"
-      >
-        <ArrowLeftIcon className="size-4" /> コレクション一覧へ戻る
-      </Link>
+      <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+        <Link href="/admin/collections" className="hover:text-foreground">
+          コレクション
+        </Link>
+        <ChevronRightIcon className="size-3.5" />
+        <span className="font-semibold text-foreground">{collection.name}</span>
+      </div>
 
       <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="mb-3 flex items-center gap-2">
-              <VisibilityToggle visibility={collection.visibility} onToggle={handleToggleVisibility} />
-              {collection.visibility === "public" && (
-                <>
-                  <CopyUrlButton uuid={collection.id} path="c" />
-                  <a
-                    href={`/c/${collection.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-secondary-foreground hover:text-foreground"
-                  >
-                    公開ページで見る <ExternalLinkIcon className="size-3.5" />
-                  </a>
-                </>
-              )}
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-extrabold tracking-tight">{collection.name}</h1>
+              <button
+                type="button"
+                onClick={() => setEditOpen(true)}
+                title="名前を編集"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <PencilIcon className="size-3.5" />
+              </button>
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight">{collection.name}</h1>
-            {collection.description && (
-              <p className="mt-1 text-sm text-muted-foreground">{collection.description}</p>
+            <p className="mt-1.5 text-sm font-medium text-muted-foreground">
+              {members.length}件のクリップ ・ {dateFormatter.format(collection.updatedAt)}更新
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            {isPublic && (
+              <>
+                <CopyUrlButton uuid={collection.id} path="c" />
+                <a
+                  href={`/c/${collection.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-secondary-foreground hover:text-foreground"
+                >
+                  公開ページで見る <ExternalLinkIcon className="size-3.5" />
+                </a>
+              </>
             )}
+            <button
+              type="button"
+              onClick={handleToggleVisibility}
+              className="rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-bold whitespace-nowrap text-primary"
+            >
+              {isPublic ? "公開中" : "非公開"}
+            </button>
           </div>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={() => setEditOpen(true)}>
-              情報を編集
-            </Button>
-            <Button type="button" variant="destructive" onClick={() => setDeleteOpen(true)}>
-              削除
-            </Button>
+        </div>
+
+        {isPublic && privateMemberCount > 0 && (
+          <div className="mt-5 flex items-start gap-2.5 rounded-xl bg-secondary p-3.5">
+            <TriangleAlertIcon className="mt-0.5 size-3.5 shrink-0 text-accent-foreground" />
+            <p className="text-sm leading-relaxed text-accent-foreground">
+              このコレクションは公開ですが、非公開のクリップが{privateMemberCount}件含まれています。公開URLの一覧からは自動的に除外されます。
+            </p>
           </div>
+        )}
+
+        <div className="mt-5 rounded-xl border border-border bg-background p-4 md:p-5">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-bold text-muted-foreground">説明</p>
+            <button
+              type="button"
+              onClick={() => setEditOpen(true)}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground"
+            >
+              <PencilIcon className="size-3" /> 編集
+            </button>
+          </div>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {collection.description || (
+              <span className="text-muted-foreground">説明はありません</span>
+            )}
+          </p>
+        </div>
+
+        <div className="mt-5 flex justify-end border-t border-border pt-4">
+          <button
+            type="button"
+            onClick={() => setDeleteOpen(true)}
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-destructive"
+          >
+            <Trash2Icon className="size-3.5" /> コレクションを削除
+          </button>
         </div>
       </div>
 
