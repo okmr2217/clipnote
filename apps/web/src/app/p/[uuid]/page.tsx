@@ -41,30 +41,18 @@ export default async function PublicClipPage({
       <PublicHeader title={page.title} visibility={page.visibility} />
 
       <main className="flex-1">
-        {page.contentType === "html" ? (
-          // HTML本文はヘッダー直下からエッジtoエッジで表示する
-          // （ハンドオフバンドルのHTMLバリアント）。
-          <ContentFrame
-            uuid={uuid}
-            initialToken={token}
-            contentOrigin={contentOrigin}
-            title={page.title}
-            className="min-h-[70vh]"
-          />
-        ) : (
-          // Markdown本文は文書として読みやすい幅の中央カラムに収める
-          // （ハンドオフバンドルのMarkdownバリアント、ボーダーなしでカード背景に
-          // 直接馴染ませる）。
-          <div className="mx-auto max-w-[680px] px-4 py-12 md:px-8 md:py-16">
-            <ContentFrame
-              uuid={uuid}
-              initialToken={token}
-              contentOrigin={contentOrigin}
-              title={page.title}
-              className="min-h-[60vh]"
-            />
-          </div>
-        )}
+        {/* HTML・Markdownどちらもヘッダー直下からエッジtoエッジで表示する。
+            読みやすい幅への制限・余白・タイポグラフィは本文（content側、
+            apps/content）が持つ構造に統一しており、親ページ側では幅を
+            持たせない（Markdownバリアントもハンドオフバンドルの見た目を
+            content側のCSSとして再現している）。 */}
+        <ContentFrame
+          uuid={uuid}
+          initialToken={token}
+          contentOrigin={contentOrigin}
+          title={page.title}
+          className="min-h-[70vh]"
+        />
       </main>
 
       <PublicFooter />
