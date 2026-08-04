@@ -4,15 +4,8 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ByteCounter } from "@/components/clips/byte-counter";
 import { FormatBadge } from "@/components/clips/format-badge";
-import {
-  MAX_CONTENT_BYTES,
-  getUtf8ByteLength,
-  looksMojibake,
-  validateContent,
-  type ContentType,
-} from "@clipnote/pages/validation";
+import { MAX_CONTENT_BYTES, looksMojibake, validateContent, type ContentType } from "@clipnote/pages/validation";
 import { cn } from "@/lib/utils";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -62,28 +55,87 @@ function detectContentType(content: string, fileName?: string): ContentType {
   return fromExtension ?? detectFormatFromContent(content);
 }
 
+const MAX_GUESSED_TITLE_LENGTH = 120;
+
+function stripHtmlTags(value: string): string {
+  return value.replace(/<[^>]+>/g, "");
+}
+
+function truncateTitle(value: string): string {
+  return value.length > MAX_GUESSED_TITLE_LENGTH
+    ? `${value.slice(0, MAX_GUESSED_TITLE_LENGTH - 1)}…`
+    : value;
+}
+
+// <title>タグ、なければ最初の<h1>のテキストをタイトル候補として抽出する。
+// どちらも無ければnull（断片的なHTMLではよくあるため、失敗はエラーではない）。
+function extractHtmlTitle(html: string): string | null {
+  const titleMatch = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(html);
+  const titleText = stripHtmlTags(titleMatch?.[1] ?? "").trim();
+  if (titleText) return titleText;
+
+  const h1Match = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html);
+  const h1Text = stripHtmlTags(h1Match?.[1] ?? "").trim();
+  return h1Text || null;
+}
+
+// 本文先頭の`# 見出し`（H1）のみをタイトル候補として扱う。見出し以外の
+// 先頭行（表・コードブロックの断片等）をタイトル扱いにすると誤検知しやすい
+// ため、フォールバックはしない。
+function extractMarkdownTitle(markdown: string): string | null {
+  for (const line of markdown.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const headingMatch = /^#\s+(.+)$/.exec(trimmed);
+    return headingMatch ? headingMatch[1].trim() || null : null;
+  }
+  return null;
+}
+
+function extractContentTitle(content: string, contentType: ContentType): string | null {
+  const extracted =
+    contentType === "html" ? extractHtmlTitle(content) : extractMarkdownTitle(content);
+  return extracted ? truncateTitle(extracted) : null;
+}
+
+// タイトルの取得優先度：本文から抽出できた場合はそれを優先し（AI生成コンテンツは
+// ファイル名より本文中のタイトルの方が説明的なため）、取れない場合のみファイル名
+// （拡張子除去）にフォールバックする。
+function guessTitle(content: string, contentType: ContentType, fileName?: string): string | null {
+  const contentTitle = extractContentTitle(content, contentType);
+  if (contentTitle) return contentTitle;
+
+  if (fileName) {
+    const nameWithoutExt = fileName.replace(/\.[^./\\]+$/, "").trim();
+    if (nameWithoutExt) return nameWithoutExt;
+  }
+
+  return null;
+}
+
 export function ContentInput({
   content,
   onContentChange,
   contentType,
   onContentTypeChange,
-  onFileNameGuess,
+  onTitleGuess,
 }: {
   content: string;
   onContentChange: (value: string) => void;
   contentType: ContentType;
   onContentTypeChange: (value: ContentType) => void;
-  onFileNameGuess?: (nameWithoutExt: string) => void;
+  onTitleGuess?: (title: string) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [step, setStep] = useState<"input" | "confirmed">(content.length > 0 ? "confirmed" : "input");
   const [sourceLabel, setSourceLabel] = useState<string | null>(null);
+  const [titleGuess, setTitleGuess] = useState<string | null>(null);
   const [extensionWarning, setExtensionWarning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // 貼り付け・ファイル読み込みいずれの経路でも、判定・バリデーションを経て
-  // 確定表示（ファイル名/ラベル・形式・サイズ）へ切り替える共通処理。
+  // 確定表示（ファイル名/ラベル・形式・タイトル候補）へ切り替える共通処理。
   function finalizeContent(text: string, fileName?: string) {
     const validationError = validateContent(text);
     if (validationError) {
@@ -98,6 +150,10 @@ export function ContentInput({
     onContentTypeChange(detected);
     setSourceLabel(fileName ?? PASTE_LABEL[detected]);
     setStep("confirmed");
+
+    const guessedTitle = guessTitle(text, detected, fileName);
+    setTitleGuess(guessedTitle);
+    if (guessedTitle) onTitleGuess?.(guessedTitle);
   }
 
   async function handleFile(file: File) {
@@ -113,9 +169,6 @@ export function ContentInput({
 
     const text = await file.text();
     finalizeContent(text, file.name);
-
-    const nameWithoutExt = file.name.replace(/\.[^./\\]+$/, "");
-    onFileNameGuess?.(nameWithoutExt);
   }
 
   function handleDrop(event: React.DragEvent<HTMLDivElement>) {
@@ -136,12 +189,12 @@ export function ContentInput({
   function handleReset() {
     setStep("input");
     setSourceLabel(null);
+    setTitleGuess(null);
     setExtensionWarning(false);
     setError(null);
     onContentChange("");
   }
 
-  const byteLength = getUtf8ByteLength(content);
   const mojibakeWarning = looksMojibake(content);
 
   if (step === "confirmed") {
@@ -152,7 +205,7 @@ export function ContentInput({
             <FormatBadge contentType={contentType} />
             <div className="min-w-0">
               <p className="truncate text-sm font-bold">{sourceLabel}</p>
-              <ByteCounter byteLength={byteLength} className="text-left" />
+              {titleGuess && <p className="truncate text-xs text-muted-foreground">{titleGuess}</p>}
             </div>
           </div>
           <Button

@@ -105,8 +105,8 @@ export function NewClipDialog({
             onContentChange={setContent}
             contentType={contentType}
             onContentTypeChange={setContentType}
-            onFileNameGuess={(name) => {
-              if (!titleTouched) setTitle(name);
+            onTitleGuess={(title) => {
+              if (!titleTouched) setTitle(title);
             }}
           />
         </div>
