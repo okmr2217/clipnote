@@ -18,7 +18,7 @@ export function PublicHeader({
       <div className="mx-auto flex max-w-[1160px] items-center justify-between gap-4 px-4 py-5 md:px-8">
         <Link
           href="/"
-          className="shrink-0 text-lg font-extrabold tracking-tight text-foreground"
+          className="shrink-0 text-xl font-extrabold tracking-tight text-foreground md:text-[22px]"
         >
           Clip<span className="text-primary">note</span>
         </Link>

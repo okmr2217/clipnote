@@ -4,7 +4,7 @@ export function LpNav() {
   return (
     <header className="border-b border-border">
       <div className="mx-auto flex max-w-[1160px] items-center justify-between px-5 py-5 md:px-8">
-        <span className="text-[19px] font-extrabold tracking-tight text-foreground">
+        <span className="text-xl font-extrabold tracking-tight text-foreground md:text-[22px]">
           Clip<span className="text-primary">note</span>
         </span>
         <Link

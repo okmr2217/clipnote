@@ -58,7 +58,7 @@ export function AdminHeader({ user }: { user: { name: string; email: string } })
     <header className="sticky top-0 z-40 border-b border-border bg-card">
       <div className="flex h-14 items-center justify-between px-4 md:h-[68px] md:px-8">
         <div className="flex items-center gap-10">
-          <Link href="/admin" className="text-base font-extrabold tracking-tight md:text-lg">
+          <Link href="/admin" className="text-lg font-extrabold tracking-tight md:text-xl">
             Clip<span className="text-primary">note</span>
           </Link>
           <nav className="hidden items-center gap-7 md:flex">

@@ -7,7 +7,7 @@ export function PublicFooter() {
   return (
     <footer className="border-t border-border bg-card px-4 py-8 md:px-8">
       <div className="mx-auto flex max-w-[1160px] flex-col items-center gap-2.5 text-center">
-        <div className="text-lg font-extrabold tracking-tight text-foreground">
+        <div className="text-base font-extrabold tracking-tight text-foreground">
           Clip<span className="text-primary">note</span>
         </div>
         <p className="max-w-[380px] text-[13px] leading-relaxed font-medium text-secondary-foreground">
