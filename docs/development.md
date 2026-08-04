@@ -31,6 +31,14 @@ cp apps/web/.env.example apps/web/.env.local
 
 `BETTER_AUTH_SECRET`に値を設定してください（`BETTER_AUTH_URL`はローカルなら`http://localhost:3000`のままでOK）。
 
+`CONTENT_TOKEN_SECRET`は`apps/web`と`apps/content`で同じ値を共有する必要があります（設計書4-4節）。`apps/content`側の環境変数も用意してください。
+
+```bash
+cp apps/content/.dev.vars.example apps/content/.dev.vars
+```
+
+`apps/web/.env.local`の`CONTENT_TOKEN_SECRET`と`apps/content/.dev.vars`の`CONTENT_TOKEN_SECRET`に同じランダム値を設定してください。`NEXT_PUBLIC_CONTENT_ORIGIN`（apps/web側）と`CONTENT_HOST`（apps/content側）は、`wrangler dev`がデフォルトで待ち受けるアドレス`http://localhost:8787`に合わせてあります（実際のポートがずれる場合は両方を実際の値に合わせて調整してください）。
+
 D1のローカルDBを作成し、マイグレーションを適用します。
 
 ```bash

@@ -1,0 +1,9 @@
+# ローカル開発用。`.dev.vars`という名前でこのディレクトリにコピーして値を埋める
+# （.dev.varsはgitignore対象）。CONTENT_TOKEN_SECRETはapps/webの.env.local内の
+# 同名の値と必ず一致させること（設計書4-4節：両ドメイン共通の署名鍵）。
+CONTENT_TOKEN_SECRET=
+
+# `wrangler dev`がbindするhost:portに合わせる（例: localhost:8787）。
+# 未設定の場合はwrangler.jsonc内のvars.CONTENT_HOST（本番ドメイン）が使われ、
+# ローカルではHostヘッダー検証に失敗して常に404になる。
+CONTENT_HOST=localhost:8787

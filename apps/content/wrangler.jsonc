@@ -2,5 +2,21 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "clipnote-content",
   "main": "src/index.ts",
-  "compatibility_date": "2026-08-04"
+  "compatibility_date": "2026-08-04",
+  // Hostヘッダー検証用（設計書4-3節）。コンテンツ配信ドメイン以外からの
+  // アクセスを拒否するための比較対象。ローカル開発では`wrangler dev`が
+  // 出力するhost:portに合わせて.dev.varsで上書きする。
+  "vars": {
+    "CONTENT_HOST": "content.clipnote.paritto.dev"
+  },
+  // packages/dbと同じD1データベース（webと同じ database_id）。トークン検証
+  // 自体はDBアクセス不要だが、本文取得にはD1読み取りが必要（設計書4-4節）。
+  // マイグレーションはpackages/db側が所有するため migrations_dir は設定しない。
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "clipnote-db",
+      "database_id": "285e1a62-521d-4427-8799-a0c4b8710012"
+    }
+  ]
 }
