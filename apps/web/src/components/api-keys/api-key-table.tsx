@@ -39,7 +39,7 @@ export function ApiKeyTable({
         <TableBody>
           {apiKeys.map((apiKey) => (
             <TableRow key={apiKey.id}>
-              <TableCell className="font-semibold text-foreground">{apiKey.name}</TableCell>
+              <TableCell className="text-[15px] font-semibold text-foreground">{apiKey.name}</TableCell>
               <TableCell className="font-mono text-sm text-muted-foreground">
                 {apiKey.keyPrefix}
               </TableCell>
