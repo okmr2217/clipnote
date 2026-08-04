@@ -53,14 +53,15 @@ export default async function PublicClipPage({
           />
         ) : (
           // Markdown本文は文書として読みやすい幅の中央カラムに収める
-          // （ハンドオフバンドルのMarkdownバリアント）。
-          <div className="mx-auto max-w-[720px] px-4 py-12 md:px-8 md:py-16">
+          // （ハンドオフバンドルのMarkdownバリアント、ボーダーなしでカード背景に
+          // 直接馴染ませる）。
+          <div className="mx-auto max-w-[680px] px-4 py-12 md:px-8 md:py-16">
             <ContentFrame
               uuid={uuid}
               initialToken={token}
               contentOrigin={contentOrigin}
               title={page.title}
-              className="min-h-[60vh] rounded-2xl border border-border"
+              className="min-h-[60vh]"
             />
           </div>
         )}

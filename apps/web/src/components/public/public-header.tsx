@@ -37,7 +37,7 @@ export function PublicHeader({
 
         <Link
           href="/"
-          className="hidden shrink-0 rounded-full bg-secondary px-4 py-2 text-[13px] font-bold whitespace-nowrap text-secondary-foreground hover:text-foreground sm:inline-flex"
+          className="hidden shrink-0 rounded-full bg-muted px-4 py-2 text-[13px] font-bold whitespace-nowrap text-secondary-foreground hover:text-foreground sm:inline-flex"
         >
           Clipnoteとは ↗
         </Link>
