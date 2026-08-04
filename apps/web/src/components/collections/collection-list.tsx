@@ -10,7 +10,6 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
 import { CollectionTable } from "@/components/collections/collection-table";
 import { CollectionCard } from "@/components/collections/collection-card";
@@ -73,34 +72,45 @@ export function CollectionList({ collections }: { collections: CollectionSummary
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-8">
+    <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold tracking-tight">コレクション一覧</h1>
+        <h1 className="text-xl font-extrabold tracking-tight md:text-2xl">コレクション一覧</h1>
         <Button
-          className="h-auto px-5 py-3 shadow-[var(--shadow-accent)]"
+          className="hidden h-auto px-5 py-3 shadow-[var(--shadow-accent)] md:inline-flex"
           onClick={() => setNewOpen(true)}
         >
           <PlusIcon /> 新規コレクション
         </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          aria-label="新規コレクション"
+          className="size-9 rounded-md text-primary shadow-none md:hidden"
+          onClick={() => setNewOpen(true)}
+        >
+          <PlusIcon />
+        </Button>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="mb-6 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
         <Input
           placeholder="名前で検索"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          className="h-auto min-w-56 flex-1 rounded-full bg-background px-4 py-2.5"
+          className="h-auto rounded-md bg-background px-4 py-2.5 md:min-w-56 md:flex-1"
         />
-        <Select value={visibilityFilter} onValueChange={(value) => setVisibilityFilter(value ?? "all")}>
-          <SelectTrigger className="h-auto rounded-full bg-secondary px-4 py-2.5 text-[13px] font-semibold text-secondary-foreground">
-            <SelectValue placeholder="公開設定" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">公開設定: すべて</SelectItem>
-            <SelectItem value="private">Private</SelectItem>
-            <SelectItem value="public">Public</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex gap-2 overflow-x-auto md:contents">
+          <Select value={visibilityFilter} onValueChange={(value) => setVisibilityFilter(value ?? "all")}>
+            <SelectTrigger className="h-9! shrink-0 rounded-full bg-muted px-4 py-2.5 text-[13px] font-semibold text-secondary-foreground">
+              公開設定
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">公開設定: すべて</SelectItem>
+              <SelectItem value="private">Private</SelectItem>
+              <SelectItem value="public">Public</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {visibleCollections.length === 0 ? (

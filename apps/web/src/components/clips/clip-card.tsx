@@ -27,7 +27,7 @@ export function ClipCard({
   return (
     <div className="flex flex-col gap-3 md:hidden">
       {clips.map((clip) => (
-        <div key={clip.id} className="rounded-xl border border-border bg-card p-4">
+        <div key={clip.id} className="rounded-xl border border-border p-4">
           <div className="mb-2.5 flex items-center gap-2">
             <FormatBadge contentType={clip.contentType} />
             <VisibilityToggle

@@ -20,7 +20,7 @@ export function CollectionCard({
   return (
     <div className="flex flex-col gap-3 md:hidden">
       {collections.map((collection) => (
-        <div key={collection.id} className="rounded-xl border border-border bg-card p-4">
+        <div key={collection.id} className="rounded-xl border border-border p-4">
           <div className="mb-2.5 flex items-center gap-2">
             <VisibilityToggle
               visibility={collection.visibility}
