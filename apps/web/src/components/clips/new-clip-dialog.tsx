@@ -14,8 +14,7 @@ import { Label } from "@/components/ui/label";
 import { ContentInput } from "@/components/clips/content-input";
 import { VisibilityField } from "@/components/clips/visibility-field";
 import { CollectionMultiselect } from "@/components/clips/collection-multiselect";
-import { ByteCounter } from "@/components/clips/byte-counter";
-import { getUtf8ByteLength, validateContent, type ContentType, type Visibility } from "@clipnote/pages/validation";
+import { validateContent, type ContentType, type Visibility } from "@clipnote/pages/validation";
 import type { CollectionOption } from "@/components/clips/types";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -109,7 +108,6 @@ export function NewClipDialog({
             onFileNameGuess={(name) => {
               if (!titleTouched) setTitle(name);
             }}
-            showByteCounter={false}
           />
         </div>
 
@@ -144,8 +142,6 @@ export function NewClipDialog({
             onChange={setCollectionIds}
           />
         </div>
-
-        <ByteCounter className="mb-[22px]" byteLength={getUtf8ByteLength(content)} />
 
         {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
 
