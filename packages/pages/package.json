@@ -1,0 +1,21 @@
+{
+  "name": "@clipnote/pages",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./validation": "./src/validation.ts",
+    "./page-versions": "./src/page-versions.ts"
+  },
+  "dependencies": {
+    "@clipnote/db": "workspace:*",
+    "drizzle-orm": "^0.45.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260801.1",
+    "typescript": "^5.9.3"
+  }
+}

@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ByteCounter } from "@/components/clips/byte-counter";
-import { MAX_CONTENT_BYTES, getUtf8ByteLength, looksMojibake, type ContentType } from "@/lib/validation";
+import { MAX_CONTENT_BYTES, getUtf8ByteLength, looksMojibake, type ContentType } from "@clipnote/pages/validation";
 import { cn } from "@/lib/utils";
 
 const EXTENSION_FORMAT: Record<string, ContentType> = {

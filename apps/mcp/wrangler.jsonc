@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "clipnote-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-04",
+  // 設計書1章：MCPサーバードメイン。Custom Domainsとしてparitto.devゾーンに
+  // 接続する（DNSレコード・SSL証明書はCloudflareが自動でプロビジョニングする）。
+  "routes": [{ "pattern": "mcp.clipnote.paritto.dev", "custom_domain": true }],
+  // packages/dbと同じD1データベース（web・contentと同じ database_id）。
+  // マイグレーションはpackages/db側が所有するため migrations_dir は設定しない。
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "clipnote-db",
+      "database_id": "285e1a62-521d-4427-8799-a0c4b8710012"
+    }
+  ]
+}

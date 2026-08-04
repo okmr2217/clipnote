@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ContentInput } from "@/components/clips/content-input";
-import { validateContent, type ContentType } from "@/lib/validation";
+import { validateContent, type ContentType } from "@clipnote/pages/validation";
 import type { ClipRow } from "@/components/clips/types";
 
 const ERROR_MESSAGES: Record<string, string> = {

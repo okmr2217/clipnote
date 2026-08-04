@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Link2Icon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/ui/copy-button";
 
 export function CopyUrlButton({
   uuid,
@@ -13,26 +12,12 @@ export function CopyUrlButton({
   path?: "p" | "c";
   className?: string;
 }) {
-  const [copied, setCopied] = useState(false);
-
-  async function handleCopy() {
-    const url = `${window.location.origin}/${path}/${uuid}`;
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }
-
   return (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-sm"
-      onClick={handleCopy}
-      title="公開URLをコピー"
+    <CopyButton
+      getValue={() => `${window.location.origin}/${path}/${uuid}`}
+      label="公開URLをコピー"
+      icon={<Link2Icon />}
       className={className}
-    >
-      <Link2Icon />
-      <span className="sr-only">{copied ? "コピーしました" : "公開URLをコピー"}</span>
-    </Button>
+    />
   );
 }

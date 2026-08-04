@@ -1,8 +1,10 @@
 // コンテンツ更新・バージョン復元の両方から使う共通処理（設計書11章）。
+// 管理画面（web）のコンテンツ更新・復元、MCPサーバー（mcp）のupdate_page
+// のいずれからも同じロジックで退避するため共有パッケージに置く。
 import { pages, pageVersions } from "@clipnote/db/schema";
 import { and, desc, eq, notInArray, sql } from "drizzle-orm";
 import type { Database } from "@clipnote/db";
-import type { ContentType } from "@/lib/validation";
+import type { ContentType } from "./validation";
 
 export const KEPT_VERSION_COUNT = 10; // 直近10件のみ保持（設計書11章）
 

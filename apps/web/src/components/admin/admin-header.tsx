@@ -25,6 +25,11 @@ const NAV_ITEMS = [
     label: "コレクション",
     isActive: (pathname: string) => pathname.startsWith("/admin/collections"),
   },
+  {
+    href: "/admin/api-keys",
+    label: "APIキー",
+    isActive: (pathname: string) => pathname.startsWith("/admin/api-keys"),
+  },
 ];
 
 function initialsOf(source: string) {

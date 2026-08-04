@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { MAX_CONTENT_BYTES } from "@/lib/validation";
+import { MAX_CONTENT_BYTES } from "@clipnote/pages/validation";
 
 const WARNING_THRESHOLD = 0.9;
 

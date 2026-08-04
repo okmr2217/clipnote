@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getAuth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { KEPT_VERSION_COUNT } from "@/lib/page-versions";
+import { KEPT_VERSION_COUNT } from "@clipnote/pages/page-versions";
 import { VersionHistory } from "@/components/clips/version-history";
 import type { ClipDetail, PageVersionRow } from "@/components/clips/types";
 

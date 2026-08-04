@@ -171,3 +171,21 @@ export const pageVersions = sqliteTable(
     ),
   ],
 );
+
+export const apiKeys = sqliteTable(
+  "api_keys",
+  {
+    id: id(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    keyHash: text("key_hash").notNull().unique(),
+    keyPrefix: text("key_prefix").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+    lastUsedAt: integer("last_used_at", { mode: "timestamp" }),
+  },
+  (table) => [index("api_keys_user_id_idx").on(table.userId)],
+);

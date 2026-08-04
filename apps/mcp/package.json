@@ -2,5 +2,23 @@
   "name": "mcp",
   "private": true,
   "version": "0.0.0",
-  "description": "Clipnote MCP server — implementation begins in a later phase"
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@clipnote/auth": "workspace:*",
+    "@clipnote/db": "workspace:*",
+    "@clipnote/pages": "workspace:*",
+    "@hono/mcp": "^0.3.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.13.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5",
+    "typescript": "^5",
+    "wrangler": "^4.118.0"
+  }
 }

@@ -7,7 +7,7 @@ import {
   isContentType,
   isVisibility,
   validateContent,
-} from "@/lib/validation";
+} from "@clipnote/pages/validation";
 
 export async function POST(request: Request) {
   const user = await requireSessionUser();
