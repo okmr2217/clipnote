@@ -12,7 +12,7 @@
   "scripts": {
     "db:generate": "drizzle-kit generate",
     "db:create:local": "wrangler d1 create clipnote-db",
-    "db:migrate:local": "wrangler d1 migrations apply clipnote-db --local",
+    "db:migrate:local": "wrangler d1 migrations apply clipnote-db --local --persist-to ../../.wrangler/state",
     "db:migrate:remote": "wrangler d1 migrations apply clipnote-db --remote",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run"
