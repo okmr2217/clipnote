@@ -12,3 +12,23 @@ export type CollectionOption = {
   name: string;
   visibility: "private" | "public";
 };
+
+export type ClipDetail = {
+  id: string;
+  title: string;
+  content: string;
+  contentType: "html" | "markdown";
+  visibility: "private" | "public";
+  updatedAt: Date;
+  // page_versionsに退避済みの最大version_number + 1（設計書6-5節のモック
+  // アップ「現在のバージョン (v5)」の番号）。
+  currentVersionNumber: number;
+};
+
+export type PageVersionRow = {
+  id: string;
+  versionNumber: number;
+  contentType: "html" | "markdown";
+  content: string;
+  createdAt: Date;
+};

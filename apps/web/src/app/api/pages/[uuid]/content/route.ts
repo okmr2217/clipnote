@@ -1,11 +1,10 @@
-import { pages, pageVersions } from "@clipnote/db/schema";
-import { and, desc, eq, notInArray, sql } from "drizzle-orm";
+import { pages } from "@clipnote/db/schema";
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
 import { getUtf8ByteLength, isContentType, validateContent } from "@/lib/validation";
-
-const KEPT_VERSION_COUNT = 10; // 直近10件のみ保持（設計書11章）
+import { replacePageContent } from "@/lib/page-versions";
 
 export async function GET(
   _request: Request,
@@ -72,43 +71,7 @@ export async function PATCH(
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const [{ maxVersionNumber }] = await db
-    .select({ maxVersionNumber: sql<number | null>`max(${pageVersions.versionNumber})` })
-    .from(pageVersions)
-    .where(eq(pageVersions.pageId, uuid));
-  const nextVersionNumber = (maxVersionNumber ?? 0) + 1;
+  const { archivedVersionNumber } = await replacePageContent(db, page, { content, contentType });
 
-  // 更新の流れ（設計書11章）：①更新前のpages.contentをpage_versionsへ退避
-  // → ②pages.contentを新しい内容でUPDATE → ③直近10件を超える分を削除。
-  // 3ステップの途中で失敗すると退避内容と現在の内容が食い違うため、
-  // db.batch()で1つの原子的な単位として実行する。
-  const archiveOldContent = db.insert(pageVersions).values({
-    id: crypto.randomUUID(),
-    pageId: uuid,
-    content: page.content,
-    contentType: page.contentType,
-    versionNumber: nextVersionNumber,
-  });
-  const updateContent = db
-    .update(pages)
-    .set({ content, contentType, updatedAt: new Date() })
-    .where(eq(pages.id, uuid));
-  const pruneOldVersions = db.delete(pageVersions).where(
-    and(
-      eq(pageVersions.pageId, uuid),
-      notInArray(
-        pageVersions.versionNumber,
-        db
-          .select({ versionNumber: pageVersions.versionNumber })
-          .from(pageVersions)
-          .where(eq(pageVersions.pageId, uuid))
-          .orderBy(desc(pageVersions.versionNumber))
-          .limit(KEPT_VERSION_COUNT),
-      ),
-    ),
-  );
-
-  await db.batch([archiveOldContent, updateContent, pruneOldVersions]);
-
-  return NextResponse.json({ id: uuid, contentType, archivedVersionNumber: nextVersionNumber });
+  return NextResponse.json({ id: uuid, contentType, archivedVersionNumber });
 }

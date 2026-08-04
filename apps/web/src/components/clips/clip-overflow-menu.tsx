@@ -1,6 +1,7 @@
 "use client";
 
 import { EllipsisIcon } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -39,6 +40,9 @@ export function ClipOverflowMenu({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onEditMetadata}>メタデータ編集</DropdownMenuItem>
         <DropdownMenuItem onClick={onUpdateContent}>コンテンツ更新</DropdownMenuItem>
+        <DropdownMenuItem render={<Link href={`/admin/pages/${clip.id}`} />}>
+          更新履歴
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
           削除
