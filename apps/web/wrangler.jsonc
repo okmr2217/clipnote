@@ -4,6 +4,9 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-08-04",
   "compatibility_flags": ["nodejs_compat"],
+  // 設計書1章：Web本体ドメイン。Custom Domainsとしてparitto.devゾーンに接続する
+  // （DNSレコード・SSL証明書はCloudflareが自動でプロビジョニングする）。
+  "routes": [{ "pattern": "clipnote.paritto.dev", "custom_domain": true }],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"

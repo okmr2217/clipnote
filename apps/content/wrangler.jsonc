@@ -3,6 +3,9 @@
   "name": "clipnote-content",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-04",
+  // 設計書1章：コンテンツ配信ドメイン。Custom Domainsとしてparitto.devゾーンに
+  // 接続する（DNSレコード・SSL証明書はCloudflareが自動でプロビジョニングする）。
+  "routes": [{ "pattern": "content.clipnote.paritto.dev", "custom_domain": true }],
   // Hostヘッダー検証用（設計書4-3節）。コンテンツ配信ドメイン以外からの
   // アクセスを拒否するための比較対象。ローカル開発では`wrangler dev`が
   // 出力するhost:portに合わせて.dev.varsで上書きする。
