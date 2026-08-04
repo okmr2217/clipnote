@@ -22,6 +22,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="ja"
       className={`${plusJakartaSans.variable} ${jetBrainsMono.variable} h-full antialiased`}
+      // Dark Reader等の拡張機能がハイドレーション前にdata-darkreader-*属性を
+      // <html>へ注入し、無害なハイドレーション不一致警告を出すことがあるため抑制する。
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
