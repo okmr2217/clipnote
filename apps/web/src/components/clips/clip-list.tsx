@@ -98,8 +98,13 @@ export function ClipList({
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-extrabold tracking-tight md:text-2xl">クリップ一覧</h1>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-extrabold tracking-tight md:text-2xl">クリップ一覧</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            HTML/Markdownで作成したコンテンツを保存し、公開設定や編集をここから管理します。
+          </p>
+        </div>
         <Button
           className="hidden h-auto px-5 py-3 shadow-[var(--shadow-accent)] md:inline-flex"
           onClick={() => setDialog({ type: "new" })}
