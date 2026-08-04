@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ByteCounter } from "@/components/clips/byte-counter";
-import { getUtf8ByteLength, looksMojibake, type ContentType } from "@/lib/validation";
+import { MAX_CONTENT_BYTES, getUtf8ByteLength, looksMojibake, type ContentType } from "@/lib/validation";
 import { cn } from "@/lib/utils";
 
 const EXTENSION_FORMAT: Record<string, ContentType> = {
@@ -22,6 +22,13 @@ function guessFormatFromExtension(fileName: string): ContentType | null {
   const ext = match?.[1]?.toLowerCase();
   if (!ext || !(ext in EXTENSION_FORMAT)) return null;
   return EXTENSION_FORMAT[ext];
+}
+
+// 拡張子が対象外の場合の警告文（設計書5-3節：ブロックせず警告のみ）。
+function hasRecognizedExtension(fileName: string): boolean {
+  const match = /\.([a-zA-Z0-9]+)$/.exec(fileName);
+  const ext = match?.[1]?.toLowerCase();
+  return !!ext && ext in EXTENSION_FORMAT;
 }
 
 // 選択中の形式と本文の食い違いを大まかに検知する（設計書5-1節：警告のみ、
@@ -51,8 +58,22 @@ export function ContentInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [autoDetected, setAutoDetected] = useState(false);
+  const [extensionWarning, setExtensionWarning] = useState(false);
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
 
   async function handleFile(file: File) {
+    setFileSizeError(null);
+
+    // 設計書5-3節：実際にテキストとして読み込む前に File.size で事前チェックする。
+    if (file.size > MAX_CONTENT_BYTES) {
+      setFileSizeError(
+        `ファイルサイズが上限（${MAX_CONTENT_BYTES.toLocaleString()} bytes）を超えています。`,
+      );
+      return;
+    }
+
+    setExtensionWarning(!hasRecognizedExtension(file.name));
+
     const text = await file.text();
     onContentChange(text);
 
@@ -149,6 +170,12 @@ export function ContentInput({
         )}
       </div>
 
+      {fileSizeError && <p className="text-xs text-destructive">{fileSizeError}</p>}
+      {extensionWarning && (
+        <p className="text-xs text-primary">
+          対応する拡張子（.html / .htm / .md / .markdown / .txt）以外のファイルです。
+        </p>
+      )}
       {mojibakeWarning && (
         <p className="text-xs text-primary">
           文字化けの可能性があります（UTF-8として正しく読み込めているか確認してください）。
