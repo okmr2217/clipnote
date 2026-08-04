@@ -4,11 +4,19 @@ import { useState } from "react";
 import { Link2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export function CopyUrlButton({ uuid, className }: { uuid: string; className?: string }) {
+export function CopyUrlButton({
+  uuid,
+  path = "p",
+  className,
+}: {
+  uuid: string;
+  path?: "p" | "c";
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
-    const url = `${window.location.origin}/p/${uuid}`;
+    const url = `${window.location.origin}/${path}/${uuid}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
