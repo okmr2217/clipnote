@@ -46,7 +46,7 @@ export function CollectionTable({
               <TableCell>
                 <Link
                   href={`/admin/collections/${collection.id}`}
-                  className="font-semibold text-foreground hover:text-primary"
+                  className="text-[15px] font-semibold text-foreground hover:text-primary"
                 >
                   {collection.name}
                 </Link>
@@ -61,7 +61,9 @@ export function CollectionTable({
                 />
               </TableCell>
               <TableCell>
-                <Badge variant="secondary">{collection.pageCount}件</Badge>
+                <Badge variant="secondary" className="bg-muted">
+                  {collection.pageCount}件
+                </Badge>
               </TableCell>
               <TableCell className="whitespace-nowrap text-muted-foreground">
                 {dateFormatter.format(collection.updatedAt)}

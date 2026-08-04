@@ -59,7 +59,7 @@ export function ClipTable({
                   href={`/p/${clip.id}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-semibold text-foreground hover:text-primary"
+                  className="text-[15px] font-semibold text-foreground hover:text-primary"
                 >
                   {clip.title}
                 </a>
