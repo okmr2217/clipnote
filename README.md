@@ -2,6 +2,11 @@
 
 AI生成のHTML/Markdownを保存・公開管理するツール。
 
+## URL
+
+- Web（管理画面・LP・公開ページ外枠）: https://clipnote.paritto.dev
+- コンテンツ配信（iframe内、直接アクセス不要）: https://content.clipnote.paritto.dev
+
 ## 構成
 
 pnpm workspace + turborepoによるモノレポです。

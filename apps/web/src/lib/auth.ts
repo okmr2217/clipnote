@@ -6,6 +6,11 @@ import { headers } from "next/headers";
 
 function createAuth(db: D1Database) {
   return betterAuth({
+    // Origin/CSRF検証（better-authのorigin-checkミドルウェア）がbaseURLの
+    // オリジンをtrustedOriginsへ組み込むため必須。未設定だとリクエストから
+    // 推測させることになり、Cloudflare Workers環境では正しく解決されず
+    // "Invalid origin"で全リクエストが弾かれることがある。
+    baseURL: process.env.BETTER_AUTH_URL,
     database: drizzleAdapter(createDb(db), {
       provider: "sqlite",
       schema,

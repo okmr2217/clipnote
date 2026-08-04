@@ -7,6 +7,11 @@
   // 設計書1章：Web本体ドメイン。Custom Domainsとしてparitto.devゾーンに接続する
   // （DNSレコード・SSL証明書はCloudflareが自動でプロビジョニングする）。
   "routes": [{ "pattern": "clipnote.paritto.dev", "custom_domain": true }],
+  // better-authのbaseURL解決に使う（src/lib/auth.ts参照）。origin-check
+  // ミドルウェアがこのオリジンをtrustedOriginsへ組み込むために必須。
+  "vars": {
+    "BETTER_AUTH_URL": "https://clipnote.paritto.dev"
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
