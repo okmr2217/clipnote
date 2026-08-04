@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VisibilityField } from "@/components/clips/visibility-field";
 import { CollectionMultiselect } from "@/components/clips/collection-multiselect";
-import type { Visibility } from "@/lib/validation";
+import type { Visibility } from "@clipnote/pages/validation";
 import type { ClipRow, CollectionOption } from "@/components/clips/types";
 
 export function EditMetadataDialog({

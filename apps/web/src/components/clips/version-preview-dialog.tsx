@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import type { ContentType } from "@/lib/validation";
+import type { ContentType } from "@clipnote/pages/validation";
 
 export type PreviewTarget = {
   label: string;

@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
-import { replacePageContent } from "@/lib/page-versions";
+import { replacePageContent } from "@clipnote/pages/page-versions";
 
 // 復元の流れ（設計書11章）：①復元前の現在の内容をpage_versionsへ退避
 // → ②選択したバージョンの内容でpages.contentをUPDATE

@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { Visibility } from "@/lib/validation";
+import type { Visibility } from "@clipnote/pages/validation";
 
 export function VisibilityField({
   value,

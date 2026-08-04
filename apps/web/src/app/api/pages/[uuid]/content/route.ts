@@ -3,8 +3,8 @@ import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
-import { getUtf8ByteLength, isContentType, validateContent } from "@/lib/validation";
-import { replacePageContent } from "@/lib/page-versions";
+import { getUtf8ByteLength, isContentType, validateContent } from "@clipnote/pages/validation";
+import { replacePageContent } from "@clipnote/pages/page-versions";
 
 export async function GET(
   _request: Request,

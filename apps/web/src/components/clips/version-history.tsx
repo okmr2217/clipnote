@@ -10,7 +10,7 @@ import { FormatBadge } from "@/components/clips/format-badge";
 import { VersionPreviewDialog, type PreviewTarget } from "@/components/clips/version-preview-dialog";
 import { RestoreVersionAlert } from "@/components/clips/restore-version-alert";
 import type { ClipDetail, PageVersionRow } from "@/components/clips/types";
-import type { ContentType } from "@/lib/validation";
+import type { ContentType } from "@clipnote/pages/validation";
 
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   year: "numeric",

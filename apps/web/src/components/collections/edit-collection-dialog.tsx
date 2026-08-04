@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { VisibilityField } from "@/components/clips/visibility-field";
-import type { Visibility } from "@/lib/validation";
+import type { Visibility } from "@clipnote/pages/validation";
 import type { CollectionDetail } from "@/components/collections/types";
 
 export function EditCollectionDialog({

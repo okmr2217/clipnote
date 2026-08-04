@@ -3,7 +3,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
-import { isVisibility } from "@/lib/validation";
+import { isVisibility } from "@clipnote/pages/validation";
 
 async function loadOwnedPage(
   db: Awaited<ReturnType<typeof getDb>>,

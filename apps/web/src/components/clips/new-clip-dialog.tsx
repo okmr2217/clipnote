@@ -15,7 +15,7 @@ import { ContentInput } from "@/components/clips/content-input";
 import { VisibilityField } from "@/components/clips/visibility-field";
 import { CollectionMultiselect } from "@/components/clips/collection-multiselect";
 import { ByteCounter } from "@/components/clips/byte-counter";
-import { getUtf8ByteLength, validateContent, type ContentType, type Visibility } from "@/lib/validation";
+import { getUtf8ByteLength, validateContent, type ContentType, type Visibility } from "@clipnote/pages/validation";
 import type { CollectionOption } from "@/components/clips/types";
 
 const ERROR_MESSAGES: Record<string, string> = {
