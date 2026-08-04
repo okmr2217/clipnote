@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { VisibilityToggle } from "@/components/clips/visibility-toggle";
 import { CopyUrlButton } from "@/components/clips/copy-url-button";
+import { CollectionOverflowMenu } from "@/components/collections/collection-overflow-menu";
 import type { CollectionSummary } from "@/components/collections/types";
 
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
@@ -13,9 +14,13 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
 export function CollectionCard({
   collections,
   onToggleVisibility,
+  onEdit,
+  onDelete,
 }: {
   collections: CollectionSummary[];
   onToggleVisibility: (collection: CollectionSummary) => void;
+  onEdit: (collection: CollectionSummary) => void;
+  onDelete: (collection: CollectionSummary) => void;
 }) {
   return (
     <div className="flex flex-col gap-3 md:hidden">
@@ -29,6 +34,10 @@ export function CollectionCard({
             <Badge variant="secondary" className="ml-auto bg-muted">
               {collection.pageCount}件
             </Badge>
+            <CollectionOverflowMenu
+              onEdit={() => onEdit(collection)}
+              onDelete={() => onDelete(collection)}
+            />
           </div>
           <Link
             href={`/admin/collections/${collection.id}`}
@@ -36,11 +45,9 @@ export function CollectionCard({
           >
             {collection.name}
           </Link>
-          {collection.description && (
-            <p className="mb-2.5 line-clamp-1 text-sm text-muted-foreground">
-              {collection.description}
-            </p>
-          )}
+          <p className="mb-2.5 line-clamp-1 text-sm text-muted-foreground">
+            {collection.description || "説明なし"}
+          </p>
           <div className="mb-3 text-xs font-medium text-muted-foreground">
             更新: {dateFormatter.format(collection.updatedAt)}
           </div>

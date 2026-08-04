@@ -14,6 +14,8 @@ import {
 import { CollectionTable } from "@/components/collections/collection-table";
 import { CollectionCard } from "@/components/collections/collection-card";
 import { NewCollectionDialog } from "@/components/collections/new-collection-dialog";
+import { EditCollectionDialog } from "@/components/collections/edit-collection-dialog";
+import { DeleteCollectionAlert } from "@/components/collections/delete-collection-alert";
 import type { CollectionSummary } from "@/components/collections/types";
 
 export function CollectionList({ collections }: { collections: CollectionSummary[] }) {
@@ -21,13 +23,11 @@ export function CollectionList({ collections }: { collections: CollectionSummary
   const [search, setSearch] = useState("");
   const [visibilityFilter, setVisibilityFilter] = useState("all");
   const [newOpen, setNewOpen] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<CollectionSummary | null>(null);
+  const [deletingCollection, setDeletingCollection] = useState<CollectionSummary | null>(null);
   const [optimisticVisibility, setOptimisticVisibility] = useState<
     Record<string, CollectionSummary["visibility"]>
   >({});
-
-  function refresh() {
-    router.refresh();
-  }
 
   const visibleCollections = useMemo(() => {
     return collections
@@ -121,12 +121,51 @@ export function CollectionList({ collections }: { collections: CollectionSummary
         </p>
       ) : (
         <>
-          <CollectionTable collections={visibleCollections} onToggleVisibility={handleToggleVisibility} />
-          <CollectionCard collections={visibleCollections} onToggleVisibility={handleToggleVisibility} />
+          <CollectionTable
+            collections={visibleCollections}
+            onToggleVisibility={handleToggleVisibility}
+            onEdit={setEditingCollection}
+            onDelete={setDeletingCollection}
+          />
+          <CollectionCard
+            collections={visibleCollections}
+            onToggleVisibility={handleToggleVisibility}
+            onEdit={setEditingCollection}
+            onDelete={setDeletingCollection}
+          />
         </>
       )}
 
-      <NewCollectionDialog open={newOpen} onOpenChange={setNewOpen} onCreated={refresh} />
+      <NewCollectionDialog
+        open={newOpen}
+        onOpenChange={setNewOpen}
+        onCreated={(id) => router.push(`/admin/collections/${id}?addClips=1`)}
+      />
+
+      {editingCollection && (
+        <EditCollectionDialog
+          collection={editingCollection}
+          open={editingCollection !== null}
+          onOpenChange={(open) => {
+            if (!open) setEditingCollection(null);
+          }}
+          onUpdated={() => {
+            setEditingCollection(null);
+            router.refresh();
+          }}
+        />
+      )}
+
+      {deletingCollection && (
+        <DeleteCollectionAlert
+          collectionId={deletingCollection.id}
+          collectionName={deletingCollection.name}
+          open={deletingCollection !== null}
+          onOpenChange={(open) => {
+            if (!open) setDeletingCollection(null);
+          }}
+        />
+      )}
     </div>
   );
 }

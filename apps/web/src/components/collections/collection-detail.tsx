@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { VisibilityToggle } from "@/components/clips/visibility-toggle";
+import { CopyUrlButton } from "@/components/clips/copy-url-button";
 import { EditCollectionDialog } from "@/components/collections/edit-collection-dialog";
 import { DeleteCollectionAlert } from "@/components/collections/delete-collection-alert";
 import { CollectionMembers } from "@/components/collections/collection-members";
@@ -18,10 +19,12 @@ export function CollectionDetail({
   collection: initialCollection,
   initialMembers,
   clipOptions,
+  initialAddClipsOpen = false,
 }: {
   collection: CollectionDetailData;
   initialMembers: CollectionMemberClip[];
   clipOptions: ClipOption[];
+  initialAddClipsOpen?: boolean;
 }) {
   const [collection, setCollection] = useState(initialCollection);
   const [members, setMembers] = useState(initialMembers);
@@ -56,8 +59,21 @@ export function CollectionDetail({
       <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="mb-3">
+            <div className="mb-3 flex items-center gap-2">
               <VisibilityToggle visibility={collection.visibility} onToggle={handleToggleVisibility} />
+              {collection.visibility === "public" && (
+                <>
+                  <CopyUrlButton uuid={collection.id} path="c" />
+                  <a
+                    href={`/c/${collection.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-secondary-foreground hover:text-foreground"
+                  >
+                    公開ページで見る <ExternalLinkIcon className="size-3.5" />
+                  </a>
+                </>
+              )}
             </div>
             <h1 className="text-2xl font-extrabold tracking-tight">{collection.name}</h1>
             {collection.description && (
@@ -80,6 +96,7 @@ export function CollectionDetail({
         members={members}
         onMembersChange={setMembers}
         clipOptions={clipOptions}
+        initialAddClipsOpen={initialAddClipsOpen}
       />
 
       <EditCollectionDialog

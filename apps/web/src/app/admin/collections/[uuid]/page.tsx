@@ -1,5 +1,5 @@
 import { collectionPages, collections, pages } from "@clipnote/db/schema";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getAuth } from "@/lib/auth";
@@ -9,10 +9,13 @@ import type { ClipOption, CollectionMemberClip } from "@/components/collections/
 
 export default async function AdminCollectionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ uuid: string }>;
+  searchParams: Promise<{ addClips?: string }>;
 }) {
   const { uuid } = await params;
+  const { addClips } = await searchParams;
 
   // AdminLayoutが未認証を弾いているため、ここではセッションは存在する前提。
   const auth = await getAuth();
@@ -45,7 +48,8 @@ export default async function AdminCollectionDetailPage({
     db
       .select({ id: pages.id, title: pages.title, contentType: pages.contentType })
       .from(pages)
-      .where(eq(pages.userId, userId)),
+      .where(eq(pages.userId, userId))
+      .orderBy(desc(pages.updatedAt)),
   ]);
 
   const members: CollectionMemberClip[] = memberRows;
@@ -64,6 +68,7 @@ export default async function AdminCollectionDetailPage({
           }}
           initialMembers={members}
           clipOptions={clipOptions}
+          initialAddClipsOpen={addClips === "1"}
         />
       </div>
     </main>

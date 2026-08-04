@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment, useState } from "react";
 import {
   DndContext,
   KeyboardSensor,
@@ -8,6 +9,8 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragOverEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -82,9 +85,27 @@ export function DesktopMemberList({
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+
+  const activeIndex = activeId ? members.findIndex((member) => member.id === activeId) : -1;
+  const overIndex = overId ? members.findIndex((member) => member.id === overId) : -1;
+  const showIndicatorBefore = overIndex !== -1 && activeIndex !== -1 && overIndex < activeIndex;
+  const showIndicatorAfter = overIndex !== -1 && activeIndex !== -1 && overIndex > activeIndex;
+
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(String(event.active.id));
+  }
+
+  function handleDragOver(event: DragOverEvent) {
+    const { active, over } = event;
+    setOverId(over && over.id !== active.id ? String(over.id) : null);
+  }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
+    setActiveId(null);
+    setOverId(null);
     if (!over || active.id === over.id) return;
 
     const oldIndex = members.findIndex((member) => member.id === active.id);
@@ -92,6 +113,11 @@ export function DesktopMemberList({
     if (oldIndex === -1 || newIndex === -1) return;
 
     onReorder(arrayMove(members, oldIndex, newIndex).map((member) => member.id));
+  }
+
+  function handleDragCancel() {
+    setActiveId(null);
+    setOverId(null);
   }
 
   return (
@@ -103,16 +129,27 @@ export function DesktopMemberList({
         id="collection-member-dnd"
         sensors={sensors}
         collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <SortableContext items={members.map((member) => member.id)} strategy={verticalListSortingStrategy}>
           <ul className="flex flex-col gap-2">
             {members.map((member) => (
-              <SortableRow key={member.id} member={member} onRemove={() => onRemove(member.id)} />
+              <Fragment key={member.id}>
+                {member.id === overId && showIndicatorBefore && <DropIndicator />}
+                <SortableRow member={member} onRemove={() => onRemove(member.id)} />
+                {member.id === overId && showIndicatorAfter && <DropIndicator />}
+              </Fragment>
             ))}
           </ul>
         </SortableContext>
       </DndContext>
     </div>
   );
+}
+
+function DropIndicator() {
+  return <li aria-hidden className="h-0.5 rounded-full bg-primary" />;
 }

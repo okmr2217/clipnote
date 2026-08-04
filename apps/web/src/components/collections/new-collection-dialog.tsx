@@ -22,7 +22,7 @@ export function NewCollectionDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: () => void;
+  onCreated: (id: string) => void;
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -56,9 +56,10 @@ export function NewCollectionDialog({
       return;
     }
 
+    const body = (await response.json()) as { id: string };
     reset();
     onOpenChange(false);
-    onCreated();
+    onCreated(body.id);
   }
 
   return (

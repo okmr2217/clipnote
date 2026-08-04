@@ -13,13 +13,15 @@ export function CollectionMembers({
   members,
   onMembersChange,
   clipOptions,
+  initialAddClipsOpen = false,
 }: {
   collectionId: string;
   members: CollectionMemberClip[];
   onMembersChange: (members: CollectionMemberClip[]) => void;
   clipOptions: ClipOption[];
+  initialAddClipsOpen?: boolean;
 }) {
-  const [addOpen, setAddOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(initialAddClipsOpen);
   const [mobileReordering, setMobileReordering] = useState(false);
 
   // ドラッグ操作／並び替えモードの完了時点でまとめて1回だけAPIを呼ぶ
