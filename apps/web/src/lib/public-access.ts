@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { collectionPages, collections, pages } from "@clipnote/db/schema";
+import { collectionPages, collections, pages, users } from "@clipnote/db/schema";
 import { and, asc, eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
@@ -23,8 +23,13 @@ export const loadPublicPage = cache(async (uuid: string) => {
 export const loadPublicCollection = cache(async (uuid: string) => {
   const user = await requireSessionUser();
   const db = await getDb();
-  const [collection] = await db.select().from(collections).where(eq(collections.id, uuid));
-  if (!collection) return null;
+  const [row] = await db
+    .select({ collection: collections, ownerName: users.name })
+    .from(collections)
+    .innerJoin(users, eq(collections.userId, users.id))
+    .where(eq(collections.id, uuid));
+  if (!row) return null;
+  const { collection, ownerName } = row;
   if (collection.visibility === "private" && collection.userId !== user?.id) return null;
 
   const isOwner = collection.userId === user?.id;
@@ -37,6 +42,7 @@ export const loadPublicCollection = cache(async (uuid: string) => {
       id: pages.id,
       title: pages.title,
       contentType: pages.contentType,
+      updatedAt: pages.updatedAt,
       sortOrder: collectionPages.sortOrder,
     })
     .from(collectionPages)
@@ -49,5 +55,5 @@ export const loadPublicCollection = cache(async (uuid: string) => {
     )
     .orderBy(asc(collectionPages.sortOrder));
 
-  return { collection, viewerUserId: user?.id ?? null, isOwner, members: memberRows };
+  return { collection, ownerName, viewerUserId: user?.id ?? null, isOwner, members: memberRows };
 });

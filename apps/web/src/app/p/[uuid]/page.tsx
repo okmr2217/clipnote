@@ -37,7 +37,7 @@ export default async function PublicClipPage({
   const contentOrigin = getContentOrigin();
 
   return (
-    <div className="flex min-h-full flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <PublicHeader title={page.title} visibility={page.visibility} />
 
       <main className="flex-1">

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-// /p/[uuid]・/c/[uuid]共通のヘッダー（Claude Designハンドオフバンドル
+// /p/[uuid]用のヘッダー（Claude Designハンドオフバンドル
 // 「Clipnote Public Clip Page」に準拠）。管理画面のAdminHeaderとは別に
-// 独自のトンマナで実装する（設計書2章）。
+// 独自のトンマナで実装する（設計書2章）。/c/[uuid]は独自の見た目のため
+// 下のPublicCollectionHeaderを使う。
 export function PublicHeader({
   title,
   visibility,
@@ -32,6 +33,43 @@ export function PublicHeader({
             )}
           >
             {isPublic ? "公開" : "非公開"}
+          </span>
+        </div>
+
+        <Link
+          href="/"
+          className="hidden shrink-0 rounded-full bg-muted px-4 py-2 text-[13px] font-bold whitespace-nowrap text-secondary-foreground hover:text-foreground sm:inline-flex"
+        >
+          Clipnoteとは ↗
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+// /c/[uuid]用のヘッダー（Claude Designハンドオフバンドル
+// 「Clipnote Public Collection Page」に準拠）。コレクション自体のタイトルは
+// 下のヒーローセクションで大きく見せるため、ヘッダーには所有者アバターと
+// 「◯◯のコレクション」という控えめなラベルのみを置く。
+export function PublicCollectionHeader({ ownerName }: { ownerName: string }) {
+  const initial = ownerName.trim().charAt(0).toUpperCase() || "?";
+
+  return (
+    <header className="border-b border-border bg-card">
+      <div className="mx-auto flex max-w-[1160px] items-center justify-between gap-4 px-4 py-5 md:px-8">
+        <Link
+          href="/"
+          className="shrink-0 text-xl font-extrabold tracking-tight text-foreground md:text-[22px]"
+        >
+          Clip<span className="text-primary">note</span>
+        </Link>
+
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-primary-foreground">
+            {initial}
+          </span>
+          <span className="truncate text-[13px] font-semibold whitespace-nowrap text-secondary-foreground">
+            {ownerName}のコレクション
           </span>
         </div>
 
