@@ -89,7 +89,7 @@ export function ContentInput({
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={cn(
-          "rounded-xl border-2 border-dashed border-accent bg-background p-4 transition-colors",
+          "rounded-xl border-2 border-dashed border-accent bg-background p-5 transition-colors sm:p-7",
           isDragging && "bg-accent/20",
         )}
       >
@@ -106,7 +106,7 @@ export function ContentInput({
           <Button
             type="button"
             variant="secondary"
-            size="sm"
+            className="h-auto px-4.5 py-2.5 text-[13px]"
             onClick={() => fileInputRef.current?.click()}
           >
             ファイルを選択
@@ -125,7 +125,7 @@ export function ContentInput({
         </div>
       </div>
 
-      <div className="flex items-center gap-5">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <Label className="text-sm font-bold">形式</Label>
         <RadioGroup
           value={contentType}
@@ -133,17 +133,19 @@ export function ContentInput({
             onContentTypeChange(value as ContentType);
             setAutoDetected(false);
           }}
-          className="grid-flow-col items-center gap-5"
+          className="w-auto grid-flow-col items-center gap-5"
         >
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <label className="flex cursor-pointer items-center gap-2 text-sm whitespace-nowrap">
             <RadioGroupItem value="html" /> HTML
           </label>
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <label className="flex cursor-pointer items-center gap-2 text-sm whitespace-nowrap">
             <RadioGroupItem value="markdown" /> Markdown
           </label>
         </RadioGroup>
         {autoDetected && (
-          <span className="ml-auto text-xs text-muted-foreground">自動判定されました</span>
+          <span className="ml-auto text-xs whitespace-nowrap text-muted-foreground">
+            自動判定されました
+          </span>
         )}
       </div>
 

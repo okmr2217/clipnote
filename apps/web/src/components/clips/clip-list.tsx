@@ -101,7 +101,7 @@ export function ClipList({
     <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold tracking-tight">クリップ一覧</h1>
-        <Button onClick={() => setDialog({ type: "new" })}>
+        <Button className="h-auto px-5 py-3 shadow-[var(--shadow-accent)]" onClick={() => setDialog({ type: "new" })}>
           <PlusIcon /> 新規クリップ
         </Button>
       </div>
@@ -111,10 +111,10 @@ export function ClipList({
           placeholder="タイトルで検索"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          className="min-w-56 flex-1 rounded-full"
+          className="h-auto min-w-56 flex-1 rounded-full bg-background px-4 py-2.5"
         />
         <Select value={formatFilter} onValueChange={(value) => setFormatFilter(value ?? "all")}>
-          <SelectTrigger size="sm" className="rounded-full bg-secondary text-secondary-foreground">
+          <SelectTrigger className="h-auto rounded-full bg-secondary px-4 py-2.5 text-[13px] font-semibold text-secondary-foreground">
             <SelectValue placeholder="形式" />
           </SelectTrigger>
           <SelectContent>
@@ -124,7 +124,7 @@ export function ClipList({
           </SelectContent>
         </Select>
         <Select value={visibilityFilter} onValueChange={(value) => setVisibilityFilter(value ?? "all")}>
-          <SelectTrigger size="sm" className="rounded-full bg-secondary text-secondary-foreground">
+          <SelectTrigger className="h-auto rounded-full bg-secondary px-4 py-2.5 text-[13px] font-semibold text-secondary-foreground">
             <SelectValue placeholder="公開設定" />
           </SelectTrigger>
           <SelectContent>
@@ -135,7 +135,7 @@ export function ClipList({
         </Select>
         {collectionOptions.length > 0 && (
           <Select value={collectionFilter} onValueChange={(value) => setCollectionFilter(value ?? "all")}>
-            <SelectTrigger size="sm" className="rounded-full bg-secondary text-secondary-foreground">
+            <SelectTrigger className="h-auto rounded-full bg-secondary px-4 py-2.5 text-[13px] font-semibold text-secondary-foreground">
               <SelectValue placeholder="コレクション" />
             </SelectTrigger>
             <SelectContent>

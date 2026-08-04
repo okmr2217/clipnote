@@ -83,7 +83,7 @@ export function UpdateContentDialog({
 
   return (
     <Dialog open={clip !== null} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-3xl sm:max-w-lg">
+      <DialogContent className="max-w-lg gap-5 rounded-3xl p-6 sm:max-w-lg sm:p-8">
         <DialogHeader>
           <DialogTitle className="text-xl font-extrabold">クリップ本文の差し替え</DialogTitle>
         </DialogHeader>
@@ -112,11 +112,21 @@ export function UpdateContentDialog({
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <DialogFooter className="border-none bg-transparent p-0">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <DialogFooter className="mx-0 mb-0 border-none bg-transparent p-0">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-auto px-6 py-3"
+                onClick={() => onOpenChange(false)}
+              >
                 キャンセル
               </Button>
-              <Button type="button" variant="destructive" onClick={handleReviewClick}>
+              <Button
+                type="button"
+                variant="destructive"
+                className="h-auto px-6 py-3"
+                onClick={handleReviewClick}
+              >
                 内容を確認して更新
               </Button>
             </DialogFooter>
@@ -127,10 +137,11 @@ export function UpdateContentDialog({
               本当にこのクリップの本文を差し替えますか？現在の本文は更新履歴に保存されたうえで上書きされます。
             </p>
 
-            <DialogFooter className="border-none bg-transparent p-0">
+            <DialogFooter className="mx-0 mb-0 border-none bg-transparent p-0">
               <Button
                 type="button"
                 variant="outline"
+                className="h-auto px-6 py-3"
                 onClick={() => setStep("form")}
                 disabled={submitting}
               >
@@ -139,6 +150,7 @@ export function UpdateContentDialog({
               <Button
                 type="button"
                 variant="destructive"
+                className="h-auto px-6 py-3"
                 onClick={handleConfirm}
                 disabled={submitting}
               >

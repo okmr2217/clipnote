@@ -59,7 +59,7 @@ export default async function AdminPage() {
   }));
 
   return (
-    <main className="min-h-full bg-background px-4 py-8 md:px-8 md:py-12">
+    <main className="px-4 py-8 md:px-8 md:py-12">
       <div className="mx-auto max-w-6xl">
         <ClipList clips={clips} collectionOptions={collectionOptions as CollectionOption[]} />
       </div>

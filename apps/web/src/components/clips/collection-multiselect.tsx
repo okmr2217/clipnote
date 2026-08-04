@@ -33,7 +33,7 @@ export function CollectionMultiselect({
 
   return (
     <Popover>
-      <PopoverTrigger className="flex min-h-8 w-full flex-wrap items-center gap-1.5 rounded-md border border-input bg-transparent px-2.5 py-1.5 text-left text-sm">
+      <PopoverTrigger className="flex min-h-11 w-full flex-wrap items-center gap-2 rounded-md border border-input bg-background px-3 py-2.5 text-left text-sm">
         {selected.map((option) => (
           <Badge key={option.id} variant="secondary" className="gap-1">
             {option.name}
@@ -49,7 +49,7 @@ export function CollectionMultiselect({
             </button>
           </Badge>
         ))}
-        <span className="text-muted-foreground">コレクションを選択 ▾</span>
+        <span className="whitespace-nowrap text-muted-foreground">コレクションを選択 ▾</span>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-(--anchor-width) min-w-64">
         <Input

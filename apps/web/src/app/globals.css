@@ -74,6 +74,12 @@
   --border: #e8dcd0;
   --input: #e8dcd0;
   --ring: #c1503a;
+  /* Clipnote Authハンドオフバンドル：サーバーエラーバナー専用の淡色トーン
+     （既存の--destructiveは汎用の赤で、バンドルのテラコッタ寄りの配色とは
+     別値のため個別トークンとして追加）。 */
+  --auth-error-bg: #fbeae6;
+  --auth-error-border: #e4a996;
+  --auth-error-foreground: #a0432e;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);

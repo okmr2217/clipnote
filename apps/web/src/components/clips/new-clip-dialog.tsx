@@ -94,7 +94,7 @@ export function NewClipDialog({
         onOpenChange(next);
       }}
     >
-      <DialogContent className="max-w-lg rounded-3xl sm:max-w-lg">
+      <DialogContent className="max-w-lg gap-5 rounded-3xl p-6 sm:max-w-lg sm:p-8">
         <DialogHeader>
           <DialogTitle className="text-xl font-extrabold">新規クリップ登録</DialogTitle>
         </DialogHeader>
@@ -121,6 +121,7 @@ export function NewClipDialog({
               setTitle(event.target.value);
               setTitleTouched(true);
             }}
+            className="h-auto rounded-md bg-background px-3.5 py-3"
           />
         </div>
 
@@ -142,11 +143,21 @@ export function NewClipDialog({
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <DialogFooter className="border-none bg-transparent p-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="mx-0 mb-0 border-none bg-transparent p-0">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-auto px-6 py-3"
+            onClick={() => onOpenChange(false)}
+          >
             キャンセル
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={submitting}>
+          <Button
+            type="button"
+            className="h-auto px-6 py-3 shadow-[var(--shadow-accent)]"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
             登録
           </Button>
         </DialogFooter>

@@ -66,7 +66,7 @@ export function EditMetadataDialog({
 
   return (
     <Dialog open={clip !== null} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-3xl sm:max-w-md">
+      <DialogContent className="max-w-md gap-5 rounded-3xl p-6 sm:max-w-md sm:p-8">
         <DialogHeader>
           <DialogTitle className="text-xl font-extrabold">クリップ情報を編集</DialogTitle>
         </DialogHeader>
@@ -79,6 +79,7 @@ export function EditMetadataDialog({
             id="edit-clip-title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
+            className="h-auto rounded-md bg-background px-3.5 py-3"
           />
         </div>
 
@@ -98,11 +99,21 @@ export function EditMetadataDialog({
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
-        <DialogFooter className="border-none bg-transparent p-0">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="mx-0 mb-0 border-none bg-transparent p-0">
+          <Button
+            type="button"
+            variant="outline"
+            className="h-auto px-6 py-3"
+            onClick={() => onOpenChange(false)}
+          >
             キャンセル
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={submitting}>
+          <Button
+            type="button"
+            className="h-auto px-6 py-3 shadow-[var(--shadow-accent)]"
+            onClick={handleSubmit}
+            disabled={submitting}
+          >
             保存
           </Button>
         </DialogFooter>

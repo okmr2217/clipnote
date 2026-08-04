@@ -5,35 +5,60 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { AuthCard } from "@/components/auth/auth-card";
+import { AuthErrorBanner } from "@/components/auth/auth-error-banner";
+import { AuthField } from "@/components/auth/auth-field";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type FieldErrors = {
+  name?: string;
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+};
 
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function validate(): FieldErrors {
+    const errors: FieldErrors = {};
+    if (name.trim().length === 0) errors.name = "名前を入力してください";
+    if (!EMAIL_RE.test(email)) errors.email = "有効なメールアドレスを入力してください";
+    if (password.length < 8) errors.password = "パスワードは8文字以上で入力してください";
+    if (confirmPassword !== password) errors.confirmPassword = "パスワードが一致しません";
+    return errors;
+  }
+
+  function clearFieldError(field: keyof FieldErrors) {
+    setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
+    setServerError(null);
+
+    const errors = validate();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     setIsSubmitting(true);
-
-    const { error: signUpError } = await authClient.signUp.email({ name, email, password });
-
+    const { error } = await authClient.signUp.email({ name, email, password });
     setIsSubmitting(false);
 
-    if (signUpError) {
-      setError(signUpError.message ?? "登録に失敗しました");
+    if (error) {
+      setServerError(
+        error.status === 422
+          ? "このメールアドレスは既に登録されています"
+          : "登録に失敗しました。時間をおいて再度お試しください。",
+      );
       return;
     }
 
@@ -41,63 +66,70 @@ export default function SignupPage() {
   }
 
   return (
-    <main className="flex min-h-full flex-1 items-center justify-center bg-background px-4 py-12">
-      <Card className="w-full max-w-sm rounded-3xl border-border shadow-[var(--shadow-card)]">
-        <CardHeader className="text-center">
-          <div className="mb-1 text-lg font-extrabold tracking-tight">Clipnote</div>
-          <CardTitle className="text-xl font-extrabold">新規登録</CardTitle>
-          <CardDescription>AI生成のHTML/Markdownを保存・公開しましょう</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="name">名前</Label>
-              <Input
-                id="name"
-                type="text"
-                required
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="email">メールアドレス</Label>
-              <Input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="password">パスワード</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
-            </div>
-            {error ? (
-              <p role="alert" className="text-sm text-destructive">
-                {error}
-              </p>
-            ) : null}
-            <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
-              登録
-            </Button>
-          </form>
-          <p className="mt-6 text-center text-sm text-muted-foreground">
-            すでにアカウントをお持ちの方は{" "}
-            <Link href="/login" className="font-semibold text-primary hover:underline">
-              ログイン
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </main>
+    <AuthCard>
+      {serverError && <AuthErrorBanner message={serverError} />}
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        <AuthField
+          id="name"
+          label="名前"
+          type="text"
+          value={name}
+          error={fieldErrors.name}
+          onChange={(event) => {
+            setName(event.target.value);
+            clearFieldError("name");
+          }}
+        />
+        <AuthField
+          id="email"
+          label="メールアドレス"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          error={fieldErrors.email}
+          onChange={(event) => {
+            setEmail(event.target.value);
+            clearFieldError("email");
+          }}
+        />
+        <AuthField
+          id="password"
+          label="パスワード"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          error={fieldErrors.password}
+          onChange={(event) => {
+            setPassword(event.target.value);
+            clearFieldError("password");
+          }}
+        />
+        <AuthField
+          id="confirm-password"
+          label="パスワード（確認）"
+          type="password"
+          placeholder="••••••••"
+          value={confirmPassword}
+          error={fieldErrors.confirmPassword}
+          onChange={(event) => {
+            setConfirmPassword(event.target.value);
+            clearFieldError("confirmPassword");
+          }}
+        />
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+          className="mt-2 h-auto w-full py-3.5 shadow-[var(--shadow-accent)]"
+        >
+          アカウントを作成
+        </Button>
+      </form>
+      <p className="mt-[22px] text-center text-[13px] font-medium text-secondary-foreground">
+        既にアカウントをお持ちの方は{" "}
+        <Link href="/login" className="font-bold text-primary hover:text-accent-foreground">
+          ログイン
+        </Link>
+      </p>
+    </AuthCard>
   );
 }
