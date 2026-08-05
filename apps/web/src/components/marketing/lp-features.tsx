@@ -1,20 +1,23 @@
-import { ClipboardPasteIcon, Link2Icon, LayersIcon } from "lucide-react";
+import { ClipboardPasteIcon, Link2Icon, HistoryIcon } from "lucide-react";
 
 const FEATURES = [
   {
     icon: ClipboardPasteIcon,
-    title: "貼り付けて、保存。",
-    description: "エディタ不要。テキストもファイルも、そのまま貼るだけ。",
+    title: "AIが作ったものを、そのまま保存。",
+    description:
+      "Claudeとの会話で生成したHTMLやMarkdownを、貼り付けるだけ、あるいはMCP経由で会話からそのまま保存。エディタや変換作業は不要です。",
   },
   {
     icon: Link2Icon,
-    title: "URLで、共有。",
-    description: "公開設定を選べば、共有用URLが自動で発行されます。",
+    title: "ブラウザでそのまま開けるURLに。",
+    description:
+      "PrivateかPublicかを選べば、共有用URLが自動発行。受け取った相手はコードを見ることなく、ブラウザでそのまま開けます。",
   },
   {
-    icon: LayersIcon,
-    title: "まとめて、公開。",
-    description: "複数のクリップを束ねて、ひとつのURLに。",
+    icon: HistoryIcon,
+    title: "更新しても、消えない。",
+    description:
+      "内容を上書きしても過去のバージョンは自動で保存され、いつでも復元・ダウンロードできます。",
   },
 ];
 
