@@ -31,12 +31,12 @@ pnpm workspace + turborepoによるモノレポです。
 ```bash
 pnpm install
 cp apps/web/.env.example apps/web/.env.local
-pnpm --filter @clipnote/db db:create:local
+cp apps/content/.dev.vars.example apps/content/.dev.vars
 pnpm --filter @clipnote/db db:migrate:local
 pnpm dev
 ```
 
-開発サーバー・デプロイ手順の詳細は [docs/development.md](./docs/development.md) を参照してください。
+環境変数の値の設定方法・開発サーバー・デプロイ手順の詳細は [docs/development.md](./docs/development.md) を参照してください。
 
 ## ドキュメント
 
