@@ -16,6 +16,10 @@ const FAQS = [
     q: "内容を間違えて上書きしてしまったら？",
     a: "過去のバージョンはいつでも復元・ダウンロードできるので安心です。",
   },
+  {
+    q: "ChatGPTでも使えますか？",
+    a: "現在はClaude（Claude Desktop・Claude Code・claude.ai）のMCP連携に対応しています。他のAIツールへの対応は今後検討予定です。",
+  },
 ];
 
 export function LpFaq() {

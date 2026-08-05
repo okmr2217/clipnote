@@ -21,7 +21,7 @@ export function LpHero() {
           ちゃんと残せる場所に。
         </h1>
         <p className="mt-6 max-w-[440px] text-[17px] leading-[1.8] text-secondary-foreground">
-          AIとの会話で生成したHTML/Markdownを、貼り付けるだけで保存。URLを発行してすぐに共有できます。
+          AIとの会話で生成したHTML/Markdownを、貼り付けるだけで保存。Claudeとつなげば、会話からそのまま保存もできます。URLを発行してすぐに共有できます。
         </p>
         <Link
           href="/signup"
