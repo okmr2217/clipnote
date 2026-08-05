@@ -5,7 +5,7 @@ import { PublicFooter } from "@/components/public/public-footer";
 import { PublicHeader } from "@/components/public/public-header";
 import { getContentOrigin, issueContentToken } from "@/lib/content-token";
 import { buildPublicMetadata } from "@/lib/public-metadata";
-import { loadPublicPage } from "@/lib/public-access";
+import { loadPublicCollection, loadPublicPage } from "@/lib/public-access";
 
 export async function generateMetadata({
   params,
@@ -23,10 +23,13 @@ export async function generateMetadata({
 
 export default async function PublicClipPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ uuid: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { uuid } = await params;
+  const { from } = await searchParams;
   const result = await loadPublicPage(uuid);
   if (!result) {
     notFound();
@@ -36,9 +39,22 @@ export default async function PublicClipPage({
   const token = await issueContentToken(uuid, viewerUserId);
   const contentOrigin = getContentOrigin();
 
+  // クリップは複数コレクションに属しうる（多対1に限定されない）ため、遷移元
+  // コレクションはクエリパラメータで受け取り、所属コレクション一覧からは推測
+  // しない。loadPublicCollectionの可視性チェックに乗せ、非公開コレクション
+  // の存在を漏らさないようにした上で、このクリップが実際にメンバーである
+  // 場合のみ「戻る」リンクを出す。
+  let fromCollection: { id: string; name: string } | null = null;
+  if (from) {
+    const collectionResult = await loadPublicCollection(from);
+    if (collectionResult && collectionResult.members.some((member) => member.id === uuid)) {
+      fromCollection = { id: collectionResult.collection.id, name: collectionResult.collection.name };
+    }
+  }
+
   return (
     <div className="flex min-h-dvh flex-col bg-background">
-      <PublicHeader title={page.title} visibility={page.visibility} />
+      <PublicHeader title={page.title} visibility={page.visibility} fromCollection={fromCollection} />
 
       <main className="flex-1">
         {/* HTML・Markdownどちらもヘッダー直下からエッジtoエッジで表示する。

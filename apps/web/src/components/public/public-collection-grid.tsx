@@ -36,8 +36,10 @@ function ContentTypeTag({ contentType }: { contentType: ContentType }) {
 
 export function PublicCollectionGrid({
   members,
+  collectionId,
 }: {
   members: { id: string; title: string; contentType: ContentType; updatedAt: Date }[];
+  collectionId: string;
 }) {
   if (members.length === 0) {
     return (
@@ -52,7 +54,7 @@ export function PublicCollectionGrid({
       {members.map((member) => (
         <li key={member.id}>
           <Link
-            href={`/p/${member.id}`}
+            href={`/p/${member.id}?from=${collectionId}`}
             className="group flex h-full flex-col gap-3.5 rounded-2xl border border-border bg-card p-[22px] shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_16px_32px_-16px_rgba(43,35,32,0.22)]"
           >
             <ContentTypeTag contentType={member.contentType} />

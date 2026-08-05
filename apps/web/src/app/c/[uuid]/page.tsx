@@ -69,7 +69,7 @@ export default async function PublicCollectionPage({
         </section>
 
         <section className="mx-auto max-w-[960px] px-4 py-10 md:px-8 md:py-12">
-          <PublicCollectionGrid members={members} />
+          <PublicCollectionGrid members={members} collectionId={collection.id} />
         </section>
       </main>
 
