@@ -45,7 +45,7 @@ export function LpMcp() {
               </span>
             </div>
             <Link
-              href="/signup?redirect=%2Fadmin%2Fapi-keys"
+              href="/signup?redirect=%2Fadmin%2Fmcp"
               className="mt-7 inline-block rounded-xl bg-primary px-[30px] py-[15px] text-[15px] font-bold text-primary-foreground shadow-[var(--shadow-accent)]"
             >
               無料で始めてMCP連携する

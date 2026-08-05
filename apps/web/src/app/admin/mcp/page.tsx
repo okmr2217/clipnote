@@ -9,7 +9,7 @@ import { ConnectedAppList } from "@/components/connected-apps/connected-app-list
 import type { ConnectedAppRow } from "@/components/connected-apps/types";
 import { McpConnectGuide } from "@/components/mcp-connect/mcp-connect-guide";
 
-export default async function ApiKeysPage() {
+export default async function McpPage() {
   // AdminLayoutが未認証を弾いているため、ここではセッションは存在する前提。
   const auth = await getAuth();
   const session = await auth.api.getSession({ headers: await headers() });
@@ -43,8 +43,13 @@ export default async function ApiKeysPage() {
 
   return (
     <main className="px-4 py-8 md:px-8 md:py-12">
-      <div className="mx-auto max-w-6xl">
-        <h1 className="mb-6 text-xl font-extrabold tracking-tight md:text-2xl">MCP連携</h1>
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-6">
+          <h1 className="text-xl font-extrabold tracking-tight md:text-2xl">MCP連携</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            ClaudeなどのMCP対応クライアントからClipnoteのクリップを操作できるようにします。
+          </p>
+        </div>
         <McpConnectGuide />
         <ApiKeyList apiKeys={rows as ApiKeyRow[]} />
         <ConnectedAppList

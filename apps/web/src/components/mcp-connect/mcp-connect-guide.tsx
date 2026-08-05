@@ -30,7 +30,7 @@ function Step({ n, children }: { n: number; children: React.ReactNode }) {
 
 export function McpConnectGuide() {
   return (
-    <div className="mb-10 rounded-2xl border border-border bg-card p-5 md:p-7">
+    <div className="rounded-2xl border border-border bg-card p-5 md:p-7">
       <h2 className="text-lg font-extrabold tracking-tight md:text-xl">Claudeと接続する</h2>
       <p className="mt-1.5 text-sm text-muted-foreground">
         使っているClaudeの種類に合わせて、接続方法を選んでください。
