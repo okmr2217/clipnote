@@ -1,6 +1,9 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-const FROM = { email: "noreply@clipnote.paritto.dev", name: "Clipnote" };
+// Cloudflare Email Sendingはparitto.devゾーン単位で有効化されており、
+// clipnote.paritto.devサブドメインのfromアドレスはemail.invalidで拒否される
+// ため、送信元はルートドメインを使う。
+const FROM = { email: "noreply@paritto.dev", name: "Clipnote" };
 
 // paritto.dev未有効化のCloudflare Email Sendingを前提にせず、開発時は実送信
 // せずコンソールにリンクを出す（本番切り替えはNODE_ENVのみで行う）。
