@@ -1,10 +1,11 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { StreamableHTTPTransport } from "@hono/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { and, desc, eq, like } from "drizzle-orm";
 import { createDb, schema } from "@clipnote/db";
-import { hashApiKey } from "@clipnote/auth";
+import { API_KEY_PREFIX, hashApiKey } from "@clipnote/auth";
+import { oauthProviderResourceClient } from "@better-auth/oauth-provider/resource-client";
 import { getUtf8ByteLength, MAX_CONTENT_BYTES, validateContent } from "@clipnote/pages/validation";
 import { replacePageContent } from "@clipnote/pages/page-versions";
 
@@ -15,11 +16,46 @@ interface Variables {
   userId: string;
 }
 
-const app = new Hono<{ Bindings: Env; Variables: Variables }>();
+type AppEnv = { Bindings: Env; Variables: Variables };
+
+const app = new Hono<AppEnv>();
 
 // クリップが存在しない場合と他ユーザー所有の場合を同一メッセージにし、
 // 他ユーザーのクリップの存在を推測されないようにする（設計書4-7節・13-5節）。
 const NOT_FOUND_MESSAGE = "指定されたクリップが見つかりません。";
+
+// OAuth 2.1認可サーバー（apps/web、設計書4-7節・13章）。apps/mcpはResource
+// Serverとして、ここが発行したJWTアクセストークンをJWKS経由でローカル検証
+// するだけで、認可コード・トークン発行・DBテーブル（oauth_*）には一切触れ
+// ない。
+// better-authのissuerは baseURL + basePath（既定 /api/auth）になる（実際に
+// GET /.well-known/oauth-authorization-serverのissuerフィールドで確認済み）。
+// JWTのiss検証・Protected Resource Metadataのauthorization_serversは、この
+// 完全なissuer文字列と一致させる必要がある。
+const AUTH_SERVER_ISSUER = "https://clipnote.paritto.dev/api/auth";
+const RESOURCE_URL = "https://mcp.clipnote.paritto.dev";
+const PROTECTED_RESOURCE_METADATA_PATH = "/.well-known/oauth-protected-resource";
+
+const { verifyAccessToken, getProtectedResourceMetadata } = oauthProviderResourceClient().getActions();
+
+app.get(PROTECTED_RESOURCE_METADATA_PATH, async (c) => {
+  const metadata = await getProtectedResourceMetadata({
+    resource: RESOURCE_URL,
+    authorization_servers: [AUTH_SERVER_ISSUER],
+  });
+  return c.json(metadata);
+});
+
+function unauthorized(c: Context<AppEnv>) {
+  // MCP認可仕様（RFC 9728）：resource_metadataでこのリソースサーバーの
+  // Protected Resource Metadataの場所を示し、クライアントが認可サーバーを
+  // 自動発見できるようにする。
+  c.header(
+    "WWW-Authenticate",
+    `Bearer realm="clipnote-mcp", resource_metadata="${RESOURCE_URL}${PROTECTED_RESOURCE_METADATA_PATH}"`,
+  );
+  return c.text("unauthorized", 401);
+}
 
 function contentErrorMessage(content: string, error: NonNullable<ReturnType<typeof validateContent>>): string {
   switch (error) {
@@ -33,35 +69,52 @@ function contentErrorMessage(content: string, error: NonNullable<ReturnType<type
 }
 
 // Bearer認証：MCPトランスポート層に到達する前にHono側で完結させる
-// （設計書4-7節・13-3節）。無効・欠落トークンはプレーンなHTTP 401で応答する。
+// （設計書4-7節・13-3節）。APIキー（cn_live_プレフィックス）とOAuthアクセス
+// トークン（JWT）を併存させ、トークンの形状で経路を振り分ける。無効・欠落
+// トークンはプレーンなHTTP 401で応答する。
 app.use("/mcp", async (c, next) => {
   const authHeader = c.req.header("authorization");
-  const rawKey = authHeader?.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : null;
-  if (!rawKey) {
-    c.header("WWW-Authenticate", 'Bearer realm="clipnote-mcp"');
-    return c.text("unauthorized", 401);
+  const rawToken = authHeader?.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : null;
+  if (!rawToken) {
+    return unauthorized(c);
   }
 
-  const db = createDb(c.env.DB);
-  const keyHash = await hashApiKey(rawKey);
-  const [apiKey] = await db.select().from(schema.apiKeys).where(eq(schema.apiKeys.keyHash, keyHash));
-  if (!apiKey) {
-    c.header("WWW-Authenticate", 'Bearer realm="clipnote-mcp"');
-    return c.text("unauthorized", 401);
+  if (rawToken.startsWith(API_KEY_PREFIX)) {
+    const db = createDb(c.env.DB);
+    const keyHash = await hashApiKey(rawToken);
+    const [apiKey] = await db.select().from(schema.apiKeys).where(eq(schema.apiKeys.keyHash, keyHash));
+    if (!apiKey) {
+      return unauthorized(c);
+    }
+
+    // last_used_atの更新はレスポンスをブロックしない（表示用の付随情報のため、
+    // まれな競合での取りこぼしは許容する）。
+    c.executionCtx.waitUntil(
+      db
+        .update(schema.apiKeys)
+        .set({ lastUsedAt: new Date() })
+        .where(eq(schema.apiKeys.id, apiKey.id))
+        .then(() => {}),
+    );
+
+    c.set("userId", apiKey.userId);
+    await next();
+    return;
   }
 
-  // last_used_atの更新はレスポンスをブロックしない（表示用の付随情報のため、
-  // まれな競合での取りこぼしは許容する）。
-  c.executionCtx.waitUntil(
-    db
-      .update(schema.apiKeys)
-      .set({ lastUsedAt: new Date() })
-      .where(eq(schema.apiKeys.id, apiKey.id))
-      .then(() => {}),
-  );
-
-  c.set("userId", apiKey.userId);
-  await next();
+  try {
+    const payload = await verifyAccessToken(rawToken, {
+      verifyOptions: { audience: RESOURCE_URL, issuer: AUTH_SERVER_ISSUER },
+      jwksUrl: `${AUTH_SERVER_ISSUER}/jwks`,
+    });
+    if (!payload.sub) {
+      return unauthorized(c);
+    }
+    c.set("userId", payload.sub);
+    await next();
+  } catch {
+    return unauthorized(c);
+  }
 });
 
 app.all("/mcp", async (c) => {

@@ -1,7 +1,12 @@
 # Clipnote 設計書
 
-> 最終更新：2026-08-05（v11）
-> 対象：要件定義書 v5 の詳細設計（用語整理／ドメイン構成／UI方針／URL設計／セキュリティ設計／バリデーション／画面設計／データモデル／モノレポ構成／MCPサーバー設計）
+> 最終更新：2026-08-05（v12）
+> 対象：要件定義書 v7 の詳細設計（用語整理／ドメイン構成／UI方針／URL設計／セキュリティ設計／バリデーション／画面設計／データモデル／モノレポ構成／MCPサーバー設計）
+> v12での変更点：
+> - MCPサーバーの認証にOAuth 2.1（Authorization Code + PKCE + 動的クライアント登録）を追加。既存のAPIキー方式とは併存（4-7節・13章）
+> - Clipnote自身がMCP専用のOAuth 2.1認可サーバーとなる構成。Paritto全体のSSO統合（`paritto-auth`、15章）とは別軸
+> - 管理画面に「連携中のアプリ」の確認・失効画面を追加（8-5節）
+> - データモデルに`jwks`・`oauth_clients`・`oauth_access_tokens`・`oauth_refresh_tokens`・`oauth_consents`を追加（12章）
 > v11での変更点：
 > - 新規クリップ登録時、本文確定と同時にタイトルを自動取得する機能を追加（5-4節）
 > - 確定表示カードのバイト数表示を廃止し、取得したタイトル候補を表示するように変更（5-2節・5-4節・6-2節）
@@ -86,12 +91,14 @@ claude.aiに近い、温かみのあるニュートラル基調。テラコッ�
 | `/admin/pages/[uuid]` | クリップ詳細・プレビュー・更新履歴 | 必須 |
 | `/admin/collections` | コレクション一覧 | 必須 |
 | `/admin/collections/[uuid]` | コレクション詳細・所属クリップ管理・並び替え | 必須 |
-| `/admin/api-keys` | APIキー管理（v9で追加） | 必須 |
+| `/admin/api-keys` | APIキー管理・連携中のアプリ管理（v9で追加、v12でOAuth連携管理を追加） | 必須 |
+| `/oauth/consent` | MCPのOAuth認可時の同意画面（v12で追加） | 必須（未ログイン時は`/login`へリダイレクト） |
 | `/login` `/signup` | 認証 | - |
+| `/.well-known/oauth-authorization-server` | OAuth 2.1認可サーバーのメタデータ（RFC 8414、v12で追加） | - |
 
 UUIDは自動生成。人間が読めるスラッグは不要。新規作成・編集用の専用ページは設けない（すべてダイアログで完結、詳細は6章・7章・8章）。
 
-MCPサーバー（`mcp.clipnote.paritto.dev`）はMCPプロトコル（Streamable HTTP）のエンドポイントであり、上記のようなブラウザ向けURL設計の対象外。詳細は13章を参照。
+MCPサーバー（`mcp.clipnote.paritto.dev`）はMCPプロトコル（Streamable HTTP）のエンドポイントであり、上記のようなブラウザ向けURL設計の対象外。詳細は13章を参照。`/.well-known/oauth-protected-resource`（RFC 9728、v12で追加）もmcp.clipnote.paritto.dev側で公開する。
 
 ---
 
@@ -186,9 +193,14 @@ UUID一致確認により他クリップのトークン流用を防止。
 
 将来、10章のスクリーンショット生成機能が実装され次第、`og:image`を動的なプレビュー画像に差し替える段階的対応とする。
 
-### 4-7. MCPサーバーの認証（v9で追加）
+### 4-7. MCPサーバーの認証（v9で追加、v12でOAuth併存に更新）
 
-MCPサーバー（`mcp.clipnote.paritto.dev`）は上記のセッションCookie・HMACトークンいずれとも異なる、**APIキー方式**の認証を用いる。詳細は8章（APIキー管理画面）・13章（MCPサーバー設計）を参照。
+MCPサーバー（`mcp.clipnote.paritto.dev`）は上記のセッションCookie・HMACトークンいずれとも異なる認証を用いる。**APIキー方式**と**OAuth 2.1方式**（Authorization Code + PKCE + 動的クライアント登録）を併存させ、Bearerトークンの形状（`cn_live_`プレフィックスの有無）で振り分ける。
+
+- **APIキー方式**：Claude Desktop・Claude Code等、Bearerトークンを直接設定できるクライアント向け。詳細は8章（APIキー管理画面）
+- **OAuth 2.1方式**：claude.aiのカスタムコネクタ等、OAuthの動的クライアント登録が前提のクライアント向け。`apps/web`（`clipnote.paritto.dev`）が認可サーバー（Authorization Server）を、`apps/mcp`（`mcp.clipnote.paritto.dev`）がリソースサーバー（Resource Server）を兼ねる。詳細は8-5節（連携中のアプリ管理画面）・13-3節
+
+いずれの方式でも、認証成功時に得られるのは`pages.user_id`と同一のユーザーIDのみであり、以降のクエリ・バリデーション・権限チェックは完全に共通（13章参照）。
 
 ### 4-8. セキュリティまとめ
 
@@ -204,6 +216,9 @@ MCPサーバー（`mcp.clipnote.paritto.dev`）は上記のセッションCookie
 | 公開コレクション経由で非公開クリップの存在がOGP等から露見する | privateなコンテンツの固有情報をOGPに出力しない |
 | 長時間閲覧時のトークン失効 | iframeの定期的な自動更新 |
 | MCP経由での不正アクセス（v9で追加） | APIキーはハッシュ化して保存、Bearerトークンとして検証、他ユーザーのクリップへのアクセスは権限エラーと未存在エラーを区別せず拒否 |
+| OAuthアクセストークンの偽造・改ざん（v12で追加） | JWT署名（`jwt`プラグインのJWKS）をResource Server（apps/mcp）側でローカル検証。`aud`（リソース識別子）・`iss`（認可サーバー）を必須チェックし、他リソース向けトークンの転用（confused deputy）を防止 |
+| 第三者アプリへの過剰な権限付与（v12で追加） | ユーザーの明示的な同意（`/oauth/consent`）を経ないとアクセストークンを発行しない。スコープは`mcp`単一のみ（11章） |
+| 連携解除後もアクセストークンが使われ続ける（v12で追加） | 「連携中のアプリ」画面からの失効操作でリフレッシュトークン・同意記録を削除し、以降の更新を停止。既発行のアクセストークンは短い有効期限（既定1時間）で自然失効させる |
 
 ---
 
@@ -510,7 +525,7 @@ MCPサーバー（`mcp.clipnote.paritto.dev`）は上記のセッションCookie
 
 ---
 
-## 8. 画面設計：APIキー管理（v9で新規追加）
+## 8. 画面設計：APIキー管理・OAuth連携（v9で新規追加、v12でOAuth関連画面を追加）
 
 MCPサーバー（13章）と管理画面・MCPクライアント間の認証に用いるAPIキーを、ユーザー自身が発行・管理する画面。用途ごとに複数のキーを発行する運用を想定する（例:「Claude Desktop用」「Claude Code用」）。
 
@@ -602,6 +617,67 @@ MCPサーバー（13章）と管理画面・MCPクライアント間の認証に
 └───────────────────────────────┘
 ```
 
+### 8-5. 連携中のアプリ（`/admin/api-keys`内、v12で新規追加）
+
+claude.ai等、OAuth（13-3節）で認可したアプリの一覧・失効画面。APIキー一覧の下に別セクションとして表示し、新規ページは設けない。連携が1件もない場合はセクションごと非表示にする（APIキーの8-4節とは異なり、専用の空状態は設けない）。
+
+**デスクトップ（`md`以上）：テーブル形式**
+
+| 表示列 | 内容 |
+| --- | --- |
+| アプリ | OAuthクライアント登録時の名前（`oauth_clients.name`） |
+| 連携日時 | 初回同意日時（`oauth_consents.created_at`） |
+| 操作 | 「失効」ボタン |
+
+**モバイル（`md`未満）：カード形式**
+
+```
+┌───────────────────────────────┐
+│ Claude                          │
+│ 連携: 2026-08-05                 │
+│                                 │
+│                     [ 失効 ]     │
+└───────────────────────────────┘
+```
+
+失効時の確認ダイアログ：
+
+```
+┌─────────────────────────────────┐
+│ 連携を解除しますか？                  │
+├─────────────────────────────────┤
+│ 「Claude」との連携を解除します。         │
+│ 以降このアプリから再度アクセスするには、    │
+│ あらためて認可が必要になります。          │
+│ この操作は取り消せません。               │
+│                                   │
+│              [ キャンセル ] [ 解除する ]│
+└─────────────────────────────────┘
+```
+
+確認ダイアログ必須（10章の基準に準拠）。実行ボタンは警告色（`destructive`バリアント）。失効操作は`oauth_consents`・`oauth_refresh_tokens`・`oauth_access_tokens`の該当行（ユーザー×クライアント単位）を削除する。既発行のアクセストークン（JWT）はステートレス検証のため即時失効はできず、短い有効期限（既定1時間）による自然失効に委ねる（4-8節）。
+
+### 8-6. OAuth同意画面（`/oauth/consent`、v12で新規追加）
+
+MCPクライアント（claude.ai等）が`/oauth2/authorize`にアクセスすると、未ログインなら`/login`（ログイン後にこの画面へ戻る）、ログイン済みならこの画面へリダイレクトされる。管理画面（`/admin`配下）とは別の、`/login`・`/signup`と同じ認証系レイアウト（`AuthCard`、2-1節のトンマナ）を用いる。
+
+```
+┌─────────────────────────────┐
+│         Clipnote               │
+├─────────────────────────────┤
+│    外部アプリからのアクセス許可      │
+│                               │
+│           Claude               │
+│                               │
+│  ・クリップの一覧取得・作成・更新     │
+│                               │
+│        [ 許可する ]            │
+│        [ 拒否する ]            │
+└─────────────────────────────┘
+```
+
+スコープは`mcp`の1種類のみ（11章）のため、権限の内訳表示も固定文言1行のみ。「許可する」で`/oauth2/consent`にaccept:trueを送信し、認可コード付きでクライアントのredirect_uriへ戻る。「拒否する」はaccept:falseを送信し、エラーとしてredirect_uriへ戻る。
+
 ---
 
 ## 9. 削除時のカスケード挙動
@@ -610,9 +686,10 @@ MCPサーバー（13章）と管理画面・MCPクライアント間の認証に
 | --- | --- |
 | クリップを削除 | `page_versions`（履歴）も連動削除。所属していた全コレクションの`collection_pages`からも自動的に外れる（コレクション自体は残る） |
 | コレクションを削除 | `collection_pages`の関連付けのみ削除。**所属していたクリップ自体は削除されない** |
-| ユーザーを削除（想定上） | 所有する`pages`・`collections`・`api_keys`も連動削除（`ON DELETE CASCADE`） |
+| ユーザーを削除（想定上） | 所有する`pages`・`collections`・`api_keys`・`oauth_clients`・`oauth_access_tokens`・`oauth_refresh_tokens`・`oauth_consents`も連動削除（`ON DELETE CASCADE`） |
+| 連携中のアプリを失効（8-5節、v12で追加） | 該当ユーザー×クライアントの`oauth_consents`・`oauth_refresh_tokens`・`oauth_access_tokens`行を削除。`oauth_clients`自体は残す |
 
-DB制約としては、`collection_pages.page_id`・`collection_pages.collection_id`・`page_versions.page_id`・`api_keys.user_id`に`ON DELETE CASCADE`を設定し、アプリケーション側で個別に削除処理を書かずに整合性を保つ。
+DB制約としては、`collection_pages.page_id`・`collection_pages.collection_id`・`page_versions.page_id`・`api_keys.user_id`・`oauth_clients.user_id`・`oauth_access_tokens.user_id`・`oauth_refresh_tokens.user_id`・`oauth_consents.user_id`に`ON DELETE CASCADE`を設定し、アプリケーション側で個別に削除処理を書かずに整合性を保つ。
 
 コレクション削除時の確認ダイアログには「所属していたクリップ自体は削除されません」という文言を明記し、誤解を防ぐ（10章参照）。
 
@@ -633,6 +710,7 @@ DB制約としては、`collection_pages.page_id`・`collection_pages.collection
 | クリップ削除 | **必要** | 完全に元に戻せない（バージョン履歴ごと消える） |
 | コレクション削除 | **必要**（「クリップ自体は消えません」を明記） | 誤解されやすいため文言が重要 |
 | APIキーの失効（v9で追加） | **必要**（「連携が利用できなくなる」旨を明記） | 再発行が必要になり元に戻せない |
+| 連携中のアプリの失効（v12で追加） | **必要**（「再度認可が必要になる」旨を明記） | 再認可が必要になり元に戻せない |
 
 ---
 
@@ -643,7 +721,9 @@ DB制約としては、`collection_pages.page_id`・`collection_pages.collection
 - タグ機能
 - ページ単位のパスワード保護・リンク共有
 - APIキーのスコープ分け（read/write等）。現状は全キー同一権限
+- OAuthのスコープ細分化（read/write等）。現状は`mcp`スコープ1種類のみ（4-7節・13章）
 - MCP経由でのクリップ削除・コレクション操作（現状はupload/update/list/getのみ。13章参照）
+- Paritto全体のSSO統合（別リポジトリ`paritto-auth`が担う、エコシステム共通の認可サーバーへの相乗り）。今回追加したMCP用OAuthはClipnote単体で完結する別物であり、混同しないこと（13-3節）
 
 ---
 
@@ -729,6 +809,69 @@ better-authが管理する標準スキーマを利用（email/password認証）�
 - 発行時のみ生のキー全文をレスポンスで返す。以降はハッシュ照合のみで検証し、平文は保持しない
 - スコープ分け（read/write）は設けず、全キー同一権限（将来検討、11章参照）
 
+### MCPのOAuth 2.1認可サーバー関連テーブル（v12で新規追加）
+
+`apps/web`のbetterAuth()インスタンスに追加した`jwt`・`oauthProvider`プラグイン（`@better-auth/oauth-provider`）が管理する5テーブル。フィールド構成・型（`created_at`等がミリ秒精度でNOT NULL制約を持たない点も含む）はプラグインの実装依存のため、手書きではなく`@better-auth/cli generate`が出力したものをそのまま採用している。`apps/mcp`（Resource Server）はこれらのテーブルを直接参照せず、JWKS経由でアクセストークン（JWT）を検証するのみ（13-3節）。
+
+**`jwks`テーブル**：`jwt`プラグインの署名鍵ペア。
+
+| カラム | 型 | 内容 |
+| --- | --- | --- |
+| id | uuid | PK |
+| public_key | text | 公開鍵 |
+| private_key | text | 秘密鍵 |
+| created_at | timestamp(ms) | |
+| expires_at | timestamp(ms) | nullable |
+
+**`oauth_clients`テーブル**：動的クライアント登録（DCR）で登録されたOAuthクライアント（claude.ai等）。
+
+| カラム | 型 | 内容 |
+| --- | --- | --- |
+| id | uuid | PK |
+| client_id | text | クライアントID（unique） |
+| client_secret | text | nullable（PKCE必須のpublicクライアントでは未使用） |
+| name | text | クライアント名（DCR時に自己申告、「連携中のアプリ」画面で表示） |
+| redirect_uris | json (text) | 許可リダイレクトURI一覧 |
+| scopes | json (text) | nullable |
+| require_pkce | boolean | nullable（publicクライアントは常にPKCE必須） |
+| user_id | uuid | FK → users（`ON DELETE CASCADE`）。DCRを実行したユーザー |
+| その他 | - | `disabled`・`token_endpoint_auth_method`・`grant_types`・`response_types`・`metadata`等、OAuth/DCR仕様（RFC 7591）準拠のメタデータ列 |
+
+**`oauth_refresh_tokens`テーブル**：リフレッシュトークン。
+
+| カラム | 型 | 内容 |
+| --- | --- | --- |
+| id | uuid | PK |
+| token | text | リフレッシュトークン本体（unique） |
+| client_id | text | FK → oauth_clients.client_id（`ON DELETE CASCADE`） |
+| user_id | uuid | FK → users（`ON DELETE CASCADE`） |
+| expires_at | timestamp(ms) | nullable |
+| revoked | timestamp(ms) | nullable。失効日時 |
+| scopes | json (text) | |
+
+**`oauth_access_tokens`テーブル**：アクセストークンの発行記録（検証自体はJWT署名で行うため、監査・失効管理用）。
+
+| カラム | 型 | 内容 |
+| --- | --- | --- |
+| id | uuid | PK |
+| token | text | nullable（JWTはステートレス検証のため必須ではない） |
+| client_id | text | FK → oauth_clients.client_id（`ON DELETE CASCADE`） |
+| user_id | uuid | FK → users（`ON DELETE CASCADE`） |
+| refresh_id | uuid | FK → oauth_refresh_tokens.id（`ON DELETE CASCADE`） |
+| expires_at | timestamp(ms) | nullable |
+| scopes | json (text) | |
+
+**`oauth_consents`テーブル**：ユーザーの同意記録。「連携中のアプリ」画面（8-5節）の一覧はこのテーブルを正とする。
+
+| カラム | 型 | 内容 |
+| --- | --- | --- |
+| id | uuid | PK |
+| client_id | text | FK → oauth_clients.client_id（`ON DELETE CASCADE`） |
+| user_id | uuid | FK → users（`ON DELETE CASCADE`） |
+| scopes | json (text) | |
+| created_at | timestamp(ms) | nullable。初回同意日時（8-5節の「連携日時」表示に使用） |
+| updated_at | timestamp(ms) | nullable |
+
 ### 将来追加予定のテーブル（本書のスコープ外）
 
 | テーブル | 追加タイミング |
@@ -737,19 +880,24 @@ better-authが管理する標準スキーマを利用（email/password認証）�
 
 ---
 
-## 13. MCPサーバー設計（v9で新規追加）
+## 13. MCPサーバー設計（v9で新規追加、v12でOAuth併存に更新）
 
 ### 13-1. 概要
 
-`mcp.clipnote.paritto.dev`で稼働するMCPサーバー。ClaudeなどのMCP対応クライアントから、Clipnoteのクリップを直接参照・登録・更新できるようにする。認証はAPIキー方式（8章・4-7節）。
+`mcp.clipnote.paritto.dev`で稼働するMCPサーバー。ClaudeなどのMCP対応クライアントから、Clipnoteのクリップを直接参照・登録・更新できるようにする。認証はAPIキー方式（8章・4-7節）と、v12で追加したOAuth 2.1方式（4-7節・8-5節・8-6節）を併存させる。
 
 ### 13-2. 技術構成
 
 - Honoベースの軽量Worker（`apps/content`と同じ方針。Next.js/Reactランタイムは使わない。単純なリクエスト処理のみのため、バンドルサイズ・コールドスタートを最小化する）
 - トランスポート：Streamable HTTP（MCP TypeScript SDKのHTTPトランスポートを利用）
 - `packages/db`を通じてD1へアクセスし、既存のクリップ・コレクションのクエリ層・バリデーションロジック・`page_versions`退避ロジックを管理画面（web）と共有する
+- OAuthアクセストークンの検証には`@better-auth/oauth-provider/resource-client`（`jose`依存のみの軽量なサブパス）を使う。フルの`oauthProvider`本体は認可サーバー側（`apps/web`）にしか置かない。DBへの問い合わせは発生しない（JWKS公開鍵によるローカル署名検証のみ）ため、13-2節冒頭の「軽量Worker」方針を損なわない
 
 ### 13-3. 認証フロー
+
+Bearerトークンの形状（`cn_live_`プレフィックスの有無）で、APIキー方式・OAuth方式のいずれかに振り分ける。
+
+**APIキー方式**
 
 ```
 ① クライアントがリクエストヘッダーに Authorization: Bearer {APIキー} を付与
@@ -758,7 +906,27 @@ better-authが管理する標準スキーマを利用（email/password認証）�
 ④ 認証失敗時はMCPのエラーレスポンスとして返す
 ```
 
-APIキーのハッシュ照合ロジックは、Web側（管理画面での発行）とMCP側（検証）の両方から参照するため、`packages/db`または新規`packages/auth`として共有パッケージ化する（設計書12-2節の「2つ以上のappsから参照されるものだけpackages化する」方針に準拠）。
+APIキーのハッシュ照合ロジックは、Web側（管理画面での発行）とMCP側（検証）の両方から参照するため、`packages/auth`として共有パッケージ化している（設計書14-2節の「2つ以上のappsから参照されるものだけpackages化する」方針に準拠）。
+
+**OAuth 2.1方式（v12で新規追加）**
+
+`apps/web`（`clipnote.paritto.dev`）が認可サーバー（Authorization Server）、`apps/mcp`（`mcp.clipnote.paritto.dev`）がリソースサーバー（Resource Server）を兼ねる構成。`better-auth`の`jwt`プラグイン（JWKS発行）と`oauthProvider`プラグイン（`@better-auth/oauth-provider`）を`apps/web`側にのみ追加し、認可コード・トークンの発行とDBテーブル（`oauth_*`、12章）の読み書きはすべて認可サーバー側で完結させる。
+
+```
+① クライアント（claude.ai等）がmcp.clipnote.paritto.dev/mcpへ未認証でアクセス
+② 401 + WWW-Authenticate: Bearer resource_metadata="https://mcp.clipnote.paritto.dev/.well-known/oauth-protected-resource"
+③ クライアントがProtected Resource Metadata（RFC 9728）を取得し、認可サーバーのURL（clipnote.paritto.dev）を知る
+④ クライアントがAuthorization Server Metadata（RFC 8414、/.well-known/oauth-authorization-server）を取得
+⑤ クライアントが動的クライアント登録（DCR、/oauth2/register）でclient_idを取得
+⑥ クライアントがPKCE付きでブラウザを/oauth2/authorizeへ誘導
+⑦ 未ログインなら/loginへ、ログイン済みなら/oauth/consent（8-6節）へ
+⑧ ユーザーが「許可する」→認可コードを発行し、クライアントのredirect_uriへリダイレクト
+⑨ クライアントが/oauth2/tokenへ認可コード＋PKCE検証用コードを送信し、JWTアクセストークン（＋リフレッシュトークン）を取得
+⑩ 以降はAuthorization: Bearer {JWT}でmcp.clipnote.paritto.dev/mcpにアクセス
+⑪ Resource Server側はJWKS（clipnote.paritto.dev/api/auth/jwks）で署名検証し、aud（リソース識別子）・iss（発行者）を確認してuser_idを特定
+```
+
+ClipnoteはこのOAuthに関して単体で完結する認可サーバーであり、別リポジトリ`paritto-auth`が担うParitto全体のSSO統合（11章・15章）とは独立している。将来的にエコシステム全体のSSOへ統合する場合は、別途大きな設計変更として扱う。
 
 ### 13-4. ツール定義
 
@@ -857,5 +1025,6 @@ shadcn/uiのコンポーネント等、現時点で`web`のみが使うものは
 
 ## 15. 関連ドキュメント
 
-- Clipnote要件定義 v5：本書が詳細設計を担当する上位ドキュメント
-- Clipnote設計書 v1〜v8：本書のベースとなった旧設計書
+- Clipnote要件定義 v7：本書が詳細設計を担当する上位ドキュメント
+- Clipnote設計書 v1〜v11：本書のベースとなった旧設計書
+- `paritto-auth`（別リポジトリ）：Paritto全体のSSO統合を担う認可サーバー。本書13-3節のMCP用OAuthとは独立した別プロダクトであり、Clipnoteの`users`テーブルとは連携していない

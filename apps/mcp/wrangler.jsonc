@@ -3,6 +3,9 @@
   "name": "clipnote-mcp",
   "main": "src/index.ts",
   "compatibility_date": "2026-08-04",
+  // @better-auth/oauth-provider/resource-client（OAuthアクセストークンの検証、
+  // v7で追加）がnode:crypto・node:async_hooksに依存するため必須。
+  "compatibility_flags": ["nodejs_compat"],
   // 設計書1章：MCPサーバードメイン。Custom Domainsとしてparitto.devゾーンに
   // 接続する（DNSレコード・SSL証明書はCloudflareが自動でプロビジョニングする）。
   "routes": [{ "pattern": "mcp.clipnote.paritto.dev", "custom_domain": true }],

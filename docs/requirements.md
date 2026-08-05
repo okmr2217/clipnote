@@ -1,8 +1,8 @@
-# Clipnote 要件定義 v6
+# Clipnote 要件定義 v7
 
-> 最終更新：2026-08-05（v6）
-> ステータス：要件再定義完了（MCPサーバー・APIキー管理を実装対象に追加）
-> 詳細設計（用語整理／ドメイン構成／UI方針／URL設計／セキュリティ設計／バリデーション／画面設計／データモデル／MCPサーバー設計）は別紙「Clipnote設計書 v9」を参照
+> 最終更新：2026-08-05（v7）
+> ステータス：要件再定義完了（MCPサーバーのOAuth 2.1対応を実装対象に追加）
+> 詳細設計（用語整理／ドメイン構成／UI方針／URL設計／セキュリティ設計／バリデーション／画面設計／データモデル／MCPサーバー設計）は別紙「Clipnote設計書 v12」を参照
 
 ---
 
@@ -22,6 +22,8 @@
 | クリップ追加ダイアログ | 検索・複数選択 | 同左 | **並び順（更新日時降順）・検索方式（タイトル部分一致）・形式バッジ表示を明確化** |
 | MCPアップロード機能（`upload_page`/`update_page`） | 将来検討・スコープ外 | 次フェーズ対応・本書スコープ外 | **本書の対象に追加。`list_pages`/`get_page`を含む4ツール構成でMVPアップデートとして実装** |
 | APIキー管理画面 | MVP対象外 | MVP対象外（MCP対応時に追加） | **本書の対象に追加。`/admin/api-keys`で発行・失効を管理** |
+
+**v7（本書）での変更点**：MCPサーバーの認証にOAuth 2.1（Authorization Code + PKCE + 動的クライアント登録）を追加し、既存のAPIキー方式と併存させる（2章・3章・5-9節・8章）。ClipnoteはMCP専用の認可サーバーとして単体で完結し、別リポジトリ`paritto-auth`が担うParitto全体のSSO統合（16章参照）とは独立した別の取り組みである。管理画面には、OAuthで連携したアプリの確認・失効を行う「連携中のアプリ」を`/admin/api-keys`内に追加する（5-9節・8章）。
 
 ---
 
@@ -53,10 +55,11 @@
 | --- | --- |
 | 認証（Web） | better-auth（メール/パスワード方式） |
 | 認証（MCP、v6で追加） | APIキー方式。ユーザーが管理画面から発行・失効できる |
+| 認証（MCP、v7で追加） | OAuth 2.1方式（Authorization Code + PKCE + 動的クライアント登録）。APIキー方式と併存し、いずれもWebのログインセッションと同じ`users`テーブルを参照する |
 
-- 各ユーザーは自分のクリップ・コレクション・APIキーのみ管理画面で編集できる
+- 各ユーザーは自分のクリップ・コレクション・APIキー・OAuth連携のみ管理画面で編集できる
 - 公開設定された（`public`の）クリップ・コレクションは、ログインなしで誰でも閲覧できる
-- OAuth 2.1 Providerとしてのエコシステム統合は将来検討とし、現状は単体アプリとしての認証にとどめる
+- v7で追加したOAuth 2.1は、あくまでMCP（`mcp.clipnote.paritto.dev`）向けの認可サーバーとしてClipnote単体で完結させる。別リポジトリ`paritto-auth`が担うエコシステム全体（Paritto）のSSO統合は引き続き将来検討とし、混同しないこと（16章参照）
 
 ---
 
@@ -71,7 +74,7 @@
 | DB | Cloudflare D1（ネイティブバインディングでアクセス） |
 | コンテンツ配信 | 別ドメイン、Cloudflare Worker |
 | 認証（Web） | better-auth（メール/パスワード方式） |
-| 認証（MCP） | APIキー（Bearerトークン、v6で追加） |
+| 認証（MCP） | APIキー（Bearerトークン、v6で追加）／OAuth 2.1（`@better-auth/oauth-provider`、v7で追加。併存） |
 | MCP | **Cloudflare Workerとして実装（v6で本書の対象に。Honoベースの軽量構成）** |
 
 ### ドメイン構成
@@ -84,7 +87,7 @@
 
 ### リポジトリ構成
 
-モノレポとし、`apps/web`（本体）・`apps/content`（コンテンツ配信）・`apps/mcp`（MCP、v6で実装対象に）と、共有ロジックの`packages/db`・`packages/content-token`・**`packages/auth`（APIキーのハッシュ生成・照合、v6で追加検討）**で構成する。詳細は設計書14章を参照。
+モノレポとし、`apps/web`（本体）・`apps/content`（コンテンツ配信）・`apps/mcp`（MCP、v6で実装対象に）と、共有ロジックの`packages/db`・`packages/content-token`・**`packages/auth`（APIキーのハッシュ生成・照合、v6で追加検討）**で構成する。OAuth（v7で追加）は`@better-auth/oauth-provider`という既存ライブラリを`apps/web`・`apps/mcp`それぞれから直接利用する構成とし、新規の`packages/`切り出しは行わない。詳細は設計書14章を参照。
 
 ---
 
@@ -170,7 +173,7 @@ MVP対象外として確定。コレクションのみでの分類とし、フ�
 - **APIキー管理（v6で追加）**：`/admin/api-keys`にて、名前を付けてのAPIキー発行（発行直後のみ生キー全文を表示）・一覧（マスク表示、最終利用日時）・失効を管理
 - **削除**（クリップ・コレクション・APIキーそれぞれ）
 
-画面設計の詳細は設計書v9 6章・7章・8章を参照。
+画面設計の詳細は設計書v12 6章・7章・8章を参照。
 
 ### 5-9. MCPサーバー（v6で新規追加）
 
@@ -183,35 +186,36 @@ MCP対応クライアント（Claude Desktop、Claude Code等）から、Clipnot
 | `upload_page` | 新規クリップを作成（content・content_type・title・visibility） |
 | `update_page` | 既存クリップの本文を全文差し替え |
 
-- 認証はAPIキー（Bearerトークン）方式。8章のAPIキー管理画面で発行したキーを使用
+- 認証はAPIキー（Bearerトークン）方式、またはOAuth 2.1方式（Authorization Code + PKCE + 動的クライアント登録、v7で追加）のいずれか。前者は8章のAPIキー管理画面で発行したキーを使用し、Claude Desktop・Claude Code等の直接Bearerトークンを設定できるクライアント向け。後者はclaude.aiのカスタムコネクタ等、OAuthの動的クライアント登録が前提のクライアント向けで、既存のWebログインセッションでの認可＋同意画面（`/oauth/consent`）を経て発行する
+- OAuthで連携したアプリは、`/admin/api-keys`内の「連携中のアプリ」から確認・失効できる（v7で追加）
 - `upload_page`時点でのコレクションへの割当は行わない（管理画面から手動で割り当てる運用）
 - クリップの削除、コレクションの作成・編集はMCP経由では対象外（将来検討）
 
-詳細は設計書v9 13章を参照。
+詳細は設計書v12 13章を参照。
 
 ---
 
 ## 6. URL設計（概要）
 
-`/p/[uuid]`（個別クリップ）、`/c/[uuid]`（コレクション一覧）、`/admin`配下（管理画面）、`/admin/api-keys`（APIキー管理、v6で追加）、`/login`・`/signup`の構成。詳細は**Clipnote設計書v9 3章**を参照。
+`/p/[uuid]`（個別クリップ）、`/c/[uuid]`（コレクション一覧）、`/admin`配下（管理画面）、`/admin/api-keys`（APIキー管理・連携中のアプリ管理、v6で追加、v7でOAuth連携管理を追加）、`/oauth/consent`（OAuth同意画面、v7で追加）、`/login`・`/signup`の構成。MCPサーバー側にも`/.well-known/oauth-protected-resource`（v7で追加）がある。詳細は**Clipnote設計書v12 3章**を参照。
 
 ---
 
 ## 7. UI／UXデザイン方針（概要）
 
-管理画面（APIキー管理含む）はshadcn/ui + Tailwind CSSでCRUD作業に適した構成とし、LP・公開ページのiframe外枠はブランド訴求を重視したカスタムTailwind実装とする。詳細は**Clipnote設計書v9 2章**を参照。
+管理画面（APIキー管理含む）はshadcn/ui + Tailwind CSSでCRUD作業に適した構成とし、LP・公開ページのiframe外枠はブランド訴求を重視したカスタムTailwind実装とする。詳細は**Clipnote設計書v12 2章**を参照。
 
 ---
 
 ## 8. セキュリティ設計（概要）
 
-コンテンツは別ドメインからiframe配信し、sandbox属性で実行コンテキストを隔離する。Web認証は署名付き短命トークン（HMAC-SHA256）、**MCP認証はAPIキー（ハッシュ化して保存、Bearerトークンとして検証）を用いる（v6で追加）**。詳細は**Clipnote設計書v9 4章**を参照。
+コンテンツは別ドメインからiframe配信し、sandbox属性で実行コンテキストを隔離する。Web認証は署名付き短命トークン（HMAC-SHA256）、**MCP認証はAPIキー（ハッシュ化して保存、Bearerトークンとして検証、v6で追加）とOAuth 2.1（JWTアクセストークンをJWKSでローカル検証、v7で追加）を併存させる**。詳細は**Clipnote設計書v12 4章**を参照。
 
 ---
 
 ## 9. データモデル（概要）
 
-`pages`・`collections`・`collection_pages`・`page_versions`・**`api_keys`（v6で追加）**の5テーブルを中心に構成する。`api_keys`は名前・キーのハッシュ値・マスク表示用プレフィックス・最終利用日時を持ち、ユーザー削除時に連動削除する。詳細は**Clipnote設計書v9 12章**を参照。
+`pages`・`collections`・`collection_pages`・`page_versions`・**`api_keys`（v6で追加）**・**`jwks`・`oauth_clients`・`oauth_access_tokens`・`oauth_refresh_tokens`・`oauth_consents`（v7で追加）**を中心に構成する。`api_keys`は名前・キーのハッシュ値・マスク表示用プレフィックス・最終利用日時を持ち、ユーザー削除時に連動削除する。OAuth関連テーブルはbetter-authの`jwt`・`oauthProvider`プラグインが管理し、`apps/web`のみが読み書きする。詳細は**Clipnote設計書v12 12章**を参照。
 
 ---
 
@@ -222,6 +226,7 @@ MCP対応クライアント（Claude Desktop、Claude Code等）から、Clipnot
 | クリップを削除 | 更新履歴（`page_versions`）も連動削除。所属していた全コレクションから自動的に外れる（コレクション自体は残る） |
 | コレクションを削除 | クリップとの関連付けのみ削除。所属していたクリップ自体は削除されない |
 | **APIキーを失効（v6で追加）** | **`api_keys`行を削除。以降そのキーでのMCP認証は失敗する** |
+| **連携中のアプリを失効（v7で追加）** | **該当ユーザー×クライアントの`oauth_consents`・`oauth_refresh_tokens`・`oauth_access_tokens`行を削除。既発行のアクセストークンは有効期限切れまで有効** |
 
 ---
 
@@ -240,7 +245,7 @@ MCP対応クライアント（Claude Desktop、Claude Code等）から、Clipnot
 
 ## 13. 確認ダイアログの基準
 
-破壊性・復元可能性に応じて確認ダイアログの要否を統一する。公開設定のトグル・メタデータ編集・「外す」操作・バージョンのダウンロードは確認不要。コンテンツ更新・バージョン復元・クリップ削除・コレクション削除・**APIキーの失効（v6で追加）**は確認ダイアログを必須とする。詳細は設計書v9 10章を参照。
+破壊性・復元可能性に応じて確認ダイアログの要否を統一する。公開設定のトグル・メタデータ編集・「外す」操作・バージョンのダウンロードは確認不要。コンテンツ更新・バージョン復元・クリップ削除・コレクション削除・**APIキーの失効（v6で追加）**・**連携中のアプリの失効（v7で追加）**は確認ダイアログを必須とする。詳細は設計書v12 10章を参照。
 
 ---
 
@@ -251,7 +256,7 @@ MCP対応クライアント（Claude Desktop、Claude Code等）から、Clipnot
 | セキュリティ | クリップ・コレクション単位で公開設定可能。デフォルトはprivate |
 | コンテンツ配信 | 別ドメイン（サブドメイン）からiframeサーブ |
 | コンテンツ認証（Web） | HMAC-SHA256署名付き短命トークン（有効期限2分） |
-| コンテンツ認証（MCP、v6で追加） | APIキー（Bearerトークン、ハッシュ照合） |
+| コンテンツ認証（MCP、v6で追加） | APIキー（Bearerトークン、ハッシュ照合）／OAuth 2.1（JWTアクセストークン、JWKS検証、v7で追加。併存） |
 | コンテンツサイズ | 1バージョンあたり1MB（1,048,576 bytes）を上限。管理画面・MCP共通 |
 | インフラ | Cloudflare Workers + D1 に統一（web / content / mcp） |
 | バージョン保持数 | 直近10件（`page_versions`） |
@@ -267,12 +272,14 @@ MCP対応クライアント（Claude Desktop、Claude Code等）から、Clipnot
 - タイトル自動生成のAI連携（フォールバック）
 - タグ機能
 - **APIキーのスコープ分け（read/write等、v6で追加）**
+- **OAuthのスコープ細分化（read/write等、v7で追加）。現状は`mcp`スコープ1種類のみ**
 - **MCP経由でのクリップ削除・コレクション操作（v6で追加）**
+- **Paritto全体のSSO統合（別リポジトリ`paritto-auth`との連携、v7で明確化）。今回追加したMCP用OAuth 2.1はClipnote単体で完結する別の仕組みであり、これとは独立している**
 
 ---
 
 ## 16. 関連ドキュメント
 
-- Clipnote設計書v9：用語整理・ドメイン構成・UI方針・URL設計・セキュリティ設計・バリデーション・画面設計・データモデル・MCPサーバー設計の詳細
-- Clipnote要件定義 v1〜v5：本書のベースとなった旧要件定義書
-- エコシステム構成（Paritto）：将来的なOAuth統合・MCP統合の検討先
+- Clipnote設計書v12：用語整理・ドメイン構成・UI方針・URL設計・セキュリティ設計・バリデーション・画面設計・データモデル・MCPサーバー設計の詳細
+- Clipnote要件定義 v1〜v6：本書のベースとなった旧要件定義書
+- エコシステム構成（Paritto、別リポジトリ`paritto-auth`）：将来的なエコシステム全体のSSO統合の検討先。v7で追加したMCP用OAuth（Clipnote単体で完結）とは別軸の取り組み

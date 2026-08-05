@@ -172,6 +172,136 @@ export const pageVersions = sqliteTable(
   ],
 );
 
+// MCPのOAuth 2.1認可サーバー機能（@better-auth/oauth-provider + jwtプラグイン、
+// 設計書4-7節・13章）が管理する5テーブル。apps/webのbetterAuth()インスタンス
+// のみが読み書きし、apps/mcpはJWKS経由でアクセストークン（JWT）を検証する
+// だけなのでこれらのテーブルには一切触れない。フィールド構成・カラム型
+// （created_at/updated_at等がミリ秒精度でNOT NULL制約を持たない点も含む）は
+// 手書きではなく`@better-auth/cli generate`が1.6.26向けに出力したものをその
+// まま採用している（プラグイン側の挿入コードが前提とする形と食い違うと
+// 認可フローが壊れるため）。
+export const jwks = sqliteTable("jwks", {
+  id: id(),
+  publicKey: text("public_key").notNull(),
+  privateKey: text("private_key").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+});
+
+export const oauthClients = sqliteTable(
+  "oauth_clients",
+  {
+    id: id(),
+    clientId: text("client_id").notNull().unique(),
+    clientSecret: text("client_secret"),
+    disabled: integer("disabled", { mode: "boolean" }).default(false),
+    skipConsent: integer("skip_consent", { mode: "boolean" }),
+    enableEndSession: integer("enable_end_session", { mode: "boolean" }),
+    subjectType: text("subject_type"),
+    // SQLiteに配列型がないため、text()のJSONモード（drizzle-orm/sqlite-core）
+    // でJSON文字列として保持する。
+    scopes: text("scopes", { mode: "json" }).$type<string[]>(),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }),
+    name: text("name"),
+    uri: text("uri"),
+    icon: text("icon"),
+    contacts: text("contacts", { mode: "json" }).$type<string[]>(),
+    tos: text("tos"),
+    policy: text("policy"),
+    softwareId: text("software_id"),
+    softwareVersion: text("software_version"),
+    softwareStatement: text("software_statement"),
+    redirectUris: text("redirect_uris", { mode: "json" }).notNull().$type<string[]>(),
+    postLogoutRedirectUris: text("post_logout_redirect_uris", { mode: "json" }).$type<
+      string[]
+    >(),
+    tokenEndpointAuthMethod: text("token_endpoint_auth_method"),
+    grantTypes: text("grant_types", { mode: "json" }).$type<string[]>(),
+    responseTypes: text("response_types", { mode: "json" }).$type<string[]>(),
+    public: integer("public", { mode: "boolean" }),
+    type: text("type"),
+    requirePKCE: integer("require_pkce", { mode: "boolean" }),
+    referenceId: text("reference_id"),
+    metadata: text("metadata", { mode: "json" }),
+  },
+  (table) => [index("oauth_clients_user_id_idx").on(table.userId)],
+);
+
+export const oauthRefreshTokens = sqliteTable(
+  "oauth_refresh_tokens",
+  {
+    id: id(),
+    token: text("token").notNull().unique(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => oauthClients.clientId, { onDelete: "cascade" }),
+    sessionId: text("session_id").references(() => sessions.id, { onDelete: "set null" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    referenceId: text("reference_id"),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }),
+    revoked: integer("revoked", { mode: "timestamp_ms" }),
+    authTime: integer("auth_time", { mode: "timestamp_ms" }),
+    scopes: text("scopes", { mode: "json" }).notNull().$type<string[]>(),
+  },
+  (table) => [
+    index("oauth_refresh_tokens_client_id_idx").on(table.clientId),
+    index("oauth_refresh_tokens_session_id_idx").on(table.sessionId),
+    index("oauth_refresh_tokens_user_id_idx").on(table.userId),
+  ],
+);
+
+export const oauthAccessTokens = sqliteTable(
+  "oauth_access_tokens",
+  {
+    id: id(),
+    // JWTモードではアクセストークン自体はステートレスに検証されるため、
+    // このカラムは主に監査・失効管理用（値が無いケースもある）。
+    token: text("token").unique(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => oauthClients.clientId, { onDelete: "cascade" }),
+    sessionId: text("session_id").references(() => sessions.id, { onDelete: "set null" }),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    referenceId: text("reference_id"),
+    refreshId: text("refresh_id").references(() => oauthRefreshTokens.id, {
+      onDelete: "cascade",
+    }),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }),
+    scopes: text("scopes", { mode: "json" }).notNull().$type<string[]>(),
+  },
+  (table) => [
+    index("oauth_access_tokens_client_id_idx").on(table.clientId),
+    index("oauth_access_tokens_session_id_idx").on(table.sessionId),
+    index("oauth_access_tokens_user_id_idx").on(table.userId),
+    index("oauth_access_tokens_refresh_id_idx").on(table.refreshId),
+  ],
+);
+
+export const oauthConsents = sqliteTable(
+  "oauth_consents",
+  {
+    id: id(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => oauthClients.clientId, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
+    referenceId: text("reference_id"),
+    scopes: text("scopes", { mode: "json" }).notNull().$type<string[]>(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }),
+    updatedAt: integer("updated_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [
+    index("oauth_consents_client_id_idx").on(table.clientId),
+    index("oauth_consents_user_id_idx").on(table.userId),
+  ],
+);
+
 export const apiKeys = sqliteTable(
   "api_keys",
   {
