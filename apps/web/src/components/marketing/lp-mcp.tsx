@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MessageSquareIcon } from "lucide-react";
 
 const TOOLS = [
@@ -43,6 +44,12 @@ export function LpMcp() {
                 claude.ai：OAuthでワンクリック連携
               </span>
             </div>
+            <Link
+              href="/signup?redirect=%2Fadmin%2Fapi-keys"
+              className="mt-7 inline-block rounded-xl bg-primary px-[30px] py-[15px] text-[15px] font-bold text-primary-foreground shadow-[var(--shadow-accent)]"
+            >
+              無料で始めてMCP連携する
+            </Link>
           </div>
 
           <div className="rounded-3xl border border-border bg-background p-6 shadow-[var(--shadow-card)]">

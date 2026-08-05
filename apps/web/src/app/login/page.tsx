@@ -28,6 +28,7 @@ function LoginForm() {
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const resetSucceeded = searchParams.get("reset") === "1";
+  const redirectParam = searchParams.get("redirect");
 
   function validate() {
     const errors: typeof fieldErrors = {};
@@ -53,7 +54,7 @@ function LoginForm() {
       return;
     }
 
-    router.push(searchParams.get("redirect") ?? "/admin");
+    router.push(redirectParam ?? "/admin");
   }
 
   return (
@@ -105,7 +106,10 @@ function LoginForm() {
       </form>
       <p className="mt-[22px] text-center text-[13px] font-medium text-secondary-foreground">
         アカウントをお持ちでない方は{" "}
-        <Link href="/signup" className="font-bold text-primary hover:text-accent-foreground">
+        <Link
+          href={redirectParam ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : "/signup"}
+          className="font-bold text-primary hover:text-accent-foreground"
+        >
           新規登録
         </Link>
       </p>
