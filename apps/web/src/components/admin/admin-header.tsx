@@ -30,6 +30,11 @@ const NAV_ITEMS = [
     label: "APIキー",
     isActive: (pathname: string) => pathname.startsWith("/admin/api-keys"),
   },
+  {
+    href: "/admin/settings",
+    label: "アカウント設定",
+    isActive: (pathname: string) => pathname.startsWith("/admin/settings"),
+  },
 ];
 
 function initialsOf(source: string) {

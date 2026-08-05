@@ -16,6 +16,9 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
+  // パスワードリセット・メール確認の送信に使用（src/lib/email.ts）。送信元
+  // ドメイン（paritto.dev）のCloudflare Email Sending有効化は別途手動作業。
+  "send_email": [{ "name": "EMAIL" }],
   // Same D1 database as packages/db (which owns the schema/migrations,
   // see packages/db/wrangler.jsonc). better-auth reads/writes users,
   // sessions, accounts, verifications through this binding.

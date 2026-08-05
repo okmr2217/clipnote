@@ -5,6 +5,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { jwt } from "better-auth/plugins";
 import { oauthProvider } from "@better-auth/oauth-provider";
 import { headers } from "next/headers";
+import { resetPasswordEmail, sendEmail, verifyEmailEmail } from "./email";
 
 // MCPのOAuth 2.1認可サーバーとしてクリップノートを機能させるためのスコープ
 // （設計書4-7節・13章）。read/write等の粒度は設けない（要件定義書15章：
@@ -30,6 +31,18 @@ function createAuth(db: D1Database) {
     verification: { modelName: "verifications" },
     emailAndPassword: {
       enabled: true,
+      sendResetPassword: async ({ user, url }) => {
+        await sendEmail({ to: user.email, ...resetPasswordEmail(url) });
+      },
+    },
+    // メール確認は任意（未確認でも機能制限なし）。/adminのバナーから再送信
+    // できる（apps/web/src/components/account/email-verification-banner.tsx）。
+    emailVerification: {
+      sendVerificationEmail: async ({ user, url }) => {
+        await sendEmail({ to: user.email, ...verifyEmailEmail(url) });
+      },
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
     },
     // セッションCookieのスコープ（design.md 1章）：`paritto.dev`はcontent/mcp
     // サブドメインとも共有される親ドメインのため、advanced.crossSubDomainCookies
