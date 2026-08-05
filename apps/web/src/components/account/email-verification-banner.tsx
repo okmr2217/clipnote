@@ -25,9 +25,9 @@ export function EmailVerificationBanner({ email }: { email: string }) {
           type="button"
           onClick={handleResend}
           disabled={status === "sending"}
-          className="font-bold text-primary hover:text-accent-foreground"
+          className="font-bold text-primary hover:text-accent-foreground disabled:opacity-60"
         >
-          確認メールを再送信
+          {status === "sending" ? "送信中…" : "確認メールを再送信"}
         </button>
       )}
     </div>

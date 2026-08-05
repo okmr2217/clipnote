@@ -73,9 +73,9 @@ export function AccountSettings({
                   type="button"
                   onClick={handleResend}
                   disabled={resendStatus === "sending"}
-                  className="ml-1 font-bold underline decoration-1 underline-offset-2 hover:text-primary"
+                  className="ml-1 font-bold underline decoration-1 underline-offset-2 hover:text-primary disabled:opacity-60"
                 >
-                  確認メールを再送信
+                  {resendStatus === "sending" ? "送信中…" : "確認メールを再送信"}
                 </button>
               )}
             </p>
