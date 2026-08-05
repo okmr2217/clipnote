@@ -24,7 +24,7 @@ export function ApiKeyList({ apiKeys }: { apiKeys: ApiKeyRow[] }) {
     <div>
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-extrabold tracking-tight md:text-2xl">APIキー</h1>
+          <h2 className="text-xl font-extrabold tracking-tight md:text-2xl">APIキー</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Claudeなどの外部ツールと連携するためのAPIキーを発行・管理します。
           </p>

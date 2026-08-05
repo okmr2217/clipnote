@@ -27,7 +27,7 @@ const NAV_ITEMS = [
   },
   {
     href: "/admin/api-keys",
-    label: "APIキー",
+    label: "MCP連携",
     isActive: (pathname: string) => pathname.startsWith("/admin/api-keys"),
   },
   {
