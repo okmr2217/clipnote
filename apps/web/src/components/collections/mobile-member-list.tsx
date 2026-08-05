@@ -1,18 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, TriangleAlertIcon, XIcon } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { FormatBadge } from "@/components/clips/format-badge";
 import type { CollectionMemberClip } from "@/components/collections/types";
 
 export function MobileMemberList({
   members,
+  collectionId,
   onReorder,
   onRemove,
   onModeChange,
 }: {
   members: CollectionMemberClip[];
+  collectionId: string;
   onReorder: (orderedIds: string[]) => void;
   onRemove: (pageId: string) => void;
   onModeChange?: (reordering: boolean) => void;
@@ -66,41 +70,69 @@ export function MobileMemberList({
         )}
       </div>
       <ul className="flex flex-col gap-2">
-        {list.map((member, index) => (
-          <li
-            key={member.id}
-            className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
-          >
-            <FormatBadge contentType={member.contentType} />
-            <span className="flex-1 truncate font-semibold">{member.title}</span>
-            {reordering ? (
-              <div className="flex gap-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => move(index, -1)}
-                  disabled={index === 0}
+        {list.map((member, index) => {
+          const isPrivate = member.visibility === "private";
+          return (
+            <li
+              key={member.id}
+              className={`flex items-center gap-3 rounded-xl border bg-card px-4 py-3 ${
+                isPrivate ? "border-accent" : "border-border"
+              }`}
+            >
+              <FormatBadge contentType={member.contentType} />
+              {reordering ? (
+                <span className="flex-1 truncate font-semibold">{member.title}</span>
+              ) : (
+                <Link
+                  href={`/admin/pages/${member.id}?from=${collectionId}`}
+                  className="flex-1 truncate font-semibold hover:text-primary"
                 >
-                  <ArrowUpIcon />
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => move(index, 1)}
-                  disabled={index === list.length - 1}
-                >
-                  <ArrowDownIcon />
-                </Button>
-              </div>
-            ) : (
-              <Button type="button" variant="outline" size="sm" onClick={() => onRemove(member.id)}>
-                外す
-              </Button>
-            )}
-          </li>
-        ))}
+                  {member.title}
+                </Link>
+              )}
+              {reordering ? (
+                <div className="flex gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-sm"
+                    onClick={() => move(index, -1)}
+                    disabled={index === 0}
+                  >
+                    <ArrowUpIcon />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-sm"
+                    onClick={() => move(index, 1)}
+                    disabled={index === list.length - 1}
+                  >
+                    <ArrowDownIcon />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <Badge
+                    variant="secondary"
+                    className={isPrivate ? "text-accent-foreground" : "text-primary"}
+                  >
+                    {isPrivate && <TriangleAlertIcon className="size-3" />}
+                    {isPrivate ? "非公開" : "公開"}
+                  </Badge>
+                  <button
+                    type="button"
+                    onClick={() => onRemove(member.id)}
+                    title="外す"
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <XIcon className="size-4" />
+                  </button>
+                </>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

@@ -59,9 +59,9 @@ export function CollectionMembers({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-8">
-      <div className="mb-5 flex items-center justify-between">
-        <h2 className="text-lg font-extrabold tracking-tight">所属クリップ</h2>
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-base font-bold tracking-tight">所属クリップ</h2>
         {!mobileReordering && (
           <Button
             type="button"
@@ -79,9 +79,15 @@ export function CollectionMembers({
         </p>
       ) : (
         <>
-          <DesktopMemberList members={members} onReorder={persistReorder} onRemove={handleRemove} />
+          <DesktopMemberList
+            members={members}
+            collectionId={collectionId}
+            onReorder={persistReorder}
+            onRemove={handleRemove}
+          />
           <MobileMemberList
             members={members}
+            collectionId={collectionId}
             onReorder={persistReorder}
             onRemove={handleRemove}
             onModeChange={setMobileReordering}

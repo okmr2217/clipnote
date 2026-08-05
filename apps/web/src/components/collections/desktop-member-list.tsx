@@ -20,16 +20,19 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVerticalIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { GripVerticalIcon, HistoryIcon, TriangleAlertIcon, XIcon } from "lucide-react";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { FormatBadge } from "@/components/clips/format-badge";
 import type { CollectionMemberClip } from "@/components/collections/types";
 
 function SortableRow({
   member,
+  collectionId,
   onRemove,
 }: {
   member: CollectionMemberClip;
+  collectionId: string;
   onRemove: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -41,11 +44,15 @@ function SortableRow({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const isPrivate = member.visibility === "private";
+
   return (
     <li
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
+      className={`flex items-center gap-3 rounded-xl border bg-card px-4 py-3 ${
+        isPrivate ? "border-accent" : "border-border"
+      }`}
     >
       <button
         type="button"
@@ -58,26 +65,47 @@ function SortableRow({
       </button>
       <FormatBadge contentType={member.contentType} />
       <a
-        href={`/p/${member.id}`}
+        href={`/p/${member.id}?from=${collectionId}`}
         target="_blank"
         rel="noreferrer"
         className="flex-1 truncate font-semibold text-foreground hover:text-primary"
       >
         {member.title}
       </a>
-      <Button type="button" variant="outline" size="sm" onClick={onRemove}>
-        外す
-      </Button>
+      <Badge
+        variant="secondary"
+        className={isPrivate ? "text-accent-foreground" : "text-primary"}
+      >
+        {isPrivate && <TriangleAlertIcon className="size-3" />}
+        {isPrivate ? "非公開" : "公開"}
+      </Badge>
+      <Link
+        href={`/admin/pages/${member.id}?from=${collectionId}`}
+        title="更新履歴を見る"
+        className="text-muted-foreground hover:text-foreground"
+      >
+        <HistoryIcon className="size-4" />
+      </Link>
+      <button
+        type="button"
+        onClick={onRemove}
+        title="外す"
+        className="text-muted-foreground hover:text-foreground"
+      >
+        <XIcon className="size-4" />
+      </button>
     </li>
   );
 }
 
 export function DesktopMemberList({
   members,
+  collectionId,
   onReorder,
   onRemove,
 }: {
   members: CollectionMemberClip[];
+  collectionId: string;
   onReorder: (orderedIds: string[]) => void;
   onRemove: (pageId: string) => void;
 }) {
@@ -139,7 +167,11 @@ export function DesktopMemberList({
             {members.map((member) => (
               <Fragment key={member.id}>
                 {member.id === overId && showIndicatorBefore && <DropIndicator />}
-                <SortableRow member={member} onRemove={() => onRemove(member.id)} />
+                <SortableRow
+                  member={member}
+                  collectionId={collectionId}
+                  onRemove={() => onRemove(member.id)}
+                />
                 {member.id === overId && showIndicatorAfter && <DropIndicator />}
               </Fragment>
             ))}
