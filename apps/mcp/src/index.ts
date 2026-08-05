@@ -43,6 +43,9 @@ app.get(PROTECTED_RESOURCE_METADATA_PATH, async (c) => {
     resource: RESOURCE_URL,
     authorization_servers: [AUTH_SERVER_ISSUER],
   });
+  // MCPクライアント（claude.ai等）が別オリジンからfetchしてJSで読み取る前提
+  // のため、CORSを許可する。
+  c.header("Access-Control-Allow-Origin", "*");
   return c.json(metadata);
 });
 
