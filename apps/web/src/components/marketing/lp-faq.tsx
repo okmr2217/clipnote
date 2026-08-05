@@ -17,8 +17,12 @@ const FAQS = [
     a: "過去のバージョンはいつでも復元・ダウンロードできるので安心です。",
   },
   {
-    q: "ChatGPTでも使えますか？",
-    a: "現在はClaude（Claude Desktop・Claude Code・claude.ai）のMCP連携に対応しています。他のAIツールへの対応は今後検討予定です。",
+    q: "ChatGPTやGeminiでも使えますか？",
+    a: "はい。貼り付けての保存はAIツール不問で使えます。ChatGPTやGeminiとの会話で生成したHTML/Markdownも、コピーして貼り付けるだけで保存できます。",
+  },
+  {
+    q: "MCP連携も使えますか？",
+    a: "MCP連携は現在Claude（Claude Desktop・Claude Code・claude.ai）のみ対応しています。他のAIツールへの対応は今後検討予定です。",
   },
 ];
 

@@ -2,8 +2,9 @@ import { LpNav } from "@/components/marketing/lp-nav";
 import { LpHero } from "@/components/marketing/lp-hero";
 import { LpFeatures } from "@/components/marketing/lp-features";
 import { LpWhyHtml } from "@/components/marketing/lp-why-html";
-import { LpMcp } from "@/components/marketing/lp-mcp";
+import { LpShare } from "@/components/marketing/lp-share";
 import { LpCollections } from "@/components/marketing/lp-collections";
+import { LpMcp } from "@/components/marketing/lp-mcp";
 import { LpUseCases } from "@/components/marketing/lp-use-cases";
 import { LpFaq } from "@/components/marketing/lp-faq";
 import { LpFinalCta } from "@/components/marketing/lp-final-cta";
@@ -19,6 +20,7 @@ export default function Home() {
       <LpHero />
       <LpFeatures />
       <LpWhyHtml />
+      <LpShare />
       <LpCollections />
       <LpMcp />
       <LpUseCases />

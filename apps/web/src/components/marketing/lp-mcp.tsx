@@ -15,13 +15,13 @@ export function LpMcp() {
         <div className="grid gap-12 md:grid-cols-2 md:items-center md:gap-16">
           <div>
             <span className="inline-block rounded-full bg-secondary px-3 py-1 text-[11px] font-bold text-primary">
-              NEW: MCP対応
+              Claudeユーザー向け
             </span>
             <h2 className="mt-4 text-[26px] font-extrabold tracking-tight text-foreground md:text-[30px]">
-              Claudeと、直接つながる。
+              Claudeユーザーはもっと楽に。
             </h2>
             <p className="mt-4 max-w-[420px] text-[15px] leading-[1.8] text-secondary-foreground">
-              MCP（Model Context Protocol）に対応。Claudeとの会話から、貼り付けなしでクリップの作成・更新・検索がそのまま行えます。
+              貼り付け不要。MCP（Model Context Protocol）でつなげば、会話からそのままクリップを作成・更新できます。設定は数分で完了。ChatGPT・Geminiは現状、貼り付けでの保存となります。
             </p>
             <ul className="mt-6 flex flex-col gap-3">
               {TOOLS.map((t) => (
