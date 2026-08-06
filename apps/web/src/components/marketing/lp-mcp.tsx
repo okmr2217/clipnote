@@ -10,7 +10,7 @@ const TOOLS = [
 
 export function LpMcp() {
   return (
-    <section className="border-y border-border bg-card">
+    <section id="mcp" className="scroll-mt-20 border-y border-border bg-card">
       <div className="mx-auto max-w-[1160px] px-5 py-16 md:px-8 md:py-24">
         <div className="grid gap-12 md:grid-cols-2 md:items-center md:gap-16">
           <div>
@@ -18,10 +18,10 @@ export function LpMcp() {
               Claudeユーザー向け
             </span>
             <h2 className="mt-4 text-[26px] font-extrabold tracking-tight text-foreground md:text-[30px]">
-              Claudeユーザーはもっと楽に。
+              AIに直接、管理させる。
             </h2>
             <p className="mt-4 max-w-[420px] text-[15px] leading-[1.8] text-secondary-foreground">
-              貼り付け不要。MCP（Model Context Protocol）でつなげば、会話からそのままクリップを作成・更新できます。設定は数分で完了。ChatGPT・Geminiは現状、貼り付けでの保存となります。
+              貼り付け作業そのものをなくすこともできます。MCP（Model Context Protocol）でつなげば、会話からそのままクリップを作成・更新可能。現在はClaude（Claude Desktop・Claude Code・claude.ai）に対応しています。設定は数分で完了。
             </p>
             <ul className="mt-6 flex flex-col gap-3">
               {TOOLS.map((t) => (

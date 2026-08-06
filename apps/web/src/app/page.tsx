@@ -1,7 +1,10 @@
 import { LpNav } from "@/components/marketing/lp-nav";
 import { LpHero } from "@/components/marketing/lp-hero";
+import { LpCapabilities } from "@/components/marketing/lp-capabilities";
 import { LpFeatures } from "@/components/marketing/lp-features";
+import { LpFormats } from "@/components/marketing/lp-formats";
 import { LpWhyHtml } from "@/components/marketing/lp-why-html";
+import { LpMechanism } from "@/components/marketing/lp-mechanism";
 import { LpShare } from "@/components/marketing/lp-share";
 import { LpCollections } from "@/components/marketing/lp-collections";
 import { LpMcp } from "@/components/marketing/lp-mcp";
@@ -18,8 +21,11 @@ export default function Home() {
     <main className="flex flex-col">
       <LpNav />
       <LpHero />
+      <LpCapabilities />
       <LpFeatures />
+      <LpFormats />
       <LpWhyHtml />
+      <LpMechanism />
       <LpShare />
       <LpCollections />
       <LpMcp />

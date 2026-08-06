@@ -2,9 +2,9 @@ import Link from "next/link";
 import { ArrowDownIcon, MessageSquareIcon, ClipboardIcon, LibraryIcon } from "lucide-react";
 
 const LIBRARY_ITEMS = [
-  { title: "週次レポート.html", date: "8月5日" },
-  { title: "旅行プラン案", date: "8月3日" },
-  { title: "読書メモ.html", date: "8月1日" },
+  { title: "旅行プラン案", date: "8月5日" },
+  { title: "週次レポート", date: "8月3日" },
+  { title: "読書メモ", date: "8月1日" },
 ];
 
 export function LpHero() {
@@ -12,12 +12,12 @@ export function LpHero() {
     <section className="mx-auto grid max-w-[1160px] gap-12 px-5 py-16 md:grid-cols-2 md:items-center md:gap-16 md:px-8 md:py-24">
       <div>
         <h1 className="text-[32px] leading-[1.25] font-extrabold tracking-tight text-foreground md:text-[48px]">
-          AIが作った&quot;それ&quot;を、
+          AIとのやり取りを、
           <br />
           ちゃんと残せる場所に。
         </h1>
         <p className="mt-6 max-w-[440px] text-[17px] leading-[1.8] text-secondary-foreground">
-          ChatGPT・Gemini・Claudeとの会話で生成したHTML/Markdownを、貼り付けるだけで保存。メモ帳のように、あとから見返せます。
+          ChatGPT・Gemini・Claudeとの会話でできたメモや資料を、貼り付けるだけで保存。メモ帳のように、あとから見返せます。
         </p>
         <Link
           href="/signup"
@@ -35,7 +35,7 @@ export function LpHero() {
               AIとの会話
             </div>
             <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-primary px-3.5 py-2 text-[13px] leading-[1.6] text-primary-foreground">
-              このHTML、あとで見返せるように残しておきたい
+              このやり取り、あとで見返せるように残しておきたい
             </div>
           </div>
 
@@ -46,7 +46,7 @@ export function LpHero() {
               <ClipboardIcon className="size-4.5 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-bold text-foreground">週次レポート.html</p>
+              <p className="truncate text-[13px] font-bold text-foreground">旅行プラン案</p>
               <p className="text-[11px] text-muted-foreground">貼り付けてClipnoteに保存</p>
             </div>
           </div>
