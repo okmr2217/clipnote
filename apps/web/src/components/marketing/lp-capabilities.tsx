@@ -26,7 +26,7 @@ const CAPABILITIES = [
 
 export function LpCapabilities() {
   return (
-    <section className="mx-auto max-w-[1160px] px-5 pb-16 md:px-8 md:pb-24">
+    <section className="mx-auto max-w-[1160px] px-5 py-16 md:px-8 md:py-24">
       <div className="mx-auto mb-10 max-w-[560px] text-center">
         <h2 className="text-[22px] font-extrabold tracking-tight text-foreground md:text-[26px]">
           できること。
@@ -36,34 +36,32 @@ export function LpCapabilities() {
         </p>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-4">
+      <div className="flex flex-col divide-y divide-border rounded-3xl border border-border bg-card sm:flex-row sm:divide-x sm:divide-y-0">
         {CAPABILITIES.map(({ icon: Icon, title, description, href }) => {
           const content = (
             <>
-              <div className="flex size-10 items-center justify-center rounded-xl bg-secondary">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary">
                 <Icon className="size-5 text-primary" />
               </div>
-              <h3 className="mt-4 text-base font-bold text-foreground">{title}</h3>
-              <p className="mt-1.5 text-sm leading-[1.7] text-secondary-foreground">
-                {description}
-              </p>
+              <div>
+                <h3 className="text-base font-bold text-foreground">{title}</h3>
+                <p className="mt-1 text-sm leading-[1.6] text-secondary-foreground">
+                  {description}
+                </p>
+              </div>
             </>
           );
 
           if (href) {
             return (
-              <a
-                key={title}
-                href={href}
-                className="flex flex-col rounded-3xl border border-border bg-card p-7"
-              >
+              <a key={title} href={href} className="flex flex-1 items-center gap-4 p-6">
                 {content}
               </a>
             );
           }
 
           return (
-            <div key={title} className="flex flex-col rounded-3xl border border-border bg-card p-7">
+            <div key={title} className="flex flex-1 items-center gap-4 p-6">
               {content}
             </div>
           );

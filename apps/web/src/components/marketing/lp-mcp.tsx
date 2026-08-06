@@ -21,7 +21,7 @@ export function LpMcp() {
               AIに直接、管理させる。
             </h2>
             <p className="mt-4 max-w-[420px] text-[15px] leading-[1.8] text-secondary-foreground">
-              貼り付け作業そのものをなくすこともできます。MCP（Model Context Protocol）でつなげば、会話からそのままクリップを作成・更新可能。現在はClaude（Claude Desktop・Claude Code・claude.ai）に対応しています。設定は数分で完了。
+              MCPは、ClaudeとClipnoteをつなぐ「連携のしくみ」です。名前は難しそうですが、やることはアプリ同士を一度つなぐだけ。あとは会話の中で「保存して」「書き換えて」とお願いするだけで、貼り付け作業そのものが不要になります。現在はClaude（Claude Desktop・Claude Code・claude.ai）に対応。設定は数分で完了します。
             </p>
             <ul className="mt-6 flex flex-col gap-3">
               {TOOLS.map((t) => (
