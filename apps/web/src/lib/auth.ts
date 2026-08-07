@@ -76,6 +76,13 @@ function createAuth(db: D1Database) {
         consentPage: "/oauth/consent",
         allowDynamicClientRegistration: true,
         allowUnauthenticatedClientRegistration: true,
+        // アクセストークン（JWT）はステートレス検証のため、連携失効操作をしても
+        // このTTLが尽きるまでは有効であり続ける（自然失効に委ねる設計、design-mcp.md
+        // 4-3節・6-1節）。既定値（1時間）だとMCPクライアント側のリフレッシュ挙動
+        // 次第で体感の再認証頻度が高くなるため、セッションCookieの既定と揃えて
+        // 7日に延長する。失効操作自体（リフレッシュトークン・同意記録の削除）は
+        // このTTLの長さに関わらず即座に効く。
+        accessTokenExpiresIn: 60 * 60 * 24 * 7,
         scopes: [MCP_SCOPE],
         clientRegistrationDefaultScopes: [MCP_SCOPE],
         validAudiences: ["https://mcp.clipnote.paritto.dev"],
