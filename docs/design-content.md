@@ -1,6 +1,6 @@
 # Clipnote 設計書：apps/content（content.clipnote.paritto.dev）
 
-> 最終更新：2026-08-05
+> 最終更新：2026-08-07
 > 位置づけ：`docs/design.md`（共通設計書）の詳細版。`apps/content`固有の内容（コンテンツ配信・XSS隔離モデル・トークン検証）を集約する。
 > トークン生成側（`apps/web`）の実装は`docs/design-web.md`、共通の脅威一覧は`docs/design.md`のセキュリティまとめを参照。
 
@@ -8,11 +8,11 @@
 
 ## 1. 役割
 
-`apps/content`は、クリップ本文（HTML/Markdown）をiframe内で配信する専用の軽量Worker。`apps/web`のようなNext.js/Reactランタイムは使わず、単純なリクエスト処理のみに特化する。
+`apps/content`は、クリップ本文（HTML/Markdown/プレーンテキスト、**v9でプレーンテキストを追加**）をiframe内で配信する専用の軽量Worker。`apps/web`のようなNext.js/Reactランタイムは使わず、単純なリクエスト処理のみに特化する。
 
-- ユーザー生成コンテンツ（AI生成のHTML/Markdown）の配信のみを担当し、認証UI・管理画面を一切持たない
+- ユーザー生成コンテンツ（AI生成のHTML/Markdown、あるいは会話ログ・メモ書きなどのプレーンテキスト）の配信のみを担当し、認証UI・管理画面を一切持たない
 - セッションCookieによるユーザー認証フローを持たないステートレスな設計（ユーザーテーブルへの問い合わせやセッション検証は不要）
-- Markdown→HTML変換（unified/remark/rehype）もこのWorker内で行う
+- Markdown→HTML変換（unified/remark/rehype）もこのWorker内で行う。プレーンテキストはunifiedパイプラインを使わず、HTML特殊文字のエスケープのみで表示する（4-1節参照）
 
 ---
 
@@ -75,7 +75,13 @@ token   = base64url("{payload}:{sig}")
 ④ content_typeに応じて出力：
    - html：pages.contentをそのままレスポンス（Content-Type: text/html）
    - markdown：unified/remark/rehypeでHTMLに変換してからレスポンス
-⑤ 本文の無害化（サニタイズ）は行わない（2章の方針の通り）
+   - plaintext（v9で追加）：構文はいっさい解釈せず、HTML特殊文字（`&` `<` `>`）
+     のみエスケープしたうえで、改行・空白を保持する`<pre>`要素に埋め込んで
+     レスポンス（`white-space: pre-wrap`で折り返す）
+⑤ 本文の無害化（サニタイズ）は行わない（2章の方針の通り）。plaintextの
+   エスケープは「文字として正しく表示するため」の処理であり、危険な
+   コンテンツの除去を目的とするサニタイズとは異なる（構文を解釈しない
+   ためそもそも実行される余地がない）
 ```
 
 UUID一致確認（②）により他クリップのトークン流用を防止する。トークンの正当性検証（①②）はDBアクセス不要でHMAC計算のみのため、不正リクエストを早期に安価に弾ける設計になっている。

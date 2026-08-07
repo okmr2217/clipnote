@@ -3,7 +3,7 @@
 // どちらの実行環境でも同じ判定になるようにする。
 
 export const MAX_CONTENT_BYTES = 1_048_576; // 1MB（設計書5-2節）
-export const CONTENT_TYPES = ["html", "markdown"] as const;
+export const CONTENT_TYPES = ["html", "markdown", "plaintext"] as const;
 export const VISIBILITIES = ["private", "public"] as const;
 
 export type ContentType = (typeof CONTENT_TYPES)[number];

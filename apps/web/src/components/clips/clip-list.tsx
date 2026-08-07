@@ -138,6 +138,7 @@ export function ClipList({
               <SelectItem value="all">形式: すべて</SelectItem>
               <SelectItem value="html">HTML</SelectItem>
               <SelectItem value="markdown">Markdown</SelectItem>
+              <SelectItem value="plaintext">プレーンテキスト</SelectItem>
             </SelectContent>
           </Select>
           <Select value={visibilityFilter} onValueChange={(value) => setVisibilityFilter(value ?? "all")}>

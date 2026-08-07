@@ -6,7 +6,12 @@ import { and, desc, eq, like } from "drizzle-orm";
 import { createDb, schema } from "@clipnote/db";
 import { API_KEY_PREFIX, hashApiKey } from "@clipnote/auth";
 import { oauthProviderResourceClient } from "@better-auth/oauth-provider/resource-client";
-import { getUtf8ByteLength, MAX_CONTENT_BYTES, validateContent } from "@clipnote/pages/validation";
+import {
+  CONTENT_TYPES,
+  getUtf8ByteLength,
+  MAX_CONTENT_BYTES,
+  validateContent,
+} from "@clipnote/pages/validation";
 import { replacePageContent } from "@clipnote/pages/page-versions";
 
 interface Env {
@@ -194,7 +199,7 @@ app.all("/mcp", async (c) => {
       description: "新しいクリップをアップロードする。",
       inputSchema: {
         content: z.string(),
-        contentType: z.enum(["html", "markdown"]),
+        contentType: z.enum(CONTENT_TYPES),
         title: z.string().trim().min(1),
         visibility: z.enum(["private", "public"]).optional(),
       },
