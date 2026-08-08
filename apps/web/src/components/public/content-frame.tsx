@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 // 設計書4-4節：トークンの有効期限は2分。切れる前に更新できるよう90秒間隔で
@@ -42,7 +42,17 @@ export function ContentFrame({
   // 見た自身のoriginはopaque（"null"）になる。そのためevent.originでの検証は
   // できず、event.source（window参照）が自分のiframeと一致するかで送信元を
   // 照合する（apps/content/src/resize-script.ts参照）。
-  useEffect(() => {
+  //
+  // useEffectだとペイント後（＝iframeのsrc読み込みが始まった後）まで登録が
+  // 遅れうる。content側は応答直後にすぐ最初のpostMessageを送るため、リスナー
+  // 登録より先に届いて取りこぼされることがあり、その後レイアウトが変化しない
+  // ページ（画像・Webフォントなどが無い）では二度と高さが通知されず、初期の
+  // 仮の高さ（min-h-[70vh]）のままスクロールバー付きで固まってしまう
+  // （ブラウザ幅を変えるとiframeの中身が再レイアウトされてResizeObserverが
+  // 再発火し、そこで初めて直って見える、という形で気づかれる不具合だった）。
+  // useLayoutEffectにしてDOMコミットと同期的にリスナーを登録し、必ずネット
+  // ワーク応答（非同期）より先に間に合わせる。
+  useLayoutEffect(() => {
     function onMessage(event: MessageEvent) {
       if (event.source !== iframeRef.current?.contentWindow) return;
       const data = event.data as unknown;
@@ -97,7 +107,7 @@ export function ContentFrame({
       title={title}
       src={src}
       sandbox="allow-scripts allow-popups allow-modals allow-popups-to-escape-sandbox"
-      className={cn("w-full border-0 transition-[height] duration-150 ease-out", className)}
+      className={cn("w-full overflow-hidden border-0 transition-[height] duration-150 ease-out", className)}
       style={height !== null ? { height } : undefined}
     />
   );
