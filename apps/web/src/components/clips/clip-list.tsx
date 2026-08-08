@@ -38,10 +38,13 @@ export function ClipList({
   const [formatFilter, setFormatFilter] = useState("all");
   const [visibilityFilter, setVisibilityFilter] = useState("all");
   const [collectionFilter, setCollectionFilter] = useState("all");
+  const [archiveFilter, setArchiveFilter] = useState<"active" | "archived" | "all">("active");
   const [dialog, setDialog] = useState<DialogState>(null);
   const [optimisticVisibility, setOptimisticVisibility] = useState<
     Record<string, ClipRow["visibility"]>
   >({});
+  const [optimisticPinned, setOptimisticPinned] = useState<Record<string, boolean>>({});
+  const [optimisticArchived, setOptimisticArchived] = useState<Record<string, boolean>>({});
 
   function refresh() {
     router.refresh();
@@ -52,6 +55,13 @@ export function ClipList({
       .map((clip) => ({
         ...clip,
         visibility: optimisticVisibility[clip.id] ?? clip.visibility,
+        pinned: optimisticPinned[clip.id] ?? clip.pinned,
+        archivedAt:
+          clip.id in optimisticArchived
+            ? optimisticArchived[clip.id]
+              ? (clip.archivedAt ?? new Date())
+              : null
+            : clip.archivedAt,
       }))
       .filter((clip) => {
         if (search && !clip.title.toLowerCase().includes(search.toLowerCase())) return false;
@@ -63,9 +73,21 @@ export function ClipList({
         ) {
           return false;
         }
+        if (archiveFilter === "active" && clip.archivedAt !== null) return false;
+        if (archiveFilter === "archived" && clip.archivedAt === null) return false;
         return true;
       });
-  }, [clips, search, formatFilter, visibilityFilter, collectionFilter, optimisticVisibility]);
+  }, [
+    clips,
+    search,
+    formatFilter,
+    visibilityFilter,
+    collectionFilter,
+    archiveFilter,
+    optimisticVisibility,
+    optimisticPinned,
+    optimisticArchived,
+  ]);
 
   function clearOptimisticVisibility(clipId: string) {
     setOptimisticVisibility((prev) => {
@@ -94,6 +116,52 @@ export function ClipList({
 
     router.refresh();
     clearOptimisticVisibility(clip.id);
+  }
+
+  async function handleTogglePin(clip: ClipRow) {
+    const current = optimisticPinned[clip.id] ?? clip.pinned;
+    const next = !current;
+    setOptimisticPinned((prev) => ({ ...prev, [clip.id]: next }));
+
+    const response = await fetch(`/api/pages/${clip.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pinned: next }),
+    });
+
+    if (!response.ok) {
+      setOptimisticPinned((prev) => {
+        const rest = { ...prev };
+        delete rest[clip.id];
+        return rest;
+      });
+      return;
+    }
+
+    router.refresh();
+  }
+
+  async function handleToggleArchive(clip: ClipRow) {
+    const current = optimisticArchived[clip.id] ?? clip.archivedAt !== null;
+    const next = !current;
+    setOptimisticArchived((prev) => ({ ...prev, [clip.id]: next }));
+
+    const response = await fetch(`/api/pages/${clip.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ archived: next }),
+    });
+
+    if (!response.ok) {
+      setOptimisticArchived((prev) => {
+        const rest = { ...prev };
+        delete rest[clip.id];
+        return rest;
+      });
+      return;
+    }
+
+    router.refresh();
   }
 
   return (
@@ -151,6 +219,19 @@ export function ClipList({
               <SelectItem value="public">公開</SelectItem>
             </SelectContent>
           </Select>
+          <Select
+            value={archiveFilter}
+            onValueChange={(value) => setArchiveFilter((value as typeof archiveFilter) ?? "active")}
+          >
+            <SelectTrigger className="h-9! shrink-0 rounded-full bg-muted px-4 py-2.5 text-[13px] font-semibold text-secondary-foreground">
+              状態
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">アクティブのみ</SelectItem>
+              <SelectItem value="archived">アーカイブ済みのみ</SelectItem>
+              <SelectItem value="all">すべて</SelectItem>
+            </SelectContent>
+          </Select>
           {collectionOptions.length > 0 && (
             <Select value={collectionFilter} onValueChange={(value) => setCollectionFilter(value ?? "all")}>
               <SelectTrigger className="h-9! shrink-0 rounded-full bg-muted px-4 py-2.5 text-[13px] font-semibold text-secondary-foreground">
@@ -173,7 +254,9 @@ export function ClipList({
         <p className="py-16 text-center text-sm text-muted-foreground">
           {clips.length === 0
             ? "まだクリップがありません。［＋ 新規クリップ］から最初のクリップを登録しましょう。"
-            : "条件に一致するクリップがありません。"}
+            : archiveFilter === "archived"
+              ? "アーカイブ済みのクリップがありません。"
+              : "条件に一致するクリップがありません。"}
         </p>
       ) : (
         <>
@@ -182,6 +265,8 @@ export function ClipList({
             onToggleVisibility={handleToggleVisibility}
             onEditMetadata={(clip) => setDialog({ type: "edit-metadata", clip })}
             onUpdateContent={(clip) => setDialog({ type: "update-content", clip })}
+            onTogglePin={handleTogglePin}
+            onToggleArchive={handleToggleArchive}
             onDelete={(clip) => setDialog({ type: "delete", clip })}
           />
           <ClipCard
@@ -189,6 +274,8 @@ export function ClipList({
             onToggleVisibility={handleToggleVisibility}
             onEditMetadata={(clip) => setDialog({ type: "edit-metadata", clip })}
             onUpdateContent={(clip) => setDialog({ type: "update-content", clip })}
+            onTogglePin={handleTogglePin}
+            onToggleArchive={handleToggleArchive}
             onDelete={(clip) => setDialog({ type: "delete", clip })}
           />
         </>

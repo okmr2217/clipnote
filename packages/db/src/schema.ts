@@ -97,6 +97,8 @@ export const pages = sqliteTable(
     visibility: text("visibility", { enum: ["private", "public"] })
       .notNull()
       .default("private"),
+    pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
+    archivedAt: integer("archived_at", { mode: "timestamp" }),
     ...timestamps,
   },
   (table) => [

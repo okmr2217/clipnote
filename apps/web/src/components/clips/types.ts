@@ -5,6 +5,8 @@ export type ClipRow = {
   title: string;
   contentType: ContentType;
   visibility: "private" | "public";
+  pinned: boolean;
+  archivedAt: Date | null;
   updatedAt: Date;
   collections: { id: string; name: string }[];
 };

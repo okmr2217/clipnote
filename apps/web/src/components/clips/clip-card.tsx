@@ -1,8 +1,11 @@
+import { PinIcon } from "lucide-react";
 import { FormatBadge } from "@/components/clips/format-badge";
 import { VisibilityToggle } from "@/components/clips/visibility-toggle";
 import { CollectionChips } from "@/components/clips/collection-chips";
 import { CopyUrlButton } from "@/components/clips/copy-url-button";
 import { ClipOverflowMenu } from "@/components/clips/clip-overflow-menu";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { ClipRow } from "@/components/clips/types";
 
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
@@ -16,24 +19,37 @@ export function ClipCard({
   onToggleVisibility,
   onEditMetadata,
   onUpdateContent,
+  onTogglePin,
+  onToggleArchive,
   onDelete,
 }: {
   clips: ClipRow[];
   onToggleVisibility: (clip: ClipRow) => void;
   onEditMetadata: (clip: ClipRow) => void;
   onUpdateContent: (clip: ClipRow) => void;
+  onTogglePin: (clip: ClipRow) => void;
+  onToggleArchive: (clip: ClipRow) => void;
   onDelete: (clip: ClipRow) => void;
 }) {
   return (
     <div className="flex flex-col gap-3 md:hidden">
       {clips.map((clip) => (
-        <div key={clip.id} className="rounded-xl border border-border p-4">
+        <div
+          key={clip.id}
+          className={cn("rounded-xl border border-border p-4", clip.archivedAt && "opacity-60")}
+        >
           <div className="mb-2.5 flex items-center gap-2">
             <FormatBadge contentType={clip.contentType} />
             <VisibilityToggle
               visibility={clip.visibility}
               onToggle={() => onToggleVisibility(clip)}
             />
+            {clip.pinned && <PinIcon className="size-3.5 text-primary" aria-label="固定済み" />}
+            {clip.archivedAt && (
+              <Badge variant="secondary" className="bg-muted text-muted-foreground">
+                アーカイブ済み
+              </Badge>
+            )}
           </div>
           <a
             href={`/p/${clip.id}`}
@@ -61,6 +77,8 @@ export function ClipCard({
                 clip={clip}
                 onEditMetadata={() => onEditMetadata(clip)}
                 onUpdateContent={() => onUpdateContent(clip)}
+                onTogglePin={() => onTogglePin(clip)}
+                onToggleArchive={() => onToggleArchive(clip)}
                 onDelete={() => onDelete(clip)}
               />
             </div>
