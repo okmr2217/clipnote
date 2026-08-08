@@ -29,9 +29,14 @@ export function ContentFrame({
   const [height, setHeight] = useState<number | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  useEffect(() => {
+  // uuidが変わった（＝別のクリップへクライアント側遷移した）ら高さをリセットする。
+  // useEffectではなくレンダー中にsetStateする形にし、カスケードする再レンダーを避ける
+  // （https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes）。
+  const [prevUuid, setPrevUuid] = useState(uuid);
+  if (uuid !== prevUuid) {
+    setPrevUuid(uuid);
     setHeight(null);
-  }, [uuid]);
+  }
 
   // sandbox属性にallow-same-originを付けていないため、本文（content側）から
   // 見た自身のoriginはopaque（"null"）になる。そのためevent.originでの検証は
