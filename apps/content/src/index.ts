@@ -3,6 +3,7 @@ import { verifyContentToken } from "@clipnote/content-token";
 import { createDb, schema } from "@clipnote/db";
 import { eq } from "drizzle-orm";
 import { renderMarkdownDocument } from "./markdown";
+import { renderPlainTextDocument } from "./plaintext";
 import { RESIZE_SCRIPT } from "./resize-script";
 
 interface Env {
@@ -48,12 +49,17 @@ app.get("/:uuid", async (c) => {
   // 乗せない（private/non-storeのブラウザ・CDNキャッシュ抑止）。
   c.header("Cache-Control", "private, no-store");
 
-  // 設計書4-4節④⑤：content_typeに応じて出力。サニタイズは行わない。
+  // 設計書4-4節④⑤：content_typeに応じて出力。サニタイズは行わない
+  // （プレーンテキストのみHTMLとして解釈されうる文字をエスケープするが、
+  // これは無害化ではなく素のテキストとして表示するための処理）。
   // RESIZE_SCRIPTは末尾に追記するだけ（本文自体には手を加えない）。
   // </body></html>より後ろに書いてもブラウザのHTMLパース時にbody内へ
   // 押し込まれて実行される。
   if (page.contentType === "html") {
     return c.html(page.content + RESIZE_SCRIPT);
+  }
+  if (page.contentType === "plaintext") {
+    return c.html(renderPlainTextDocument(page.content));
   }
   return c.html(await renderMarkdownDocument(page.content));
 });

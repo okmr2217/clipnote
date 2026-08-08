@@ -24,15 +24,27 @@ function sanitizeForFileName(value: string): string {
   return value.replace(/[\\/:*?"<>|]/g, "_").trim() || "clip";
 }
 
+const EXTENSION_BY_CONTENT_TYPE: Record<ContentType, string> = {
+  html: "html",
+  markdown: "md",
+  plaintext: "txt",
+};
+
+const MIME_TYPE_BY_CONTENT_TYPE: Record<ContentType, string> = {
+  html: "text/html",
+  markdown: "text/markdown",
+  plaintext: "text/plain",
+};
+
 function extensionFor(contentType: ContentType): string {
-  return contentType === "html" ? "html" : "md";
+  return EXTENSION_BY_CONTENT_TYPE[contentType];
 }
 
 // サーバー通信なしでダウンロードさせる（設計書6-5節）：表示のためにすでに
 // クライアント側へ渡っているテキストをBlob化してaタグ経由で保存するだけで、
 // 追加のfetchは発生しない。
 function downloadAsFile(fileNameBase: string, contentType: ContentType, content: string) {
-  const mimeType = contentType === "html" ? "text/html" : "text/markdown";
+  const mimeType = MIME_TYPE_BY_CONTENT_TYPE[contentType];
   const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");

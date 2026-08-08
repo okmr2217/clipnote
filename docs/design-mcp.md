@@ -1,6 +1,6 @@
 # Clipnote 設計書：apps/mcp（mcp.clipnote.paritto.dev）
 
-> 最終更新：2026-08-05
+> 最終更新：2026-08-07
 > 位置づけ：`docs/design.md`（共通設計書）の詳細版。`apps/mcp`固有の内容（MCPツール定義・APIキー認証・OAuth 2.1認可フロー・OAuth関連データモデル・連携管理画面）を集約する。
 > クリップ・コレクションのデータモデル本体は`docs/design-web.md`、コンテンツ配信の隔離モデルは`docs/design-content.md`を参照。
 
@@ -263,7 +263,7 @@ MCPクライアント（claude.ai等）が`/oauth2/authorize`にアクセスす�
 
 - 引数：
   - `content`（必須）
-  - `content_type`（`html` / `markdown`、必須。自動判定はしない）
+  - `content_type`（`html` / `markdown` / `plaintext`、必須。**v9で`plaintext`を追加**。自動判定はしない）
   - `title`（必須）
   - `visibility`（`private` / `public`、省略時は`private`）
 - コレクションへの割当引数は**持たせない**（MVPの範囲外。管理画面から手動で割り当てる運用、`docs/design.md`将来検討参照）

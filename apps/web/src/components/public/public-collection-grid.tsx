@@ -1,35 +1,59 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import type { ContentType } from "@clipnote/pages/validation";
 
 const shortDateFormatter = new Intl.DateTimeFormat("ja-JP", { month: "long", day: "numeric" });
 
-type ContentType = "html" | "markdown";
+const TAG_STYLE: Record<ContentType, string> = {
+  html: "bg-secondary text-primary",
+  markdown: "bg-muted text-secondary-foreground",
+  plaintext: "bg-muted text-secondary-foreground",
+};
+
+const TAG_LABEL: Record<ContentType, string> = {
+  html: "HTML",
+  markdown: "MD",
+  plaintext: "TXT",
+};
+
+function TagIcon({ contentType }: { contentType: ContentType }) {
+  if (contentType === "html") {
+    return (
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+        <path d="M4 4l1.5 15L12 21l6.5-2L20 4H4z" />
+      </svg>
+    );
+  }
+  if (contentType === "markdown") {
+    return (
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="M7 15V9l3 3 3-3v6M17 9v6M14.5 12.5L17 15l2.5-2.5" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
+      <path d="M4 3h11l5 5v13H4z" />
+      <path d="M8 12h8M8 16h8M8 8h4" />
+    </svg>
+  );
+}
 
 // Claude Designハンドオフバンドル「Clipnote Public Collection Page」の
 // 形式タグ。管理画面のFormatBadge（components/clips/format-badge.tsx）とは
 // 別デザイン（アイコン付き・形式ごとに配色が異なる）のため、このページ専用
 // コンポーネントとして分離する。
 function ContentTypeTag({ contentType }: { contentType: ContentType }) {
-  const isHtml = contentType === "html";
-
   return (
     <span
       className={cn(
         "inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold",
-        isHtml ? "bg-secondary text-primary" : "bg-muted text-secondary-foreground",
+        TAG_STYLE[contentType],
       )}
     >
-      {isHtml ? (
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-          <path d="M4 4l1.5 15L12 21l6.5-2L20 4H4z" />
-        </svg>
-      ) : (
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4">
-          <rect x="3" y="5" width="18" height="14" rx="2" />
-          <path d="M7 15V9l3 3 3-3v6M17 9v6M14.5 12.5L17 15l2.5-2.5" />
-        </svg>
-      )}
-      {isHtml ? "HTML" : "MD"}
+      <TagIcon contentType={contentType} />
+      {TAG_LABEL[contentType]}
     </span>
   );
 }

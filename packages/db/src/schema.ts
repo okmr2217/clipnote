@@ -93,7 +93,7 @@ export const pages = sqliteTable(
     // application layer, not the DB (design.md 5-2). D1's row size limit is
     // 2MB, so this leaves headroom for the other columns in the row.
     content: text("content").notNull(),
-    contentType: text("content_type", { enum: ["html", "markdown"] }).notNull(),
+    contentType: text("content_type", { enum: ["html", "markdown", "plaintext"] }).notNull(),
     visibility: text("visibility", { enum: ["private", "public"] })
       .notNull()
       .default("private"),
@@ -101,7 +101,10 @@ export const pages = sqliteTable(
   },
   (table) => [
     index("pages_user_id_idx").on(table.userId),
-    check("pages_content_type_check", sql`${table.contentType} in ('html', 'markdown')`),
+    check(
+      "pages_content_type_check",
+      sql`${table.contentType} in ('html', 'markdown', 'plaintext')`,
+    ),
     check("pages_visibility_check", sql`${table.visibility} in ('private', 'public')`),
   ],
 );
@@ -156,7 +159,7 @@ export const pageVersions = sqliteTable(
       .notNull()
       .references(() => pages.id, { onDelete: "cascade" }),
     content: text("content").notNull(),
-    contentType: text("content_type", { enum: ["html", "markdown"] }).notNull(),
+    contentType: text("content_type", { enum: ["html", "markdown", "plaintext"] }).notNull(),
     versionNumber: integer("version_number").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
@@ -167,7 +170,7 @@ export const pageVersions = sqliteTable(
     unique("page_versions_page_id_version_number_unique").on(table.pageId, table.versionNumber),
     check(
       "page_versions_content_type_check",
-      sql`${table.contentType} in ('html', 'markdown')`,
+      sql`${table.contentType} in ('html', 'markdown', 'plaintext')`,
     ),
   ],
 );

@@ -1,3 +1,5 @@
+import type { ContentType } from "@clipnote/pages/validation";
+
 export type CollectionSummary = {
   id: string;
   name: string;
@@ -18,7 +20,7 @@ export type CollectionDetail = {
 export type CollectionMemberClip = {
   id: string;
   title: string;
-  contentType: "html" | "markdown";
+  contentType: ContentType;
   visibility: "private" | "public";
   sortOrder: number;
 };
@@ -26,5 +28,5 @@ export type CollectionMemberClip = {
 export type ClipOption = {
   id: string;
   title: string;
-  contentType: "html" | "markdown";
+  contentType: ContentType;
 };

@@ -154,6 +154,23 @@ describe("clipnote schema", () => {
     expect(page).toBeDefined();
   });
 
+  it("inserts and selects a page with content_type plaintext", async () => {
+    const userId = await createTestUser(db);
+
+    await db.insert(pages).values({
+      id: "page-5",
+      userId,
+      title: "会議メモ",
+      content: "そのままのメモ",
+      contentType: "plaintext",
+      visibility: "private",
+    });
+
+    const [page] = await db.select().from(pages).where(eq(pages.id, "page-5"));
+
+    expect(page?.contentType).toBe("plaintext");
+  });
+
   it("rejects an invalid content_type value at the DB level via the CHECK constraint", async () => {
     const userId = await createTestUser(db);
 

@@ -17,6 +17,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 const PASTE_LABEL: Record<ContentType, string> = {
   html: "貼り付けされたHTML",
   markdown: "貼り付けされたマークダウン",
+  plaintext: "貼り付けされたプレーンテキスト",
 };
 
 const EXTENSION_FORMAT: Record<string, ContentType> = {
@@ -24,7 +25,7 @@ const EXTENSION_FORMAT: Record<string, ContentType> = {
   htm: "html",
   md: "markdown",
   markdown: "markdown",
-  txt: "markdown",
+  txt: "plaintext",
 };
 
 function guessFormatFromExtension(fileName: string): ContentType | null {
@@ -41,11 +42,32 @@ function hasRecognizedExtension(fileName: string): boolean {
   return !!ext && ext in EXTENSION_FORMAT;
 }
 
+// Markdownらしい記法（見出し・リスト・引用・コードブロック・表・リンク・強調・
+// 区切り線）を大まかに検出する。プレーンテキスト（会話ログやメモ書きなど）は
+// これらの記法を含まないことが多いため、いずれにも一致しない場合はプレーン
+// テキストとみなす（厳密なCommonMark判定はしない。設計書5-1節と同じ方針）。
+const MARKDOWN_MARKERS: RegExp[] = [
+  /^#{1,6}\s+\S/m,
+  /^\s*([-*+]|\d+\.)\s+\S/m,
+  /^>\s?\S/m,
+  /^```/m,
+  /^\s*\|.+\|\s*$/m,
+  /\[[^\]]+\]\([^)]+\)/,
+  /(\*\*|__)[^\s*_][^*_]*\1/,
+  /^([-*_]\s*){3,}$/m,
+];
+
+function looksLikeMarkdown(content: string): boolean {
+  return MARKDOWN_MARKERS.some((pattern) => pattern.test(content));
+}
+
 // 本文の内容から形式を判定する（設計書5-1節）。厳密な構文解析はせず、
-// HTMLタグらしきものが含まれるかどうかの大まかな判定にとどめる。
+// HTMLタグらしきものが含まれるか→Markdownらしい記法が含まれるか、の順で
+// 大まかに判定し、どちらでもなければプレーンテキストとする。
 function detectFormatFromContent(content: string): ContentType {
   const hasHtmlTag = /<\/?[a-z][a-z0-9]*[\s>]/i.test(content.trim());
-  return hasHtmlTag ? "html" : "markdown";
+  if (hasHtmlTag) return "html";
+  return looksLikeMarkdown(content) ? "markdown" : "plaintext";
 }
 
 // ファイル名の拡張子が対応形式なら拡張子を優先し、貼り付けや未対応拡張子の
@@ -92,9 +114,24 @@ function extractMarkdownTitle(markdown: string): string | null {
   return null;
 }
 
+// 先頭の空行を除いた最初の行をタイトル候補とする。プレーンテキストには
+// 見出し構文がないため、空でなければ無条件に採用する（会議メモ等では
+// 一行目がタイトルのように書かれることが多いため）。
+function extractPlainTextTitle(content: string): string | null {
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (trimmed) return trimmed;
+  }
+  return null;
+}
+
 function extractContentTitle(content: string, contentType: ContentType): string | null {
   const extracted =
-    contentType === "html" ? extractHtmlTitle(content) : extractMarkdownTitle(content);
+    contentType === "html"
+      ? extractHtmlTitle(content)
+      : contentType === "markdown"
+        ? extractMarkdownTitle(content)
+        : extractPlainTextTitle(content);
   return extracted ? truncateTitle(extracted) : null;
 }
 
@@ -237,7 +274,7 @@ export function ContentInput({
       <div className="mb-2 rounded-xl border border-border bg-background p-4">
         <Label className="text-sm font-bold">テキストを貼り付け</Label>
         <p className="mt-1 text-xs text-muted-foreground">
-          AIとの会話などで生成したHTML/Markdownをそのまま貼り付けてください。形式は自動で判定されます。
+          AIとの会話などで生成したHTML/Markdown、会話ログやメモ書きなどのプレーンテキストをそのまま貼り付けてください。形式は自動で判定されます。
         </p>
         <Textarea
           value={content}

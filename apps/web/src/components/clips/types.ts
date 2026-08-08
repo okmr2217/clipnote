@@ -1,7 +1,9 @@
+import type { ContentType } from "@clipnote/pages/validation";
+
 export type ClipRow = {
   id: string;
   title: string;
-  contentType: "html" | "markdown";
+  contentType: ContentType;
   visibility: "private" | "public";
   updatedAt: Date;
   collections: { id: string; name: string }[];
@@ -17,7 +19,7 @@ export type ClipDetail = {
   id: string;
   title: string;
   content: string;
-  contentType: "html" | "markdown";
+  contentType: ContentType;
   visibility: "private" | "public";
   updatedAt: Date;
   // page_versionsに退避済みの最大version_number + 1（設計書6-5節のモック
@@ -28,7 +30,7 @@ export type ClipDetail = {
 export type PageVersionRow = {
   id: string;
   versionNumber: number;
-  contentType: "html" | "markdown";
+  contentType: ContentType;
   content: string;
   createdAt: Date;
 };
