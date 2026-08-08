@@ -62,6 +62,15 @@ export default async function PublicClipPage({
             apps/content）が持つ構造に統一しており、親ページ側では幅を
             持たせない（Markdownバリアントもハンドオフバンドルの見た目を
             content側のCSSとして再現している）。 */}
+        {/* AIエージェント等がJSを実行せずbody内のリンクをたどるだけで本文
+            （content側が生成するHTML文書）を発見できるようにする。視覚的には
+            sr-onlyで隠し、人間の閲覧導線には影響させない。content側のレスポンス
+            はcanonical・noindexを返すため、検索エンジンの正規ページはこの
+            /p/{uuid}のままになる（apps/content/src/index.ts参照）。 */}
+        <a href={`${contentOrigin}/${uuid}?t=${encodeURIComponent(token)}`} className="sr-only">
+          {page.title}の本文を直接見る
+        </a>
+
         <ContentFrame
           uuid={uuid}
           initialToken={token}

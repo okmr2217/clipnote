@@ -11,6 +11,7 @@ interface Env {
   DB: D1Database;
   CONTENT_HOST: string;
   CONTENT_TOKEN_SECRET: string;
+  WEB_ORIGIN: string;
 }
 
 const app = new Hono<{ Bindings: Env }>();
@@ -49,6 +50,15 @@ app.get("/:uuid", async (c) => {
   // トークンごとに内容・可視性が変わりうるため、いかなるキャッシュにも
   // 乗せない（private/non-storeのブラウザ・CDNキャッシュ抑止）。
   c.header("Cache-Control", "private, no-store");
+
+  // このcontentドメインのURLはAIエージェント等がJSを実行せずに本文を発見する
+  // ための経路として公開ページ（apps/web）のbody内にリンクを置いているが
+  // （apps/web/src/app/p/[uuid]/page.tsx参照）、検索エンジンにはraw文書ではなく
+  // ヘッダー・フッター付きの/p/{uuid}を正規ページとして拾わせたい。本文（HTML
+  // 種別は特にAI生成のドキュメント全体）を書き換えずに済むよう、HTMLタグでは
+  // なくレスポンスヘッダーでcanonical・noindexを伝える。
+  c.header("X-Robots-Tag", "noindex");
+  c.header("Link", `<${c.env.WEB_ORIGIN}/p/${uuid}>; rel="canonical"`);
 
   // 設計書4-4節④⑤：content_typeに応じて出力。サニタイズは行わない
   // （プレーンテキストのみHTMLとして解釈されうる文字をエスケープするが、

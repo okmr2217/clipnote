@@ -10,7 +10,10 @@
   // アクセスを拒否するための比較対象。ローカル開発では`wrangler dev`が
   // 出力するhost:portに合わせて.dev.varsで上書きする。
   "vars": {
-    "CONTENT_HOST": "content.clipnote.paritto.dev"
+    "CONTENT_HOST": "content.clipnote.paritto.dev",
+    // 検索エンジンにraw文書を正規ページとして拾わせないための、canonicalリンク
+    // ヘッダーの組み立てに使うWeb本体ドメイン（設計書1章）。
+    "WEB_ORIGIN": "https://clipnote.paritto.dev"
   },
   // packages/dbと同じD1データベース（webと同じ database_id）。トークン検証
   // 自体はDBアクセス不要だが、本文取得にはD1読み取りが必要（設計書4-4節）。
