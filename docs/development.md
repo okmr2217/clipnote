@@ -92,18 +92,18 @@ pnpm --filter web preview
 
 ## デプロイ
 
-ルートから全workspaceをまとめてデプロイする場合。
+ルートから全workspaceをまとめてデプロイする場合。`pnpm deploy`はpnpm自体の組み込みコマンド（プロジェクトのデプロイ用ディレクトリ生成機能）と名前が衝突し何も実行されないため、`run`を省略しないこと。
 
 ```bash
-pnpm deploy
+pnpm run deploy
 ```
 
-個別にデプロイする場合。
+個別にデプロイする場合も同様に`run`が必要です。
 
 ```bash
-pnpm --filter web deploy       # opennextjs-cloudflare build && deploy
-pnpm --filter content deploy   # wrangler deploy
-pnpm --filter mcp deploy       # wrangler deploy
+pnpm --filter web run deploy       # opennextjs-cloudflare build && deploy
+pnpm --filter content run deploy   # wrangler deploy
+pnpm --filter mcp run deploy       # wrangler deploy
 ```
 
 リモートD1へのマイグレーション適用（本番反映）はデプロイとは別コマンドです。スキーマ変更を伴うリリースでは、デプロイ前にリモートマイグレーションを適用してください。
