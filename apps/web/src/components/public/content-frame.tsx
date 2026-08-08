@@ -97,7 +97,7 @@ export function ContentFrame({
       title={title}
       src={src}
       sandbox="allow-scripts allow-popups allow-modals allow-popups-to-escape-sandbox"
-      className={cn("w-full border-0", className)}
+      className={cn("w-full border-0 transition-[height] duration-150 ease-out", className)}
       style={height !== null ? { height } : undefined}
     />
   );
