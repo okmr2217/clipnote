@@ -21,11 +21,13 @@ export default async function AdminPage() {
         title: pages.title,
         contentType: pages.contentType,
         visibility: pages.visibility,
+        pinned: pages.pinned,
+        archivedAt: pages.archivedAt,
         updatedAt: pages.updatedAt,
       })
       .from(pages)
       .where(eq(pages.userId, userId))
-      .orderBy(desc(pages.updatedAt)),
+      .orderBy(desc(pages.pinned), desc(pages.updatedAt)),
     db
       .select({ id: collections.id, name: collections.name, visibility: collections.visibility })
       .from(collections)

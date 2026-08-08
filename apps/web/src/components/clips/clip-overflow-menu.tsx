@@ -1,6 +1,6 @@
 "use client";
 
-import { EllipsisIcon } from "lucide-react";
+import { ArchiveIcon, ArchiveRestoreIcon, EllipsisIcon, PinIcon, PinOffIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,13 +16,19 @@ export function ClipOverflowMenu({
   clip,
   onEditMetadata,
   onUpdateContent,
+  onTogglePin,
+  onToggleArchive,
   onDelete,
 }: {
   clip: ClipRow;
   onEditMetadata: () => void;
   onUpdateContent: () => void;
+  onTogglePin: () => void;
+  onToggleArchive: () => void;
   onDelete: () => void;
 }) {
+  const isArchived = clip.archivedAt !== null;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -42,6 +48,29 @@ export function ClipOverflowMenu({
         <DropdownMenuItem onClick={onUpdateContent}>コンテンツ更新</DropdownMenuItem>
         <DropdownMenuItem render={<Link href={`/admin/pages/${clip.id}`} />}>
           更新履歴
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onTogglePin}>
+          {clip.pinned ? (
+            <>
+              <PinOffIcon /> 固定を解除
+            </>
+          ) : (
+            <>
+              <PinIcon /> 固定する
+            </>
+          )}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onToggleArchive}>
+          {isArchived ? (
+            <>
+              <ArchiveRestoreIcon /> アーカイブを解除
+            </>
+          ) : (
+            <>
+              <ArchiveIcon /> アーカイブする
+            </>
+          )}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={onDelete}>

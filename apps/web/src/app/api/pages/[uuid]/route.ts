@@ -37,9 +37,18 @@ export async function PATCH(
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
-  const { title, visibility, collectionIds } = body as Record<string, unknown>;
+  const { title, visibility, collectionIds, pinned, archived } = body as Record<
+    string,
+    unknown
+  >;
 
-  const update: { title?: string; visibility?: "private" | "public"; updatedAt: Date } = {
+  const update: {
+    title?: string;
+    visibility?: "private" | "public";
+    pinned?: boolean;
+    archivedAt?: Date | null;
+    updatedAt: Date;
+  } = {
     updatedAt: new Date(),
   };
 
@@ -55,6 +64,20 @@ export async function PATCH(
       return NextResponse.json({ error: "invalid_visibility" }, { status: 400 });
     }
     update.visibility = visibility;
+  }
+
+  if (pinned !== undefined) {
+    if (typeof pinned !== "boolean") {
+      return NextResponse.json({ error: "invalid_pinned" }, { status: 400 });
+    }
+    update.pinned = pinned;
+  }
+
+  if (archived !== undefined) {
+    if (typeof archived !== "boolean") {
+      return NextResponse.json({ error: "invalid_archived" }, { status: 400 });
+    }
+    update.archivedAt = archived ? new Date() : null;
   }
 
   let validCollectionIds: string[] | null = null;
