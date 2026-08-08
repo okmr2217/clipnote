@@ -1,3 +1,4 @@
+import { ArrowLeftIcon } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -8,9 +9,11 @@ import { cn } from "@/lib/utils";
 export function PublicHeader({
   title,
   visibility,
+  fromCollection,
 }: {
   title: string;
   visibility: "public" | "private";
+  fromCollection?: { id: string; name: string } | null;
 }) {
   const isPublic = visibility === "public";
 
@@ -43,6 +46,17 @@ export function PublicHeader({
           Clipnoteとは ↗
         </Link>
       </div>
+
+      {fromCollection && (
+        <div className="mx-auto max-w-[1160px] px-4 pb-2 md:px-8">
+          <Link
+            href={`/c/${fromCollection.id}`}
+            className="inline-flex w-fit items-center gap-1.5 text-[13px] font-semibold text-secondary-foreground hover:text-foreground"
+          >
+            <ArrowLeftIcon className="size-3.5" /> 「{fromCollection.name}」に戻る
+          </Link>
+        </div>
+      )}
     </header>
   );
 }

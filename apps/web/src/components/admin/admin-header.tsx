@@ -26,9 +26,14 @@ const NAV_ITEMS = [
     isActive: (pathname: string) => pathname.startsWith("/admin/collections"),
   },
   {
-    href: "/admin/api-keys",
-    label: "APIキー",
-    isActive: (pathname: string) => pathname.startsWith("/admin/api-keys"),
+    href: "/admin/mcp",
+    label: "MCP連携",
+    isActive: (pathname: string) => pathname.startsWith("/admin/mcp"),
+  },
+  {
+    href: "/admin/settings",
+    label: "アカウント設定",
+    isActive: (pathname: string) => pathname.startsWith("/admin/settings"),
   },
 ];
 

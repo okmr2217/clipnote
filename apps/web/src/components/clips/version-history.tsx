@@ -24,15 +24,27 @@ function sanitizeForFileName(value: string): string {
   return value.replace(/[\\/:*?"<>|]/g, "_").trim() || "clip";
 }
 
+const EXTENSION_BY_CONTENT_TYPE: Record<ContentType, string> = {
+  html: "html",
+  markdown: "md",
+  plaintext: "txt",
+};
+
+const MIME_TYPE_BY_CONTENT_TYPE: Record<ContentType, string> = {
+  html: "text/html",
+  markdown: "text/markdown",
+  plaintext: "text/plain",
+};
+
 function extensionFor(contentType: ContentType): string {
-  return contentType === "html" ? "html" : "md";
+  return EXTENSION_BY_CONTENT_TYPE[contentType];
 }
 
 // サーバー通信なしでダウンロードさせる（設計書6-5節）：表示のためにすでに
 // クライアント側へ渡っているテキストをBlob化してaタグ経由で保存するだけで、
 // 追加のfetchは発生しない。
 function downloadAsFile(fileNameBase: string, contentType: ContentType, content: string) {
-  const mimeType = contentType === "html" ? "text/html" : "text/markdown";
+  const mimeType = MIME_TYPE_BY_CONTENT_TYPE[contentType];
   const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -45,9 +57,11 @@ function downloadAsFile(fileNameBase: string, contentType: ContentType, content:
 export function VersionHistory({
   clip,
   versions,
+  fromCollection,
 }: {
   clip: ClipDetail;
   versions: PageVersionRow[];
+  fromCollection?: { id: string; name: string } | null;
 }) {
   const router = useRouter();
   const [previewTarget, setPreviewTarget] = useState<PreviewTarget>(null);
@@ -59,12 +73,21 @@ export function VersionHistory({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        href="/admin"
-        className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-secondary-foreground hover:text-foreground"
-      >
-        <ArrowLeftIcon className="size-4" /> クリップ一覧へ戻る
-      </Link>
+      {fromCollection ? (
+        <Link
+          href={`/admin/collections/${fromCollection.id}`}
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-secondary-foreground hover:text-foreground"
+        >
+          <ArrowLeftIcon className="size-4" /> 「{fromCollection.name}」に戻る
+        </Link>
+      ) : (
+        <Link
+          href="/admin"
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-secondary-foreground hover:text-foreground"
+        >
+          <ArrowLeftIcon className="size-4" /> クリップ一覧へ戻る
+        </Link>
+      )}
 
       <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-8">
         <div className="flex flex-wrap items-center gap-3">

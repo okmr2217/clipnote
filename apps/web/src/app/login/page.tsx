@@ -27,6 +27,8 @@ function LoginForm() {
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const resetSucceeded = searchParams.get("reset") === "1";
+  const redirectParam = searchParams.get("redirect");
 
   function validate() {
     const errors: typeof fieldErrors = {};
@@ -52,12 +54,17 @@ function LoginForm() {
       return;
     }
 
-    router.push(searchParams.get("redirect") ?? "/admin");
+    router.push(redirectParam ?? "/admin");
   }
 
   return (
     <AuthCard>
       {serverError && <AuthErrorBanner message={serverError} />}
+      {resetSucceeded && !serverError && (
+        <p className="mb-5 rounded-md border border-border bg-secondary px-3.5 py-3 text-[13px] font-semibold text-secondary-foreground">
+          パスワードを再設定しました。新しいパスワードでログインしてください。
+        </p>
+      )}
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <AuthField
           id="email"
@@ -83,6 +90,12 @@ function LoginForm() {
             setFieldErrors((prev) => ({ ...prev, password: undefined }));
           }}
         />
+        <Link
+          href="/forgot-password"
+          className="-mt-2 self-end text-xs font-semibold text-secondary-foreground hover:text-primary"
+        >
+          パスワードをお忘れですか？
+        </Link>
         <Button
           type="submit"
           disabled={isSubmitting}
@@ -93,7 +106,10 @@ function LoginForm() {
       </form>
       <p className="mt-[22px] text-center text-[13px] font-medium text-secondary-foreground">
         アカウントをお持ちでない方は{" "}
-        <Link href="/signup" className="font-bold text-primary hover:text-accent-foreground">
+        <Link
+          href={redirectParam ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : "/signup"}
+          className="font-bold text-primary hover:text-accent-foreground"
+        >
           新規登録
         </Link>
       </p>

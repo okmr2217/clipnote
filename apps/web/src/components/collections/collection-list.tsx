@@ -73,8 +73,13 @@ export function CollectionList({ collections }: { collections: CollectionSummary
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-extrabold tracking-tight md:text-2xl">コレクション一覧</h1>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-xl font-extrabold tracking-tight md:text-2xl">コレクション一覧</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            複数のクリップをまとめて公開・非公開を切り替えられます。
+          </p>
+        </div>
         <Button
           className="hidden h-auto px-5 py-3 shadow-[var(--shadow-accent)] md:inline-flex"
           onClick={() => setNewOpen(true)}

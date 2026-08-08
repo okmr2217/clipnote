@@ -1,14 +1,10 @@
 import Link from "next/link";
-import { FormatBadge } from "@/components/clips/format-badge";
+import { ArrowDownIcon, MessageSquareIcon, ClipboardIcon, LibraryIcon } from "lucide-react";
 
-const PREVIEW_ITEMS: {
-  contentType: "html" | "markdown";
-  title: string;
-  visibility: "public" | "private";
-}[] = [
-  { contentType: "html", title: "週次レポート.html", visibility: "public" },
-  { contentType: "markdown", title: "定例会議の議事録", visibility: "private" },
-  { contentType: "html", title: "イベント告知ページ", visibility: "public" },
+const LIBRARY_ITEMS = [
+  { title: "旅行プラン案", date: "8月5日" },
+  { title: "週次レポート", date: "8月3日" },
+  { title: "読書メモ", date: "8月1日" },
 ];
 
 export function LpHero() {
@@ -16,12 +12,12 @@ export function LpHero() {
     <section className="mx-auto grid max-w-[1160px] gap-12 px-5 py-16 md:grid-cols-2 md:items-center md:gap-16 md:px-8 md:py-24">
       <div>
         <h1 className="text-[32px] leading-[1.25] font-extrabold tracking-tight text-foreground md:text-[48px]">
-          AIが作った&quot;それ&quot;を、
+          AIとのやり取りを、
           <br />
           ちゃんと残せる場所に。
         </h1>
         <p className="mt-6 max-w-[440px] text-[17px] leading-[1.8] text-secondary-foreground">
-          AIとの会話で生成したHTML/Markdownを、貼り付けるだけで保存。URLを発行してすぐに共有できます。
+          ChatGPT・Gemini・Claudeとの会話でできたメモや資料を、貼り付けるだけで保存。メモ帳のように、あとから見返せます。
         </p>
         <Link
           href="/signup"
@@ -32,33 +28,50 @@ export function LpHero() {
       </div>
 
       <div className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
-        <div className="mb-4 flex items-center justify-between">
-          <span className="text-[15px] font-extrabold text-foreground">クリップ一覧</span>
-          <span className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground">
-            ＋ 新規
-          </span>
-        </div>
-        <div className="flex flex-col gap-2.5">
-          {PREVIEW_ITEMS.map((item) => (
-            <div
-              key={item.title}
-              className="flex items-center gap-2.5 rounded-xl border border-border px-3.5 py-3"
-            >
-              <FormatBadge contentType={item.contentType} />
-              <span className="flex-1 truncate text-[13px] font-semibold text-foreground">
-                {item.title}
-              </span>
-              <span
-                className={
-                  item.visibility === "public"
-                    ? "rounded-full bg-secondary px-2.5 py-1 text-[10px] font-bold whitespace-nowrap text-primary"
-                    : "rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold whitespace-nowrap text-secondary-foreground"
-                }
-              >
-                {item.visibility === "public" ? "公開" : "非公開"}
-              </span>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-full rounded-2xl border border-border bg-background p-4">
+            <div className="mb-2.5 flex items-center gap-2 text-xs font-bold text-muted-foreground">
+              <MessageSquareIcon className="size-4" />
+              AIとの会話
             </div>
-          ))}
+            <div className="ml-auto max-w-[85%] rounded-2xl rounded-tr-sm bg-primary px-3.5 py-2 text-[13px] leading-[1.6] text-primary-foreground">
+              このやり取り、あとで見返せるように残しておきたい
+            </div>
+          </div>
+
+          <ArrowDownIcon className="size-4 shrink-0 text-muted-foreground" />
+
+          <div className="flex w-full items-center gap-2.5 rounded-2xl border border-border bg-background p-4">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-secondary">
+              <ClipboardIcon className="size-4.5 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13px] font-bold text-foreground">旅行プラン案</p>
+              <p className="text-[11px] text-muted-foreground">貼り付けてClipnoteに保存</p>
+            </div>
+          </div>
+
+          <ArrowDownIcon className="size-4 shrink-0 text-muted-foreground" />
+
+          <div className="w-full rounded-2xl border border-border bg-background p-4">
+            <div className="mb-2.5 flex items-center gap-2 text-xs font-bold text-muted-foreground">
+              <LibraryIcon className="size-4" />
+              マイライブラリ
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {LIBRARY_ITEMS.map((item) => (
+                <div
+                  key={item.title}
+                  className="flex items-center justify-between gap-2 rounded-xl bg-secondary px-3.5 py-2"
+                >
+                  <span className="truncate text-xs font-semibold text-foreground">
+                    {item.title}
+                  </span>
+                  <span className="shrink-0 text-[11px] text-muted-foreground">{item.date}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -1,34 +1,46 @@
 const USE_CASES = [
-  "AIに作ってもらった資料ページを、そのまま公開したい",
-  "週次レポートや議事録を、チームにURLひとつで共有したい",
-  "イベント告知ページを、コードを書かずにサクッと作りたい",
+  {
+    format: "MD",
+    title: "議事録・会議メモをチームに共有",
+    description:
+      "AIが整理してくれた議事録や週次レポートを貼り付けて保存。見出しやリストで読みやすいまま、URLひとつでチームに共有できる。",
+  },
+  {
+    format: "HTML",
+    title: "資料ページをそのまま公開",
+    description:
+      "AIに作ってもらった提案資料やイベント告知ページを、コードを書かずにそのまま公開。開いた人には意図した見た目で表示される。",
+  },
+  {
+    format: "TXT",
+    title: "旅行プランや学習メモを見返す",
+    description:
+      "AIに考えてもらった旅行プランや解説を、メモ帳感覚でそのまま保存。あとから自分のライブラリで一覧して見返せる。",
+  },
 ];
 
 export function LpUseCases() {
   return (
-    <section className="mx-auto max-w-[1160px] px-5 pb-16 md:px-8 md:pb-24">
+    <section className="mx-auto max-w-[1160px] px-5 pt-16 pb-16 md:px-8 md:pt-24 md:pb-24">
       <h2 className="mb-10 text-center text-[22px] font-extrabold tracking-tight text-foreground md:text-[26px]">
         こんな時に使える
       </h2>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {USE_CASES.map((text) => (
+      <div className="mx-auto flex max-w-[820px] flex-col gap-4">
+        {USE_CASES.map((item) => (
           <div
-            key={text}
-            className="overflow-hidden rounded-3xl border border-border bg-card"
+            key={item.title}
+            className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 sm:flex-row sm:items-center"
           >
-            <div className="flex items-center gap-1.5 border-b border-border bg-secondary px-3 py-2">
-              <span className="size-1.5 rounded-full bg-accent" />
-              <span className="size-1.5 rounded-full bg-accent" />
-              <span className="size-1.5 rounded-full bg-accent" />
-              <div className="ml-1 h-3 flex-1 rounded-md bg-card" />
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-secondary text-xs font-extrabold text-primary">
+              {item.format}
             </div>
-            <div className="flex h-16 items-center justify-center px-4.5">
-              <div className="h-2 w-3/5 rounded-full bg-muted" />
+            <div>
+              <h3 className="text-base font-bold text-foreground">{item.title}</h3>
+              <p className="mt-1.5 text-sm leading-[1.7] text-secondary-foreground">
+                {item.description}
+              </p>
             </div>
-            <p className="px-5 pb-5 text-[15px] leading-[1.6] font-semibold text-foreground">
-              {text}
-            </p>
           </div>
         ))}
       </div>

@@ -14,7 +14,7 @@ const jetBrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Clipnote",
-  description: "AI生成のHTML/Markdownを保存・公開管理するツール",
+  description: "AIとのやり取りをメモ帳のように保存・共有できるツール",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -2,8 +2,8 @@
 
 import { authClient } from "@/lib/auth-client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AuthCard } from "@/components/auth/auth-card";
 import { AuthErrorBanner } from "@/components/auth/auth-error-banner";
@@ -19,7 +19,17 @@ type FieldErrors = {
 };
 
 export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,7 +72,7 @@ export default function SignupPage() {
       return;
     }
 
-    router.push("/admin");
+    router.push(redirectParam ?? "/admin");
   }
 
   return (
@@ -126,7 +136,10 @@ export default function SignupPage() {
       </form>
       <p className="mt-[22px] text-center text-[13px] font-medium text-secondary-foreground">
         既にアカウントをお持ちの方は{" "}
-        <Link href="/login" className="font-bold text-primary hover:text-accent-foreground">
+        <Link
+          href={redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : "/login"}
+          className="font-bold text-primary hover:text-accent-foreground"
+        >
           ログイン
         </Link>
       </p>

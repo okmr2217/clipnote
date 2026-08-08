@@ -21,20 +21,26 @@ export function ApiKeyList({ apiKeys }: { apiKeys: ApiKeyRow[] }) {
   }
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-extrabold tracking-tight md:text-2xl">APIキー</h1>
+    <div className="mt-10">
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h2 className="text-lg font-extrabold tracking-tight">APIキー</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Claude Desktop・Claude Codeなど、APIキーで接続するクライアント用に発行・管理します。
+          </p>
+        </div>
         <Button
-          className="hidden h-auto px-5 py-3 shadow-[var(--shadow-accent)] md:inline-flex"
+          variant="outline"
+          className="hidden h-auto px-4 py-2 md:inline-flex"
           onClick={() => setDialog({ type: "issue" })}
         >
           <PlusIcon /> 新規APIキー
         </Button>
         <Button
-          variant="secondary"
+          variant="outline"
           size="icon"
           aria-label="新規APIキー"
-          className="size-9 rounded-md text-primary shadow-none md:hidden"
+          className="size-9 rounded-md md:hidden"
           onClick={() => setDialog({ type: "issue" })}
         >
           <PlusIcon />
@@ -44,12 +50,9 @@ export function ApiKeyList({ apiKeys }: { apiKeys: ApiKeyRow[] }) {
       {apiKeys.length === 0 ? (
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <p className="max-w-sm text-sm text-muted-foreground">
-            まだAPIキーがありません。ClaudeなどのMCP対応クライアントと連携するには、新規に発行してください。
+            まだAPIキーがありません。Claude Desktop・Claude Codeと接続するには、新規に発行してください。
           </p>
-          <Button
-            className="h-auto px-5 py-3 shadow-[var(--shadow-accent)]"
-            onClick={() => setDialog({ type: "issue" })}
-          >
+          <Button variant="outline" className="h-auto px-4 py-2" onClick={() => setDialog({ type: "issue" })}>
             <PlusIcon /> 新規APIキー発行
           </Button>
         </div>

@@ -1,4 +1,4 @@
-import { pages, pageVersions } from "@clipnote/db/schema";
+import { collections, pages, pageVersions } from "@clipnote/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -10,10 +10,13 @@ import type { ClipDetail, PageVersionRow } from "@/components/clips/types";
 
 export default async function AdminPageDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ uuid: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { uuid } = await params;
+  const { from } = await searchParams;
 
   // AdminLayoutが未認証を弾いているため、ここではセッションは存在する前提。
   const auth = await getAuth();
@@ -55,10 +58,21 @@ export default async function AdminPageDetailPage({
     createdAt: row.createdAt,
   }));
 
+  // クリップは複数コレクションに属しうる（多対1に限定されない）ため、遷移元
+  // コレクションはクエリパラメータで受け取り、所属コレクション一覧からは推測しない。
+  let fromCollection: { id: string; name: string } | null = null;
+  if (from) {
+    const [collection] = await db
+      .select({ id: collections.id, name: collections.name })
+      .from(collections)
+      .where(and(eq(collections.id, from), eq(collections.userId, userId)));
+    fromCollection = collection ?? null;
+  }
+
   return (
     <main className="px-4 py-8 md:px-8 md:py-12">
       <div className="mx-auto max-w-4xl">
-        <VersionHistory clip={clip} versions={versions} />
+        <VersionHistory clip={clip} versions={versions} fromCollection={fromCollection} />
       </div>
     </main>
   );

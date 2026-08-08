@@ -5,8 +5,11 @@ Clipnote: AI生成のHTML/Markdownを保存・公開管理するツール
 
 ## 必読ドキュメント
 - 要件定義: docs/requirements.md
-- 詳細設計: docs/design.md
-実装前に必ずこの2つを確認すること。特にセキュリティ設計（設計書4章）は絶対に省略しない。
+- 詳細設計（共通）: docs/design.md
+- 詳細設計（apps/web）: docs/design-web.md
+- 詳細設計（apps/content）: docs/design-content.md
+- 詳細設計（apps/mcp）: docs/design-mcp.md
+実装前に必ずdocs/design.mdと対象アプリの詳細設計書を確認すること。特にセキュリティ設計（docs/design.md5章、および各詳細設計書のセキュリティ関連章）は絶対に省略しない。
 
 ## 技術スタック
 - Next.js (App Router) + TypeScript
@@ -15,5 +18,5 @@ Clipnote: AI生成のHTML/Markdownを保存・公開管理するツール
 - better-auth（メール/パスワード）
 
 ## 規約
-- DB内部名は`pages`のまま。UI表示名は「クリップ」を使う（設計書0章）
-- 新規作成・編集は専用ページではなくダイアログで実装する（設計書6章・7章）
+- DB内部名は`pages`のまま。UI表示名は「クリップ」を使う（docs/design.md 1章）
+- 新規作成・編集は専用ページではなくダイアログで実装する（docs/design-web.md 6章・8章）

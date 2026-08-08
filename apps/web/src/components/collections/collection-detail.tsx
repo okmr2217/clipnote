@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRightIcon, ExternalLinkIcon, PencilIcon, TriangleAlertIcon, Trash2Icon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  ExternalLinkIcon,
+  GlobeIcon,
+  PencilIcon,
+  TriangleAlertIcon,
+  Trash2Icon,
+} from "lucide-react";
 import { CopyUrlButton } from "@/components/clips/copy-url-button";
 import { EditCollectionDialog } from "@/components/collections/edit-collection-dialog";
 import { DeleteCollectionAlert } from "@/components/collections/delete-collection-alert";
@@ -56,16 +63,16 @@ export function CollectionDetail({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-        <Link href="/admin/collections" className="hover:text-foreground">
-          コレクション
-        </Link>
-        <ChevronRightIcon className="size-3.5" />
-        <span className="font-semibold text-foreground">{collection.name}</span>
-      </div>
-
       <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+          <Link href="/admin/collections" className="hover:text-foreground">
+            コレクション
+          </Link>
+          <ChevronRightIcon className="size-3.5" />
+          <span className="font-semibold text-foreground">{collection.name}</span>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-extrabold tracking-tight">{collection.name}</h1>
@@ -99,9 +106,9 @@ export function CollectionDetail({
             <button
               type="button"
               onClick={handleToggleVisibility}
-              className="rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-bold whitespace-nowrap text-primary"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-2 text-sm font-bold whitespace-nowrap text-primary"
             >
-              {isPublic ? "公開中" : "非公開"}
+              <GlobeIcon className="size-3.5" /> {isPublic ? "公開中" : "非公開"}
             </button>
           </div>
         </div>
@@ -133,6 +140,16 @@ export function CollectionDetail({
           </p>
         </div>
 
+        <div className="mt-5">
+          <CollectionMembers
+            collectionId={collection.id}
+            members={members}
+            onMembersChange={setMembers}
+            clipOptions={clipOptions}
+            initialAddClipsOpen={initialAddClipsOpen}
+          />
+        </div>
+
         <div className="mt-5 flex justify-end border-t border-border pt-4">
           <button
             type="button"
@@ -143,14 +160,6 @@ export function CollectionDetail({
           </button>
         </div>
       </div>
-
-      <CollectionMembers
-        collectionId={collection.id}
-        members={members}
-        onMembersChange={setMembers}
-        clipOptions={clipOptions}
-        initialAddClipsOpen={initialAddClipsOpen}
-      />
 
       <EditCollectionDialog
         collection={collection}
