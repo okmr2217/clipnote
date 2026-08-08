@@ -67,3 +67,10 @@ export const DOCUMENT_STYLE = `
 export function wrapHtmlDocument(bodyHtml: string, extraHead = ""): string {
   return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">${extraHead}<style>${DOCUMENT_STYLE}</style></head><body>${bodyHtml}${RESIZE_SCRIPT}</body></html>`;
 }
+
+// トークン検証失敗（403）・クリップ未存在（404）時、無地のtext/plainではなく
+// 本文と同じトンマナのメッセージを返す（apps/web側の親iframeはRESIZE_SCRIPT
+// 経由の高さ通知に対応済みなので、この文書でもそのまま自然に収まる）。
+export function wrapErrorDocument(message: string): string {
+  return wrapHtmlDocument(`<p style="text-align:center;color:#6b5d52;">${message}</p>`);
+}
