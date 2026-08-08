@@ -1,3 +1,4 @@
+import { PinIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -6,6 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { FormatBadge } from "@/components/clips/format-badge";
 import { VisibilityToggle } from "@/components/clips/visibility-toggle";
 import { CollectionChips } from "@/components/clips/collection-chips";
@@ -26,12 +29,16 @@ export function ClipTable({
   onToggleVisibility,
   onEditMetadata,
   onUpdateContent,
+  onTogglePin,
+  onToggleArchive,
   onDelete,
 }: {
   clips: ClipRow[];
   onToggleVisibility: (clip: ClipRow) => void;
   onEditMetadata: (clip: ClipRow) => void;
   onUpdateContent: (clip: ClipRow) => void;
+  onTogglePin: (clip: ClipRow) => void;
+  onToggleArchive: (clip: ClipRow) => void;
   onDelete: (clip: ClipRow) => void;
 }) {
   return (
@@ -50,9 +57,12 @@ export function ClipTable({
         </TableHeader>
         <TableBody>
           {clips.map((clip) => (
-            <TableRow key={clip.id}>
+            <TableRow key={clip.id} className={cn(clip.archivedAt && "opacity-60")}>
               <TableCell>
-                <FormatBadge contentType={clip.contentType} />
+                <div className="flex items-center gap-1.5">
+                  <FormatBadge contentType={clip.contentType} />
+                  {clip.pinned && <PinIcon className="size-3.5 text-primary" aria-label="固定済み" />}
+                </div>
               </TableCell>
               <TableCell>
                 <a
@@ -63,6 +73,11 @@ export function ClipTable({
                 >
                   {clip.title}
                 </a>
+                {clip.archivedAt && (
+                  <Badge variant="secondary" className="ml-2 bg-muted text-muted-foreground">
+                    アーカイブ済み
+                  </Badge>
+                )}
               </TableCell>
               <TableCell>
                 <VisibilityToggle
@@ -84,6 +99,8 @@ export function ClipTable({
                   clip={clip}
                   onEditMetadata={() => onEditMetadata(clip)}
                   onUpdateContent={() => onUpdateContent(clip)}
+                  onTogglePin={() => onTogglePin(clip)}
+                  onToggleArchive={() => onToggleArchive(clip)}
                   onDelete={() => onDelete(clip)}
                 />
               </TableCell>
