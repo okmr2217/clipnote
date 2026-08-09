@@ -17,6 +17,7 @@ import { NewClipDialog } from "@/components/clips/new-clip-dialog";
 import { EditMetadataDialog } from "@/components/clips/edit-metadata-dialog";
 import { UpdateContentDialog } from "@/components/clips/update-content-dialog";
 import { DeleteClipAlert } from "@/components/clips/delete-clip-alert";
+import { useClipToggles } from "@/components/clips/use-clip-toggles";
 import type { ClipRow, CollectionOption } from "@/components/clips/types";
 
 type DialogState =
@@ -40,129 +41,26 @@ export function ClipList({
   const [collectionFilter, setCollectionFilter] = useState("all");
   const [archiveFilter, setArchiveFilter] = useState<"active" | "archived" | "all">("active");
   const [dialog, setDialog] = useState<DialogState>(null);
-  const [optimisticVisibility, setOptimisticVisibility] = useState<
-    Record<string, ClipRow["visibility"]>
-  >({});
-  const [optimisticPinned, setOptimisticPinned] = useState<Record<string, boolean>>({});
-  const [optimisticArchived, setOptimisticArchived] = useState<Record<string, boolean>>({});
+  const { resolvedClips, handleToggleVisibility, handleTogglePin, handleToggleArchive } =
+    useClipToggles(clips);
 
   function refresh() {
     router.refresh();
   }
 
   const visibleClips = useMemo(() => {
-    return clips
-      .map((clip) => ({
-        ...clip,
-        visibility: optimisticVisibility[clip.id] ?? clip.visibility,
-        pinned: optimisticPinned[clip.id] ?? clip.pinned,
-        archivedAt:
-          clip.id in optimisticArchived
-            ? optimisticArchived[clip.id]
-              ? (clip.archivedAt ?? new Date())
-              : null
-            : clip.archivedAt,
-      }))
-      .filter((clip) => {
-        if (search && !clip.title.toLowerCase().includes(search.toLowerCase())) return false;
-        if (formatFilter !== "all" && clip.contentType !== formatFilter) return false;
-        if (visibilityFilter !== "all" && clip.visibility !== visibilityFilter) return false;
-        if (
-          collectionFilter !== "all" &&
-          !clip.collections.some((c) => c.id === collectionFilter)
-        ) {
-          return false;
-        }
-        if (archiveFilter === "active" && clip.archivedAt !== null) return false;
-        if (archiveFilter === "archived" && clip.archivedAt === null) return false;
-        return true;
-      });
-  }, [
-    clips,
-    search,
-    formatFilter,
-    visibilityFilter,
-    collectionFilter,
-    archiveFilter,
-    optimisticVisibility,
-    optimisticPinned,
-    optimisticArchived,
-  ]);
-
-  function clearOptimisticVisibility(clipId: string) {
-    setOptimisticVisibility((prev) => {
-      if (!(clipId in prev)) return prev;
-      const next = { ...prev };
-      delete next[clipId];
-      return next;
+    return resolvedClips.filter((clip) => {
+      if (search && !clip.title.toLowerCase().includes(search.toLowerCase())) return false;
+      if (formatFilter !== "all" && clip.contentType !== formatFilter) return false;
+      if (visibilityFilter !== "all" && clip.visibility !== visibilityFilter) return false;
+      if (collectionFilter !== "all" && !clip.collections.some((c) => c.id === collectionFilter)) {
+        return false;
+      }
+      if (archiveFilter === "active" && clip.archivedAt !== null) return false;
+      if (archiveFilter === "archived" && clip.archivedAt === null) return false;
+      return true;
     });
-  }
-
-  async function handleToggleVisibility(clip: ClipRow) {
-    const current = optimisticVisibility[clip.id] ?? clip.visibility;
-    const next = current === "public" ? "private" : "public";
-    setOptimisticVisibility((prev) => ({ ...prev, [clip.id]: next }));
-
-    const response = await fetch(`/api/pages/${clip.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visibility: next }),
-    });
-
-    if (!response.ok) {
-      clearOptimisticVisibility(clip.id);
-      return;
-    }
-
-    router.refresh();
-    clearOptimisticVisibility(clip.id);
-  }
-
-  async function handleTogglePin(clip: ClipRow) {
-    const current = optimisticPinned[clip.id] ?? clip.pinned;
-    const next = !current;
-    setOptimisticPinned((prev) => ({ ...prev, [clip.id]: next }));
-
-    const response = await fetch(`/api/pages/${clip.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pinned: next }),
-    });
-
-    if (!response.ok) {
-      setOptimisticPinned((prev) => {
-        const rest = { ...prev };
-        delete rest[clip.id];
-        return rest;
-      });
-      return;
-    }
-
-    router.refresh();
-  }
-
-  async function handleToggleArchive(clip: ClipRow) {
-    const current = optimisticArchived[clip.id] ?? clip.archivedAt !== null;
-    const next = !current;
-    setOptimisticArchived((prev) => ({ ...prev, [clip.id]: next }));
-
-    const response = await fetch(`/api/pages/${clip.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ archived: next }),
-    });
-
-    if (!response.ok) {
-      setOptimisticArchived((prev) => {
-        const rest = { ...prev };
-        delete rest[clip.id];
-        return rest;
-      });
-      return;
-    }
-
-    router.refresh();
-  }
+  }, [resolvedClips, search, formatFilter, visibilityFilter, collectionFilter, archiveFilter]);
 
   return (
     <div>
@@ -172,6 +70,12 @@ export function ClipList({
           <p className="mt-2 text-sm text-muted-foreground">
             HTML/Markdownで作成したコンテンツを保存し、公開設定や編集をここから管理します。
           </p>
+          <a
+            href="/admin/clips"
+            className="mt-2 hidden text-xs font-semibold text-primary hover:underline md:inline-block"
+          >
+            一覧＋プレビューの新レイアウトを試す（β）
+          </a>
         </div>
         <Button
           className="hidden h-auto px-5 py-3 shadow-[var(--shadow-accent)] md:inline-flex"
