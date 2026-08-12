@@ -1,6 +1,6 @@
 # Clipnote
 
-AI生成のHTML/Markdownを保存・公開管理するツール。テキストを貼り付けるだけで保存・URL共有できるほか、MCP（Model Context Protocol）でClaudeと直接つなぎ、会話からそのままクリップを作成・更新できます。
+AIとのやり取りで生成したHTML/Markdown/プレーンテキストを保存・公開管理するツール。テキストを貼り付けるだけで保存・URL共有できるほか、MCP（Model Context Protocol）でClaudeと直接つなぎ、会話からそのままクリップを作成・更新できます。
 
 ## URL
 
@@ -10,7 +10,7 @@ AI生成のHTML/Markdownを保存・公開管理するツール。テキスト�
 
 ## 主な機能
 
-- **クリップの保存・公開**: AIが生成したHTML/Markdownを貼り付けるかファイルをドロップして保存。Private/Publicを切り替えて共有用URLを発行できます。
+- **クリップの保存・公開**: AIが生成したHTML/Markdown/プレーンテキストを貼り付けるかファイルをドロップして保存。Private/Publicを切り替えて共有用URLを発行できます。
 - **コレクション**: 複数のクリップをまとめて、ひとつのURLで公開できます。
 - **バージョン履歴**: 上書き保存しても過去の内容はいつでも復元・ダウンロードできます。
 - **MCP連携**: Claude Desktop / Claude Code / claude.aiから、クリップの一覧取得・取得・作成・更新をMCP経由で行えます（詳細は[apps/mcp](./apps/mcp)）。
