@@ -20,8 +20,8 @@ const STAGES = [
     items: [
       {
         icon: SparklesIcon,
-        title: "Claudeに直接お願いできる",
-        description: "会話の続きで、そのままクリップを保存。貼り付け作業そのものが不要になります。",
+        title: "AIに直接お願いできる",
+        description: "ClaudeやChatGPTとの会話の続きで、そのままクリップを保存。貼り付け作業そのものが不要になります。",
         highlight: true,
       },
       {
@@ -54,12 +54,12 @@ const STAGES = [
       {
         icon: RefreshCwIcon,
         title: "MCPで書き換えられる",
-        description: "Claudeとの会話でそのまま更新をお願いできます。旧内容は自動でバージョン保存。",
+        description: "ClaudeやChatGPTとの会話でそのまま更新をお願いできます。旧内容は自動でバージョン保存。",
       },
       {
         icon: BotIcon,
         title: "AIが取得できる",
-        description: "Claudeが自分のクリップ一覧を検索したり、中身を取り出したりできます。",
+        description: "AIが自分のクリップ一覧を検索したり、中身を取り出したりできます。",
       },
     ],
   },
