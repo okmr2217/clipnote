@@ -42,3 +42,35 @@ export function verifyEmailEmail(url: string) {
     html: `<p>以下のリンクからメールアドレスを確認してください。</p><p><a href="${url}">${url}</a></p><p>心当たりがない場合はこのメールを無視してください。</p>`,
   };
 }
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+// お問い合わせ・公開コンテンツの通報（/contact）から運営宛（CONTACT_EMAIL_TO）
+// に送るメール。返信はこのメール本文の送信元アドレスへ手動で行う運用とする
+// （better-authのメールと異なりreply-toの仕組みは持たない）。
+export function contactEmail({
+  fromEmail,
+  message,
+  reportedUrl,
+}: {
+  fromEmail: string;
+  message: string;
+  reportedUrl?: string;
+}) {
+  const subject = reportedUrl ? "【Clipnote】コンテンツの通報" : "【Clipnote】お問い合わせ";
+  const metaText = reportedUrl ? `対象URL: ${reportedUrl}\n` : "";
+  const metaHtml = reportedUrl ? `<p>対象URL: ${escapeHtml(reportedUrl)}</p>` : "";
+
+  return {
+    subject,
+    text: `送信元: ${fromEmail}\n${metaText}\n${message}`,
+    html: `<p>送信元: ${escapeHtml(fromEmail)}</p>${metaHtml}<p style="white-space:pre-wrap">${escapeHtml(message)}</p>`,
+  };
+}

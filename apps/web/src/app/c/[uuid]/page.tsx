@@ -73,7 +73,7 @@ export default async function PublicCollectionPage({
         </section>
       </main>
 
-      <PublicFooter showDescription={false} />
+      <PublicFooter showDescription={false} reportPath={`/c/${uuid}`} />
     </div>
   );
 }

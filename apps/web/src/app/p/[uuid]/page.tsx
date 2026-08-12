@@ -80,7 +80,7 @@ export default async function PublicClipPage({
         />
       </main>
 
-      <PublicFooter />
+      <PublicFooter reportPath={`/p/${uuid}`} />
     </div>
   );
 }

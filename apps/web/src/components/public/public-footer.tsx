@@ -5,7 +5,15 @@ import Link from "next/link";
 // 共有される二次的なLPとして機能するため（設計書2章）、Clipnote自体への
 // 導線を含める。コレクションページのハンドオフバンドルでは説明文が省かれた
 // コンパクト版になっているため、showDescriptionで切り替える。
-export function PublicFooter({ showDescription = true }: { showDescription?: boolean } = {}) {
+export function PublicFooter({
+  showDescription = true,
+  reportPath,
+}: {
+  showDescription?: boolean;
+  // このページを通報する際に/contactへ事前入力で渡す対象パス（例:
+  // `/p/uuid`）。指定時のみ通報リンクを表示する（design.md5章）。
+  reportPath?: string;
+} = {}) {
   return (
     <footer className="border-t border-border bg-card px-4 py-8 md:px-8">
       <div className="mx-auto flex max-w-[1160px] flex-col items-center gap-2.5 text-center">
@@ -26,6 +34,14 @@ export function PublicFooter({ showDescription = true }: { showDescription?: boo
         <Link href="/" className="text-[11px] font-medium text-muted-foreground">
           Clipnoteで作られています
         </Link>
+        {reportPath && (
+          <Link
+            href={`/contact?url=${encodeURIComponent(reportPath)}`}
+            className="text-[11px] font-medium text-muted-foreground underline decoration-dotted underline-offset-2 hover:text-secondary-foreground"
+          >
+            このコンテンツの問題を報告する
+          </Link>
+        )}
       </div>
     </footer>
   );
