@@ -26,7 +26,7 @@ const FAQS = [
   },
   {
     q: "MCP連携も使えますか？",
-    a: "MCP連携は現在Claude（Claude Desktop・Claude Code・claude.ai）のみ対応しています。他のAIツールへの対応は今後検討予定です。",
+    a: "はい。Claudeは無料プランを含む全プラン（Claude Desktop・Claude Code・claude.ai）で利用できます。ChatGPTはPlus以上のプランで、設定の「Developer mode」をONにすると利用できます（Web版のみ、保存・更新時は都度承認が必要）。Geminiは一般ユーザー向けアプリでの対応窓口が現状ないため非対応です。",
   },
 ];
 
