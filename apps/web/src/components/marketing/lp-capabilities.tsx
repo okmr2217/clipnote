@@ -1,4 +1,4 @@
-import { SaveIcon, LibraryIcon, Share2Icon, SparklesIcon } from "lucide-react";
+import { SaveIcon, LibraryIcon, Share2Icon, SparklesIcon, BotIcon } from "lucide-react";
 
 const CAPABILITIES = [
   {
@@ -20,6 +20,12 @@ const CAPABILITIES = [
     icon: SparklesIcon,
     title: "育てる",
     description: "AIに直接編集させて、会話の続きで更新できる。",
+    href: "#mcp",
+  },
+  {
+    icon: BotIcon,
+    title: "活かす",
+    description: "保存したクリップをAIが読み出し、続きの会話の回答に活用できる。",
     href: "#mcp",
   },
 ];
