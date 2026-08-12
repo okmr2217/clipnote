@@ -10,7 +10,10 @@
   // better-authのbaseURL解決に使う（src/lib/auth.ts参照）。origin-check
   // ミドルウェアがこのオリジンをtrustedOriginsへ組み込むために必須。
   "vars": {
-    "BETTER_AUTH_URL": "https://clipnote.paritto.dev"
+    "BETTER_AUTH_URL": "https://clipnote.paritto.dev",
+    // お問い合わせ・公開コンテンツの通報の送信先（src/lib/email.ts）。機密情報
+    // ではないためvarsで管理する。運営が受信できるアドレスに変更可能。
+    "CONTACT_EMAIL_TO": "okumuradaichi2007@gmail.com"
   },
   "assets": {
     "directory": ".open-next/assets",

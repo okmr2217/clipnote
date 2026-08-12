@@ -69,6 +69,7 @@ DBスキーマ本体（`packages/db`）は全アプリ共有だが、テーブ�
 | `oauth_refresh_tokens` | `apps/web`（OAuth認可サーバー） | `docs/design-mcp.md`7章 |
 | `oauth_access_tokens` | `apps/web`（OAuth認可サーバー） | `docs/design-mcp.md`7章 |
 | `oauth_consents` | `apps/web`（OAuth認可サーバー） | `docs/design-mcp.md`7章 |
+| `rate_limits`（better-auth管理） | `apps/web` | `docs/design-web.md`9章 |
 
 `apps/content`はいずれのテーブルも`pages`の読み取り以外は行わない（`docs/design-content.md`5章参照）。
 
@@ -117,6 +118,8 @@ DB制約としては、`collection_pages.page_id`・`collection_pages.collection
 | パスワードリセットによるメールアドレス列挙 | `/forgot-password`は登録有無に関わらず同一の成功メッセージを返す。トークンはbetter-authが`verifications`テーブルで単回使用・有効期限付きで管理 | `docs/design-web.md`11-1節 |
 | メール確認・リセットトークンの悪用 | いずれもbetter-authのコア機能が生成する単回使用・短命トークンで、独自実装は行わない | `docs/design-web.md`11-2節 |
 | メール送信基盤（ドメイン）未有効化時の情報漏洩 | 開発環境・未有効化時はコンソールログへのフォールバックのみで、外部への誤送信は発生しない設計 | `docs/design-web.md`11-4節 |
+| 捨てアドレスでの大量サインアップ・APIキー発行の踏み台化 | better-authの`rateLimit`（`storage: "database"`）で`/sign-up/email`を1時間5回に制限 | `docs/design-web.md`4-8節 |
+| 公開クリップ・コレクションを通じた違法／権利侵害コンテンツの拡散 | `/p/[uuid]`・`/c/[uuid]`に通報導線（`/contact`）を設置し、運営が手動で強制非公開化する運用手順を整備 | `docs/development.md`「公開コンテンツの通報対応」 |
 
 ---
 
