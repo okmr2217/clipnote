@@ -112,6 +112,19 @@ pnpm --filter mcp run deploy       # wrangler deploy
 pnpm --filter @clipnote/db db:migrate:remote
 ```
 
+### デプロイ後：mainブランチの更新
+
+GitHubのデフォルトブランチは`main`で、「現在本番にデプロイされている内容」を表すブランチとして運用する。CIによる自動化はしていないため、`pnpm run deploy`でのデプロイに成功したら、デプロイした人が都度`main`を更新すること。
+
+```bash
+git checkout main
+git pull origin main
+git merge development   # デプロイ元がdevelopment以外のブランチの場合はそのブランチ名に置き換える
+git push origin main
+```
+
+`main`への直接コミットはせず、必ず`development`（または各機能ブランチ）経由でマージする。
+
 ## wrangler.jsonc について
 
 D1の`database_id`は`apps/web`・`apps/content`・`apps/mcp`・`packages/db`で同一のDB（`clipnote-db`）を指しています。スキーマとマイグレーションは`packages/db`が所有し、各アプリは同じDBに対するバインディングのみを持ちます。マイグレーション追加時は`packages/db`側で`db:generate`してから、ローカル・リモート双方に適用してください。
