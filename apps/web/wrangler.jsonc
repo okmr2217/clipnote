@@ -1,9 +1,16 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "clipnote-web",
-  "main": ".open-next/worker.js",
+  // .open-next/worker.js（OpenNextのビルド成果物）が公開するfetchハンドラを
+  // そのまま使いつつ、ゴミ箱の自動パージ用scheduled()を追加するための薄い
+  // ラッパー（docs/design-trash.md 6章）。src/custom-worker.ts参照。
+  "main": "src/custom-worker.ts",
   "compatibility_date": "2026-08-04",
   "compatibility_flags": ["nodejs_compat"],
+  // ゴミ箱の30日超過分を物理削除する日次バッチ（毎日18:00 UTC=JST 03:00）。
+  "triggers": {
+    "crons": ["0 18 * * *"]
+  },
   // 設計書1章：Web本体ドメイン。Custom Domainsとしてparitto.devゾーンに接続する
   // （DNSレコード・SSL証明書はCloudflareが自動でプロビジョニングする）。
   "routes": [{ "pattern": "clipnote.paritto.dev", "custom_domain": true }],

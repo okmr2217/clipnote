@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { collectionPages, collections, pages, users } from "@clipnote/db/schema";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
 
@@ -15,6 +15,10 @@ export const loadPublicPage = cache(async (uuid: string) => {
   const db = await getDb();
   const [page] = await db.select().from(pages).where(eq(pages.id, uuid));
   if (!page) return null;
+  // ゴミ箱内のクリップは、所有者本人がゴミ箱画面から辿るプレビューに限って
+  // 許可する（docs/design-trash.md 5章）。第三者・非公開クリップと同様に
+  // 「存在しない」のと同じnullで返し、存在の痕跡を残さない。
+  if (page.deletedAt !== null && page.userId !== user?.id) return null;
   if (page.visibility === "private" && page.userId !== user?.id) return null;
 
   return { page, viewerUserId: user?.id ?? null };
@@ -36,7 +40,8 @@ export const loadPublicCollection = cache(async (uuid: string) => {
 
   // 所有者以外（未認証含む）が閲覧する場合は非公開クリップをクエリの時点で
   // 除外する（設計書4-5節：一覧のレスポンスにすら含めず、存在の痕跡を
-  // 残さない）。
+  // 残さない）。ゴミ箱内のクリップは所有者本人の閲覧時も含めて常に除外する
+  // （docs/design-trash.md 3-4節）。
   const memberRows = await db
     .select({
       id: pages.id,
@@ -50,6 +55,7 @@ export const loadPublicCollection = cache(async (uuid: string) => {
     .where(
       and(
         eq(collectionPages.collectionId, uuid),
+        isNull(pages.deletedAt),
         isOwner ? undefined : eq(pages.visibility, "public"),
       ),
     )

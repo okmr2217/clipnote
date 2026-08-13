@@ -1,7 +1,7 @@
 # Clipnote 機能仕様書：ゴミ箱（クリップの論理削除・復元）
 
 > 作成：2026-08-13
-> ステータス：仕様ドラフト（未実装。レビュー後に`docs/requirements.md`・`docs/design.md`・`docs/design-web.md`へ正式反映する）
+> ステータス：実装済み（`docs/requirements.md`・`docs/design.md`・`docs/design-web.md`にも反映済み）
 > 発端：競合調査レポート「競合調査: hjarni（整理機能・フォルダAI指示・バージョン管理）」5章での指摘。現行仕様（`docs/requirements.md`10章）は「クリップ削除→即時・不可逆、更新履歴も連動削除」であり、誤操作時の救済手段がない
 
 ---
@@ -131,7 +131,7 @@
 
 | 懸念 | 対策 |
 | --- | --- |
-| ゴミ箱内クリップの公開URL（`/p/[uuid]`）が引き続き閲覧できてしまう | `apps/content`側のクエリにも`deleted_at IS NULL`を追加し、`public`設定でも404として扱う（存在の痕跡を残さない。所有者が管理画面からゴミ箱経由でプレビューする場合のみ例外的に許可し、`apps/web`側の認可済みプレビューに限定する） |
+| ゴミ箱内クリップの公開URL（`/p/[uuid]`）が引き続き閲覧できてしまう | `apps/web`のアクセス可否判定（`loadPublicPage`、4-5節）で`deletedAt !== null && page.userId !== viewer`を非公開クリップと同じ扱いでnullを返す。**実装時の決定**：`apps/content`（コンテンツ配信Worker）自体には`deleted_at`チェックを追加しなかった。既存のvisibility（public/private）判定も同様にトークン発行時（`apps/web`の`/api/content-token`・`loadPublicPage`）でのみ行われ、`apps/content`はHMACトークンの正当性としか照合しない設計だったため（`apps/content/src/index.ts`はpage存在チェックのみ）、`deleted_at`もこの既存の「認可はトークン発行時の一箇所に集約する」設計を踏襲した。短命トークン（2分）の失効がセキュリティ境界であり、削除直後のごく短い猶予はvisibility変更時と同じ許容リスクとして扱う |
 | 他ユーザーのゴミ箱の閲覧・操作 | `/admin/trash`は自分の`user_id`のクリップのみを対象にする（既存の認可モデルをそのまま踏襲） |
 | ゴミ箱内クリップが本文サイズ上限・バージョン保持件数のカウントに影響するか | 影響しない。上限判定は`content_type`ごとの本文バイト数・`page_versions`10件保持のみで、`deleted_at`の有無とは無関係 |
 
@@ -139,9 +139,10 @@
 
 ## 6. 自動物理削除（バッチ処理）
 
-- Cloudflare Workerの[Cron Trigger](https://developers.cloudflare.com/workers/configuration/cron-triggers/)を`apps/web`（または軽量な専用ハンドラ）に追加し、**1日1回**実行する
-- 処理内容：`pages.deleted_at IS NOT NULL AND deleted_at < now() - 30日`に該当する行を対象に、既存の物理削除ロジック（`page_versions`カスケード削除・`collection_pages`カスケード削除・`pages`行削除）を実行する
-- バッチ処理は「完全に削除」の手動操作と同じ削除関数を共有し、実装を分岐させない
+- `apps/web`にCloudflare Workerの[Cron Trigger](https://developers.cloudflare.com/workers/configuration/cron-triggers/)を追加し、**1日1回**（毎日18:00 UTC = JST 03:00）実行する
+- `@opennextjs/cloudflare`が生成する`.open-next/worker.js`はfetchハンドラのみをexportし、Cron Triggerの`scheduled()`をそのままでは追加できないため、`apps/web/src/custom-worker.ts`でラップする（`.open-next/worker.js`のdefault exportをそのまま引き継ぎつつ`scheduled()`だけを追加）。`wrangler.jsonc`の`main`をこのファイルに向け、`triggers.crons`を設定する
+- 処理内容：`pages.deleted_at IS NOT NULL AND deleted_at < now() - 30日`に該当する行を対象に`db.delete(pages).where(...)`で一括削除する。`page_versions`・`collection_pages`はON DELETE CASCADEで自動的に削除される（設計書8章）ため、削除ロジックを個別に書き分ける必要はない
+- 実装：`apps/web/src/lib/trash.ts`の`purgeExpiredTrash(db)`。`TRASH_RETENTION_DAYS`（30）を「完全に削除まであと何日か」の表示計算（`daysUntilPurge`）とも共有する
 
 ---
 
@@ -164,9 +165,20 @@
 
 ---
 
-## 9. 関連ドキュメント
+## 9. 実装メモ（API・主要ファイル）
 
-- `docs/requirements.md`10章：削除時のカスケード挙動（旧仕様。本書の内容を正式反映後に更新）
+| 項目 | 内容 |
+| --- | --- |
+| ゴミ箱へ移動／復元 | `PATCH /api/pages/[uuid]`（既存の固定・アーカイブと同じエンドポイント）に`{ deleted: true / false }`を追加。ボディの他フィールド（`pinned`・`archivedAt`等）はこの操作では変更しない |
+| 完全に削除 | `DELETE /api/pages/[uuid]`。**実装時の決定**：ゴミ箱に入っていない（`deletedAt === null`）クリップへの直接ハード削除は`400 not_in_trash`で拒否し、必ずゴミ箱経由でのみ物理削除できるようにした（誤操作防止の多層防御） |
+| 一覧からの除外 | `apps/web/src/lib/clips.ts`の`loadClipWorkspaceData`（`/admin`・`/admin/clips`共通）・`apps/web/src/lib/public-access.ts`（`/p/`・`/c/`）・コレクション詳細/追加ダイアログの各クエリに`isNull(pages.deletedAt)`を追加 |
+| ゴミ箱画面 | `/admin/trash`（`apps/web/src/lib/trash.ts`の`loadTrashData` + `apps/web/src/components/clips/trash-list.tsx`） |
+| Undoトースト | `@base-ui/react`の`Toast`プリミティブを`apps/web/src/components/ui/toast.tsx`でラップし、`AdminLayout`に`ToastProvider`/`Toaster`を設置。`use-clip-toggles.ts`の`handleTrash`が使う |
+| 自動パージ | `apps/web/src/custom-worker.ts`＋`wrangler.jsonc`の`triggers.crons`（6章参照） |
+
+## 10. 関連ドキュメント
+
+- `docs/requirements.md`10章：削除時のカスケード挙動（本書の内容を反映済み）
 - `docs/design.md`4章：削除時のカスケード挙動（共通、同上）
 - `docs/design-web.md`6章・7章・9章：クリップ管理画面・確認ダイアログ基準・`pages`テーブル定義（同上）
 - Clipnote競合調査レポート「競合調査: hjarni（整理機能・フォルダAI指示・バージョン管理）」5章：本機能の発端となった指摘

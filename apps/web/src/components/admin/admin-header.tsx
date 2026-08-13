@@ -29,6 +29,11 @@ const NAV_ITEMS = [
     isActive: (pathname: string) => pathname.startsWith("/admin/collections"),
   },
   {
+    href: "/admin/trash",
+    label: "ゴミ箱",
+    isActive: (pathname: string) => pathname.startsWith("/admin/trash"),
+  },
+  {
     href: "/admin/mcp",
     label: "MCP連携",
     isActive: (pathname: string) => pathname.startsWith("/admin/mcp"),

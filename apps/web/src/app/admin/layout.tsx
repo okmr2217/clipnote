@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AdminHeader } from "@/components/admin/admin-header";
 import { AdminFooter } from "@/components/admin/admin-footer";
 import { EmailVerificationBanner } from "@/components/account/email-verification-banner";
+import { ToastProvider, Toaster } from "@/components/ui/toast";
 
 // Sole authentication gate for /admin/*. A cookie-presence-only fast path
 // (proxy.ts) was removed because @opennextjs/cloudflare does not support
@@ -19,11 +20,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <AdminHeader user={{ name: session.user.name, email: session.user.email }} />
-      {!session.user.emailVerified && <EmailVerificationBanner email={session.user.email} />}
-      <div className="flex-1 bg-background">{children}</div>
-      <AdminFooter />
-    </div>
+    <ToastProvider>
+      <div className="flex min-h-screen flex-col">
+        <AdminHeader user={{ name: session.user.name, email: session.user.email }} />
+        {!session.user.emailVerified && <EmailVerificationBanner email={session.user.email} />}
+        <div className="flex-1 bg-background">{children}</div>
+        <AdminFooter />
+      </div>
+      <Toaster />
+    </ToastProvider>
   );
 }

@@ -1,5 +1,5 @@
 import { collectionPages, collections, pages } from "@clipnote/db/schema";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
@@ -38,10 +38,13 @@ export async function PATCH(
   const desiredIds = [...new Set(pageIds)];
 
   if (desiredIds.length > 0) {
+    // ゴミ箱内のクリップはコレクションへ追加できない（docs/design-trash.md
+    // 3-4節）。既存メンバーがゴミ箱に入った場合は下のmemberRowsクエリで除外
+    // されるため、ここでの整合性チェックはあくまで新規追加のガード。
     const owned = await db
       .select({ id: pages.id })
       .from(pages)
-      .where(and(eq(pages.userId, user.id), inArray(pages.id, desiredIds)));
+      .where(and(eq(pages.userId, user.id), isNull(pages.deletedAt), inArray(pages.id, desiredIds)));
     if (owned.length !== desiredIds.length) {
       return NextResponse.json({ error: "invalid_page_ids" }, { status: 400 });
     }
@@ -97,7 +100,7 @@ export async function PATCH(
     })
     .from(collectionPages)
     .innerJoin(pages, eq(collectionPages.pageId, pages.id))
-    .where(eq(collectionPages.collectionId, uuid))
+    .where(and(eq(collectionPages.collectionId, uuid), isNull(pages.deletedAt)))
     .orderBy(asc(collectionPages.sortOrder));
 
   return NextResponse.json({ members: memberRows });

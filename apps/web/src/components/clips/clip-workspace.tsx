@@ -22,7 +22,6 @@ import { ContentFrame } from "@/components/public/content-frame";
 import { NewClipDialog } from "@/components/clips/new-clip-dialog";
 import { EditMetadataDialog } from "@/components/clips/edit-metadata-dialog";
 import { UpdateContentDialog } from "@/components/clips/update-content-dialog";
-import { DeleteClipAlert } from "@/components/clips/delete-clip-alert";
 import { useClipToggles } from "@/components/clips/use-clip-toggles";
 import type { ClipRow, CollectionOption } from "@/components/clips/types";
 
@@ -39,7 +38,6 @@ type DialogState =
   | { type: "new" }
   | { type: "edit-metadata"; clip: ClipRow }
   | { type: "update-content"; clip: ClipRow }
-  | { type: "delete"; clip: ClipRow }
   | null;
 
 export function ClipWorkspace({
@@ -67,7 +65,7 @@ export function ClipWorkspace({
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [previewNonce, setPreviewNonce] = useState(0);
 
-  const { resolvedClips, handleToggleVisibility, handleTogglePin, handleToggleArchive } =
+  const { resolvedClips, handleToggleVisibility, handleTogglePin, handleToggleArchive, handleTrash } =
     useClipToggles(clips);
 
   function refresh() {
@@ -116,9 +114,9 @@ export function ClipWorkspace({
     refresh();
   }
 
-  function handleDeleted(deletedId: string) {
-    if (selected?.id === deletedId) setSelected(null);
-    refresh();
+  async function handleDelete(clip: ClipRow) {
+    if (selected?.id === clip.id) setSelected(null);
+    await handleTrash(clip);
   }
 
   return (
@@ -279,7 +277,7 @@ export function ClipWorkspace({
                       variant="ghost"
                       size="sm"
                       className="h-auto rounded-full px-3 py-1.5 text-xs text-destructive hover:text-destructive"
-                      onClick={() => setDialog({ type: "delete", clip: selectedClip })}
+                      onClick={() => handleDelete(selectedClip)}
                     >
                       削除
                     </Button>
@@ -375,11 +373,6 @@ export function ClipWorkspace({
         clip={dialog?.type === "update-content" ? dialog.clip : null}
         onOpenChange={(open) => !open && setDialog(null)}
         onUpdated={handleContentUpdated}
-      />
-      <DeleteClipAlert
-        clip={dialog?.type === "delete" ? dialog.clip : null}
-        onOpenChange={(open) => !open && setDialog(null)}
-        onDeleted={() => dialog?.type === "delete" && handleDeleted(dialog.clip.id)}
       />
     </div>
   );
