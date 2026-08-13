@@ -1,22 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDownIcon, ArrowUpIcon, TriangleAlertIcon, XIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { FormatBadge } from "@/components/clips/format-badge";
 import type { CollectionMemberClip } from "@/components/collections/types";
 
 export function MobileMemberList({
   members,
   collectionId,
+  showPrivateWarning,
   onReorder,
   onRemove,
   onModeChange,
 }: {
   members: CollectionMemberClip[];
   collectionId: string;
+  showPrivateWarning: boolean;
   onReorder: (orderedIds: string[]) => void;
   onRemove: (pageId: string) => void;
   onModeChange?: (reordering: boolean) => void;
@@ -69,29 +72,42 @@ export function MobileMemberList({
           </Button>
         )}
       </div>
-      <ul className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         {list.map((member, index) => {
           const isPrivate = member.visibility === "private";
+          const isWarning = isPrivate && showPrivateWarning;
           return (
-            <li
+            <div
               key={member.id}
-              className={`flex items-center gap-3 rounded-xl border bg-card px-4 py-3 ${
-                isPrivate ? "border-accent" : "border-border"
-              }`}
+              className={cn("rounded-xl border p-4", isWarning ? "border-accent" : "border-border")}
             >
-              <FormatBadge contentType={member.contentType} />
+              <div className="mb-2.5 flex items-center gap-2">
+                <FormatBadge contentType={member.contentType} />
+                <Badge
+                  variant="secondary"
+                  className={cn(
+                    isPrivate ? "bg-muted text-secondary-foreground" : "bg-secondary text-primary",
+                    isWarning && "gap-1 text-accent-foreground",
+                  )}
+                >
+                  {isWarning && <TriangleAlertIcon className="size-3" />}
+                  {isPrivate ? "非公開" : "公開"}
+                </Badge>
+              </div>
               {reordering ? (
-                <span className="flex-1 truncate font-semibold">{member.title}</span>
+                <span className="mb-2 block text-base font-bold leading-snug">{member.title}</span>
               ) : (
-                <Link
-                  href={`/admin/pages/${member.id}?from=${collectionId}`}
-                  className="flex-1 truncate font-semibold hover:text-primary"
+                <a
+                  href={`/p/${member.id}?from=${collectionId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mb-2 block text-base font-bold leading-snug"
                 >
                   {member.title}
-                </Link>
+                </a>
               )}
               {reordering ? (
-                <div className="flex gap-1">
+                <div className="flex justify-end gap-1 border-t border-border pt-2.5">
                   <Button
                     type="button"
                     variant="outline"
@@ -112,28 +128,26 @@ export function MobileMemberList({
                   </Button>
                 </div>
               ) : (
-                <>
-                  <Badge
-                    variant="secondary"
-                    className={isPrivate ? "text-accent-foreground" : "text-primary"}
+                <div className="flex items-center gap-4 border-t border-border pt-2.5">
+                  <Link
+                    href={`/admin/pages/${member.id}?from=${collectionId}`}
+                    className="text-sm font-semibold text-secondary-foreground"
                   >
-                    {isPrivate && <TriangleAlertIcon className="size-3" />}
-                    {isPrivate ? "非公開" : "公開"}
-                  </Badge>
+                    履歴を見る
+                  </Link>
                   <button
                     type="button"
                     onClick={() => onRemove(member.id)}
-                    title="外す"
-                    className="text-muted-foreground hover:text-foreground"
+                    className="ml-auto text-sm font-semibold text-muted-foreground hover:text-foreground"
                   >
-                    <XIcon className="size-4" />
+                    外す
                   </button>
-                </>
+                </div>
               )}
-            </li>
+            </div>
           );
         })}
-      </ul>
+      </div>
     </div>
   );
 }

@@ -13,12 +13,14 @@ export function CollectionMembers({
   members,
   onMembersChange,
   clipOptions,
+  showPrivateWarning,
   initialAddClipsOpen = false,
 }: {
   collectionId: string;
   members: CollectionMemberClip[];
   onMembersChange: (members: CollectionMemberClip[]) => void;
   clipOptions: ClipOption[];
+  showPrivateWarning: boolean;
   initialAddClipsOpen?: boolean;
 }) {
   const [addOpen, setAddOpen] = useState(initialAddClipsOpen);
@@ -82,12 +84,14 @@ export function CollectionMembers({
           <DesktopMemberList
             members={members}
             collectionId={collectionId}
+            showPrivateWarning={showPrivateWarning}
             onReorder={persistReorder}
             onRemove={handleRemove}
           />
           <MobileMemberList
             members={members}
             collectionId={collectionId}
+            showPrivateWarning={showPrivateWarning}
             onReorder={persistReorder}
             onRemove={handleRemove}
             onModeChange={setMobileReordering}
