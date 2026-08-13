@@ -46,7 +46,12 @@ export default async function AdminCollectionDetailPage({
       .where(and(eq(collectionPages.collectionId, uuid), isNull(pages.deletedAt)))
       .orderBy(asc(collectionPages.sortOrder)),
     db
-      .select({ id: pages.id, title: pages.title, contentType: pages.contentType })
+      .select({
+        id: pages.id,
+        title: pages.title,
+        contentType: pages.contentType,
+        archivedAt: pages.archivedAt,
+      })
       .from(pages)
       .where(and(eq(pages.userId, userId), isNull(pages.deletedAt)))
       .orderBy(desc(pages.updatedAt)),

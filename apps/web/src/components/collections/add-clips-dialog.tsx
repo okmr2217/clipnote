@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { FormatBadge } from "@/components/clips/format-badge";
 import type { ClipOption, CollectionMemberClip } from "@/components/collections/types";
 
@@ -35,8 +36,13 @@ export function AddClipsDialog({
   const [error, setError] = useState<string | null>(null);
 
   const filtered = useMemo(
-    () => clipOptions.filter((clip) => clip.title.toLowerCase().includes(search.toLowerCase())),
-    [clipOptions, search],
+    () =>
+      clipOptions.filter(
+        (clip) =>
+          (clip.archivedAt === null || currentMemberIds.includes(clip.id)) &&
+          clip.title.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [clipOptions, currentMemberIds, search],
   );
 
   function toggle(id: string) {
@@ -99,6 +105,11 @@ export function AddClipsDialog({
                 <Checkbox checked={selected.includes(clip.id)} onCheckedChange={() => toggle(clip.id)} />
                 <FormatBadge contentType={clip.contentType} />
                 <span className="truncate">{clip.title}</span>
+                {clip.archivedAt && (
+                  <Badge variant="secondary" className="ml-auto shrink-0 bg-muted text-muted-foreground">
+                    アーカイブ済み
+                  </Badge>
+                )}
               </label>
             ))
           )}

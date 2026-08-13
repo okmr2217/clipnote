@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function LpFooter() {
   return (
     <footer className="border-t border-border">
@@ -6,12 +8,15 @@ export function LpFooter() {
           Clip<span className="text-primary">note</span>
         </span>
         <div className="flex gap-6">
-          <a href="#" className="text-[13px] font-medium text-muted-foreground">
+          <Link href="/terms" className="text-[13px] font-medium text-muted-foreground">
             利用規約
-          </a>
-          <a href="#" className="text-[13px] font-medium text-muted-foreground">
+          </Link>
+          <Link href="/privacy" className="text-[13px] font-medium text-muted-foreground">
+            プライバシーポリシー
+          </Link>
+          <Link href="/contact" className="text-[13px] font-medium text-muted-foreground">
             お問い合わせ
-          </a>
+          </Link>
         </div>
       </div>
     </footer>
