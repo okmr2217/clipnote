@@ -56,6 +56,7 @@ export default async function AdminPageDetailPage({
     contentType: row.contentType,
     content: row.content,
     createdAt: row.createdAt,
+    source: row.source,
   }));
 
   // クリップは複数コレクションに属しうる（多対1に限定されない）ため、遷移元

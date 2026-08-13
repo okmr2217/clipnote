@@ -4,7 +4,7 @@
 import { pages, pageVersions } from "@clipnote/db/schema";
 import { and, desc, eq, notInArray, sql } from "drizzle-orm";
 import type { Database } from "@clipnote/db";
-import type { ContentType } from "./validation";
+import type { ContentType, UpdateSource } from "./validation";
 
 export const KEPT_VERSION_COUNT = 10; // 直近10件のみ保持（設計書11章）
 
@@ -19,6 +19,10 @@ export async function replacePageContent(
   db: Database,
   currentPage: { id: string; content: string; contentType: ContentType },
   next: { content: string; contentType: ContentType },
+  // この更新操作の実行元。退避されるスナップショット（更新前の内容）に
+  // 記録し、後から「どの経路での更新でこのバージョンが確定したか」を
+  // 追跡できるようにする（設計書v13 9章）。
+  source: UpdateSource,
 ) {
   const [{ maxVersionNumber }] = await db
     .select({ maxVersionNumber: sql<number | null>`max(${pageVersions.versionNumber})` })
@@ -32,6 +36,7 @@ export async function replacePageContent(
     content: currentPage.content,
     contentType: currentPage.contentType,
     versionNumber: archivedVersionNumber,
+    source,
   });
   const updateContent = db
     .update(pages)

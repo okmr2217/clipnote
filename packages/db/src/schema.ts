@@ -163,6 +163,10 @@ export const pageVersions = sqliteTable(
     content: text("content").notNull(),
     contentType: text("content_type", { enum: ["html", "markdown", "plaintext"] }).notNull(),
     versionNumber: integer("version_number").notNull(),
+    // このスナップショットを退避させた更新操作の実行元（設計書v13 9章）。
+    // 既存行（この列の追加以前に作られたもの）は実際の実行元が不明なため、
+    // マイグレーションで一律'web'を補完している。
+    source: text("source", { enum: ["web", "api_key", "oauth"] }).notNull().default("web"),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -174,6 +178,7 @@ export const pageVersions = sqliteTable(
       "page_versions_content_type_check",
       sql`${table.contentType} in ('html', 'markdown', 'plaintext')`,
     ),
+    check("page_versions_source_check", sql`${table.source} in ('web', 'api_key', 'oauth')`),
   ],
 );
 

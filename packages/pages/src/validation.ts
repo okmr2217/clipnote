@@ -5,9 +5,12 @@
 export const MAX_CONTENT_BYTES = 1_048_576; // 1MB（設計書5-2節）
 export const CONTENT_TYPES = ["html", "markdown", "plaintext"] as const;
 export const VISIBILITIES = ["private", "public"] as const;
+// page_versionsへ退避される更新操作の実行元（設計書v13 9章）。
+export const UPDATE_SOURCES = ["web", "api_key", "oauth"] as const;
 
 export type ContentType = (typeof CONTENT_TYPES)[number];
 export type Visibility = (typeof VISIBILITIES)[number];
+export type UpdateSource = (typeof UPDATE_SOURCES)[number];
 
 // encodeURIComponentは対のないサロゲートに対してURIErrorを送出するため、
 // TextEncoderでバイト数を数える前の「有効なUTF-8文字列か」の簡易チェックに使える

@@ -44,10 +44,12 @@ export async function POST(
     return NextResponse.json({ error: "version_not_found" }, { status: 404 });
   }
 
-  const { archivedVersionNumber } = await replacePageContent(db, page, {
-    content: version.content,
-    contentType: version.contentType,
-  });
+  const { archivedVersionNumber } = await replacePageContent(
+    db,
+    page,
+    { content: version.content, contentType: version.contentType },
+    "web",
+  );
 
   return NextResponse.json({
     id: uuid,

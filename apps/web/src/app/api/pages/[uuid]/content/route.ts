@@ -71,7 +71,7 @@ export async function PATCH(
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const { archivedVersionNumber } = await replacePageContent(db, page, { content, contentType });
+  const { archivedVersionNumber } = await replacePageContent(db, page, { content, contentType }, "web");
 
   return NextResponse.json({ id: uuid, contentType, archivedVersionNumber });
 }
