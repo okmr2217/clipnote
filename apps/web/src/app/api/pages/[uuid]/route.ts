@@ -107,7 +107,9 @@ export async function PATCH(
   if (validCollectionIds !== null) {
     // 所属コレクションの差分だけを追加/削除する。既存の所属関係の
     // sort_orderは変更せず、新規に加わったコレクションでは各コレクション内の
-    // 既存クリップの後ろ（最大sort_order+1）に追加する（設計書8-4節と同じ考え方）。
+    // 既存クリップより前（最小sort_order-1）に追加する。公開コレクションは
+    // クリップを都度追加していくタイムライン的な使い方を想定し、追加した
+    // クリップが先頭に来る挙動を仕様とする（8-4節の考え方をこの仕様に合わせて更新）。
     const existingMemberships = await db
       .select({ collectionId: collectionPages.collectionId })
       .from(collectionPages)
@@ -129,23 +131,25 @@ export async function PATCH(
 
     let insertAdded = null;
     if (toAdd.length > 0) {
-      const maxSortOrderRows = await db
+      const minSortOrderRows = await db
         .select({
           collectionId: collectionPages.collectionId,
-          maxSortOrder: sql<number>`max(${collectionPages.sortOrder})`,
+          minSortOrder: sql<number>`min(${collectionPages.sortOrder})`,
         })
         .from(collectionPages)
         .where(inArray(collectionPages.collectionId, toAdd))
         .groupBy(collectionPages.collectionId);
-      const maxSortOrderByCollection = new Map(
-        maxSortOrderRows.map((row) => [row.collectionId, row.maxSortOrder]),
+      const minSortOrderByCollection = new Map(
+        minSortOrderRows.map((row) => [row.collectionId, row.minSortOrder]),
       );
       insertAdded = db.insert(collectionPages).values(
         toAdd.map((collectionId) => ({
           id: crypto.randomUUID(),
           collectionId,
           pageId: uuid,
-          sortOrder: (maxSortOrderByCollection.get(collectionId) ?? -1) + 1,
+          sortOrder: minSortOrderByCollection.has(collectionId)
+            ? minSortOrderByCollection.get(collectionId)! - 1
+            : 0,
         })),
       );
     }

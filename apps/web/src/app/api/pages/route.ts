@@ -78,20 +78,21 @@ export async function POST(request: Request) {
   });
 
   if (validCollectionIds.length > 0) {
-    // 新規クリップは各コレクションで既存クリップの後ろ（末尾）に追加する。
-    // 選択したコレクション配列内でのインデックスをsort_orderに使うと、
-    // そのコレクション内の既存クリップと衝突・矛盾するため、
-    // コレクションごとの現在の最大sort_orderを基準に算出する。
-    const maxSortOrderRows = await db
+    // コレクションはクリップを都度追加していくタイムライン的な使い方を
+    // 想定しており、新規クリップは各コレクションで既存クリップより前
+    // （先頭）に追加する。選択したコレクション配列内でのインデックスを
+    // sort_orderに使うと、そのコレクション内の既存クリップと衝突・矛盾
+    // するため、コレクションごとの現在の最小sort_orderを基準に算出する。
+    const minSortOrderRows = await db
       .select({
         collectionId: collectionPages.collectionId,
-        maxSortOrder: sql<number>`max(${collectionPages.sortOrder})`,
+        minSortOrder: sql<number>`min(${collectionPages.sortOrder})`,
       })
       .from(collectionPages)
       .where(inArray(collectionPages.collectionId, validCollectionIds))
       .groupBy(collectionPages.collectionId);
-    const maxSortOrderByCollection = new Map(
-      maxSortOrderRows.map((row) => [row.collectionId, row.maxSortOrder]),
+    const minSortOrderByCollection = new Map(
+      minSortOrderRows.map((row) => [row.collectionId, row.minSortOrder]),
     );
 
     const collectionPagesInsert = db.insert(collectionPages).values(
@@ -99,7 +100,9 @@ export async function POST(request: Request) {
         id: crypto.randomUUID(),
         collectionId,
         pageId: id,
-        sortOrder: (maxSortOrderByCollection.get(collectionId) ?? -1) + 1,
+        sortOrder: minSortOrderByCollection.has(collectionId)
+          ? minSortOrderByCollection.get(collectionId)! - 1
+          : 0,
       })),
     );
     await db.batch([pageInsert, collectionPagesInsert]);
