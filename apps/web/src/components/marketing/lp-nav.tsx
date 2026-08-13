@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ClipnoteMark } from "@/components/brand/clipnote-mark";
 
-export function LpNav() {
+export function LpNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
     <header className="border-b border-border">
       <div className="mx-auto flex max-w-[1160px] items-center justify-between px-5 py-5 md:px-8">
@@ -12,10 +12,10 @@ export function LpNav() {
           </span>
         </span>
         <Link
-          href="/signup"
+          href={isLoggedIn ? "/admin" : "/signup"}
           className="rounded-lg bg-primary px-5 py-2.5 text-sm font-bold whitespace-nowrap text-primary-foreground shadow-[var(--shadow-accent)]"
         >
-          無料で始める
+          {isLoggedIn ? "管理画面へ" : "無料で始める"}
         </Link>
       </div>
     </header>

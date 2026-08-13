@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { getAuth } from "@/lib/auth";
 import { LpNav } from "@/components/marketing/lp-nav";
 import { LpFooter } from "@/components/marketing/lp-footer";
 
@@ -11,10 +13,13 @@ export const metadata: Metadata = {
 // 内容の追加・変更時は本文だけでなく「最終更新日」も更新すること。
 const LAST_UPDATED = "2026-08-12";
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const auth = await getAuth();
+  const session = await auth.api.getSession({ headers: await headers() });
+
   return (
     <>
-      <LpNav />
+      <LpNav isLoggedIn={Boolean(session)} />
       <main className="mx-auto w-full max-w-[760px] px-5 py-16 md:px-8 md:py-24">
         <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-foreground">利用規約</h1>
         <p className="mb-10 text-sm text-muted-foreground">最終更新日：{LAST_UPDATED}</p>

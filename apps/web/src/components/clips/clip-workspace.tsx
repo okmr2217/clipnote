@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   ArchiveIcon,
   ArchiveRestoreIcon,
+  ArrowLeftIcon,
   Link2Icon,
   PinIcon,
   PinOffIcon,
@@ -64,6 +65,9 @@ export function ClipWorkspace({
   );
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [previewNonce, setPreviewNonce] = useState(0);
+  // モバイル（md未満）では一覧とプレビューを1カラムで出し分ける。デスクトップ
+  // では両ペインを常時表示するため、この状態は`md:`側のクラスでは参照しない。
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
 
   const { resolvedClips, handleToggleVisibility, handleTogglePin, handleToggleArchive, handleTrash } =
     useClipToggles(clips);
@@ -89,6 +93,7 @@ export function ClipWorkspace({
   const selectedClip = selected ? (resolvedClips.find((clip) => clip.id === selected.id) ?? null) : null;
 
   async function handleSelect(clip: ClipRow) {
+    setMobileDetailOpen(true);
     if (selected?.id === clip.id || loadingId === clip.id) return;
     setLoadingId(clip.id);
     try {
@@ -115,15 +120,23 @@ export function ClipWorkspace({
   }
 
   async function handleDelete(clip: ClipRow) {
-    if (selected?.id === clip.id) setSelected(null);
+    if (selected?.id === clip.id) {
+      setSelected(null);
+      setMobileDetailOpen(false);
+    }
     await handleTrash(clip);
   }
 
   return (
     <div className="flex flex-col">
-      <div className="hidden overflow-hidden rounded-2xl border border-border md:mx-6 md:my-6 md:flex md:h-[78vh]">
-        {/* 左ペイン：探すための軽量な索引 */}
-        <div className="flex w-[340px] shrink-0 flex-col border-r border-border bg-muted/40">
+      <div className="flex flex-col md:mx-6 md:my-6 md:h-[78vh] md:flex-row md:overflow-hidden md:rounded-2xl md:border md:border-border">
+        {/* 左ペイン：探すための軽量な索引。モバイルではプレビュー表示中のみ隠す */}
+        <div
+          className={cn(
+            "flex-col bg-muted/40 md:w-[340px] md:shrink-0 md:border-r md:border-border",
+            mobileDetailOpen ? "hidden md:flex" : "flex",
+          )}
+        >
           <div className="flex flex-col gap-2.5 border-b border-border p-4">
             <div className="flex items-center justify-between">
               <div className="text-[15px] font-extrabold">
@@ -227,14 +240,26 @@ export function ClipWorkspace({
           </div>
         </div>
 
-        {/* 右ペイン：読む・操作するためのプレビュー */}
-        <div className="flex min-w-0 flex-1 flex-col">
+        {/* 右ペイン：読む・操作するためのプレビュー。モバイルでは一覧の代わりに全画面で表示する */}
+        <div
+          className={cn(
+            "min-w-0 flex-1 flex-col",
+            mobileDetailOpen ? "flex" : "hidden md:flex",
+          )}
+        >
           {selectedClip ? (
             <>
-              <div className="border-b border-border px-6 py-4">
-                <div className="flex items-start justify-between gap-3">
+              <div className="border-b border-border px-4 py-4 md:px-6">
+                <button
+                  type="button"
+                  onClick={() => setMobileDetailOpen(false)}
+                  className="mb-3 flex items-center gap-1.5 text-xs font-semibold text-secondary-foreground hover:text-foreground md:hidden"
+                >
+                  <ArrowLeftIcon className="size-3.5" /> 一覧に戻る
+                </button>
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <h1 className="text-lg font-extrabold tracking-tight text-balance">{selectedClip.title}</h1>
-                  <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5 md:shrink-0">
                     <Button
                       variant={selectedClip.pinned ? "default" : "outline"}
                       size="sm"
@@ -316,7 +341,7 @@ export function ClipWorkspace({
                   </span>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto p-4 md:p-6">
                 <ContentFrame
                   key={`${selected!.id}:${previewNonce}`}
                   uuid={selected!.id}
@@ -346,14 +371,6 @@ export function ClipWorkspace({
           )}
         </div>
       </div>
-
-      <p className="p-6 text-sm text-muted-foreground md:hidden">
-        このレイアウトはデスクトップ専用です。モバイルでは
-        <Link href="/admin" className="font-semibold text-primary">
-          既存のクリップ一覧
-        </Link>
-        をご利用ください。
-      </p>
 
       <NewClipDialog
         open={dialog?.type === "new"}
