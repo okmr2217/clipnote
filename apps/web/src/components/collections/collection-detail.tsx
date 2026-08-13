@@ -156,6 +156,7 @@ export function CollectionDetail({
           members={members}
           onMembersChange={setMembers}
           clipOptions={clipOptions}
+          showPrivateWarning={isPublic}
           initialAddClipsOpen={initialAddClipsOpen}
         />
       </div>

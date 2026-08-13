@@ -22,17 +22,28 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVerticalIcon, HistoryIcon, TriangleAlertIcon, XIcon } from "lucide-react";
 import Link from "next/link";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { FormatBadge } from "@/components/clips/format-badge";
 import type { CollectionMemberClip } from "@/components/collections/types";
 
 function SortableRow({
   member,
   collectionId,
+  showPrivateWarning,
   onRemove,
 }: {
   member: CollectionMemberClip;
   collectionId: string;
+  showPrivateWarning: boolean;
   onRemove: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -45,67 +56,79 @@ function SortableRow({
   };
 
   const isPrivate = member.visibility === "private";
+  const isWarning = isPrivate && showPrivateWarning;
 
   return (
-    <li
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center gap-3 rounded-xl border bg-card px-4 py-3 ${
-        isPrivate ? "border-accent" : "border-border"
-      }`}
-    >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        className="cursor-grab touch-none text-muted-foreground outline-none"
-        title="ドラッグして並び替え"
-      >
-        <GripVerticalIcon className="size-4" />
-      </button>
-      <FormatBadge contentType={member.contentType} />
-      <a
-        href={`/p/${member.id}?from=${collectionId}`}
-        target="_blank"
-        rel="noreferrer"
-        className="flex-1 truncate font-semibold text-foreground hover:text-primary"
-      >
-        {member.title}
-      </a>
-      <Badge
-        variant="secondary"
-        className={isPrivate ? "text-accent-foreground" : "text-primary"}
-      >
-        {isPrivate && <TriangleAlertIcon className="size-3" />}
-        {isPrivate ? "非公開" : "公開"}
-      </Badge>
-      <Link
-        href={`/admin/pages/${member.id}?from=${collectionId}`}
-        title="更新履歴を見る"
-        className="text-muted-foreground hover:text-foreground"
-      >
-        <HistoryIcon className="size-4" />
-      </Link>
-      <button
-        type="button"
-        onClick={onRemove}
-        title="外す"
-        className="text-muted-foreground hover:text-foreground"
-      >
-        <XIcon className="size-4" />
-      </button>
-    </li>
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell className="w-8">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="cursor-grab touch-none text-muted-foreground outline-none"
+          title="ドラッグして並び替え"
+        >
+          <GripVerticalIcon className="size-4" />
+        </button>
+      </TableCell>
+      <TableCell>
+        <FormatBadge contentType={member.contentType} />
+      </TableCell>
+      <TableCell>
+        <a
+          href={`/p/${member.id}?from=${collectionId}`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-[15px] font-semibold text-foreground hover:text-primary"
+        >
+          {member.title}
+        </a>
+      </TableCell>
+      <TableCell>
+        <Badge
+          variant="secondary"
+          className={cn(
+            isPrivate ? "bg-muted text-secondary-foreground" : "bg-secondary text-primary",
+            isWarning && "gap-1 text-accent-foreground",
+          )}
+        >
+          {isWarning && <TriangleAlertIcon className="size-3" />}
+          {isPrivate ? "非公開" : "公開"}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-center">
+        <Link
+          href={`/admin/pages/${member.id}?from=${collectionId}`}
+          title="更新履歴を見る"
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <HistoryIcon className="size-4" />
+        </Link>
+      </TableCell>
+      <TableCell className="text-center">
+        <button
+          type="button"
+          onClick={onRemove}
+          title="外す"
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <XIcon className="size-4" />
+        </button>
+      </TableCell>
+    </TableRow>
   );
 }
 
 export function DesktopMemberList({
   members,
   collectionId,
+  showPrivateWarning,
   onReorder,
   onRemove,
 }: {
   members: CollectionMemberClip[];
   collectionId: string;
+  showPrivateWarning: boolean;
   onReorder: (orderedIds: string[]) => void;
   onRemove: (pageId: string) => void;
 }) {
@@ -149,7 +172,7 @@ export function DesktopMemberList({
   }
 
   return (
-    <div className="hidden md:block">
+    <div className="hidden overflow-x-auto md:block">
       {/* dnd-kitはaria-describedby用のidを自動採番するため、指定しないとSSR/CSR
           間でid値がずれてハイドレーションエラーになる（Next.js特有の既知の問題）。
           固定文字列を渡すことで両者を一致させる。 */}
@@ -163,25 +186,44 @@ export function DesktopMemberList({
         onDragCancel={handleDragCancel}
       >
         <SortableContext items={members.map((member) => member.id)} strategy={verticalListSortingStrategy}>
-          <ul className="flex flex-col gap-2">
-            {members.map((member) => (
-              <Fragment key={member.id}>
-                {member.id === overId && showIndicatorBefore && <DropIndicator />}
-                <SortableRow
-                  member={member}
-                  collectionId={collectionId}
-                  onRemove={() => onRemove(member.id)}
-                />
-                {member.id === overId && showIndicatorAfter && <DropIndicator />}
-              </Fragment>
-            ))}
-          </ul>
+          <Table className="min-w-[720px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-8" />
+                <TableHead>形式</TableHead>
+                <TableHead>タイトル</TableHead>
+                <TableHead>公開設定</TableHead>
+                <TableHead className="w-11" />
+                <TableHead className="w-11" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.map((member) => (
+                <Fragment key={member.id}>
+                  {member.id === overId && showIndicatorBefore && <DropIndicatorRow />}
+                  <SortableRow
+                    member={member}
+                    collectionId={collectionId}
+                    showPrivateWarning={showPrivateWarning}
+                    onRemove={() => onRemove(member.id)}
+                  />
+                  {member.id === overId && showIndicatorAfter && <DropIndicatorRow />}
+                </Fragment>
+              ))}
+            </TableBody>
+          </Table>
         </SortableContext>
       </DndContext>
     </div>
   );
 }
 
-function DropIndicator() {
-  return <li aria-hidden className="h-0.5 rounded-full bg-primary" />;
+function DropIndicatorRow() {
+  return (
+    <TableRow aria-hidden className="border-0 hover:bg-transparent">
+      <TableCell colSpan={6} className="h-1.5 p-0">
+        <div className="h-0.5 rounded-full bg-primary" />
+      </TableCell>
+    </TableRow>
+  );
 }
