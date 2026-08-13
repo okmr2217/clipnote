@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "ac29ea52-0c44-4e45-94df-51e763e58fbc",
+  "id": "9f092a02-39f1-49bc-a734-1ce77b30a336",
   "prevId": "ff9533b7-e640-441c-b962-334786607ed7",
   "tables": {
     "accounts": {
@@ -1163,14 +1163,6 @@
           "notNull": true,
           "autoincrement": false
         },
-        "source": {
-          "name": "source",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'web'"
-        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -1218,10 +1210,6 @@
         "page_versions_content_type_check": {
           "name": "page_versions_content_type_check",
           "value": "\"page_versions\".\"content_type\" in ('html', 'markdown', 'plaintext')"
-        },
-        "page_versions_source_check": {
-          "name": "page_versions_source_check",
-          "value": "\"page_versions\".\"source\" in ('web', 'api_key', 'oauth')"
         }
       }
     },
@@ -1339,6 +1327,52 @@
           "value": "\"pages\".\"visibility\" in ('private', 'public')"
         }
       }
+    },
+    "rate_limits": {
+      "name": "rate_limits",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "count": {
+          "name": "count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_request": {
+          "name": "last_request",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "rate_limits_key_unique": {
+          "name": "rate_limits_key_unique",
+          "columns": [
+            "key"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
     },
     "sessions": {
       "name": "sessions",

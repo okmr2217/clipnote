@@ -48,6 +48,20 @@ function createAuth(db: D1Database) {
     // サブドメインとも共有される親ドメインのため、advanced.crossSubDomainCookies
     // は有効化しない。Domain属性を省略することで、Cookieは発行元ホスト
     // （clipnote.paritto.dev）単体にスコープされ、親ドメイン全体には広がらない。
+    //
+    // サインアップの悪用対策（design.md 5章）：storage既定の"memory"はWorkers
+    // のisolateがリクエスト間で使い回されるとは限らず信頼できないため、D1に
+    // 永続化する"database"を明示する（rateLimitsテーブル、packages/db/schema.ts）。
+    // 既定ルール（10秒10回、better-authの一般API向け既定を流用）に加え、
+    // サインアップ自体は同一IPからの連続作成を1時間5回までに絞る。
+    rateLimit: {
+      enabled: true,
+      storage: "database",
+      modelName: "rateLimits",
+      customRules: {
+        "/sign-up/email": { window: 60 * 60, max: 5 },
+      },
+    },
     plugins: [
       // oauthProviderが発行するアクセストークンをJWT化し、JWKS
       // （/api/auth/jwks）で公開する。apps/mcp（Resource Server）はネット

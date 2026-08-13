@@ -154,6 +154,76 @@ describe("clipnote schema", () => {
     expect(page).toBeDefined();
   });
 
+  it("soft-deleting a page (setting deleted_at) leaves collection_pages and page_versions untouched", async () => {
+    const userId = await createTestUser(db);
+
+    await db.insert(pages).values({
+      id: "page-trash-1",
+      userId,
+      title: "T-trash",
+      content: "c",
+      contentType: "html",
+      visibility: "private",
+    });
+    await db.insert(collections).values({
+      id: "collection-trash-1",
+      userId,
+      name: "Collection Trash",
+      visibility: "private",
+    });
+    await db.insert(collectionPages).values({
+      id: "cp-trash-1",
+      collectionId: "collection-trash-1",
+      pageId: "page-trash-1",
+      sortOrder: 0,
+    });
+    await db.insert(pageVersions).values({
+      id: "version-trash-1",
+      pageId: "page-trash-1",
+      content: "old content",
+      contentType: "html",
+      versionNumber: 1,
+    });
+
+    const deletedAt = new Date();
+    await db.update(pages).set({ deletedAt }).where(eq(pages.id, "page-trash-1"));
+
+    const [page] = await db.select().from(pages).where(eq(pages.id, "page-trash-1"));
+    const remainingLinks = await db
+      .select()
+      .from(collectionPages)
+      .where(eq(collectionPages.pageId, "page-trash-1"));
+    const remainingVersions = await db
+      .select()
+      .from(pageVersions)
+      .where(eq(pageVersions.pageId, "page-trash-1"));
+
+    expect(page?.deletedAt).toBeInstanceOf(Date);
+    expect(remainingLinks).toHaveLength(1);
+    expect(remainingVersions).toHaveLength(1);
+
+    // 復元（deleted_atをnullに戻す）でも所属・履歴に影響しない。
+    await db.update(pages).set({ deletedAt: null }).where(eq(pages.id, "page-trash-1"));
+    const [restored] = await db.select().from(pages).where(eq(pages.id, "page-trash-1"));
+    expect(restored?.deletedAt).toBeNull();
+  });
+
+  it("a new page defaults to deleted_at null (not in trash)", async () => {
+    const userId = await createTestUser(db);
+
+    await db.insert(pages).values({
+      id: "page-trash-2",
+      userId,
+      title: "T-not-trashed",
+      content: "c",
+      contentType: "html",
+      visibility: "private",
+    });
+
+    const [page] = await db.select().from(pages).where(eq(pages.id, "page-trash-2"));
+    expect(page?.deletedAt).toBeNull();
+  });
+
   it("inserts and selects a page with content_type plaintext", async () => {
     const userId = await createTestUser(db);
 

@@ -112,9 +112,76 @@ pnpm --filter mcp run deploy       # wrangler deploy
 pnpm --filter @clipnote/db db:migrate:remote
 ```
 
+### デプロイ後：mainブランチの更新
+
+GitHubのデフォルトブランチは`main`で、「現在本番にデプロイされている内容」を表すブランチとして運用する。CIによる自動化はしていないため、`pnpm run deploy`でのデプロイに成功したら、デプロイした人が都度`main`を更新すること。
+
+```bash
+git checkout main
+git pull origin main
+git merge development   # デプロイ元がdevelopment以外のブランチの場合はそのブランチ名に置き換える
+git push origin main
+```
+
+`main`への直接コミットはせず、必ず`development`（または各機能ブランチ）経由でマージする。
+
 ## wrangler.jsonc について
 
 D1の`database_id`は`apps/web`・`apps/content`・`apps/mcp`・`packages/db`で同一のDB（`clipnote-db`）を指しています。スキーマとマイグレーションは`packages/db`が所有し、各アプリは同じDBに対するバインディングのみを持ちます。マイグレーション追加時は`packages/db`側で`db:generate`してから、ローカル・リモート双方に適用してください。
+
+## 公開コンテンツの通報対応
+
+Clipnoteは投稿されたHTML/Markdownを無害化（サニタイズ）しない設計（要件定義書4章）のため、公開設定にされたクリップ・コレクションが違法・権利侵害・フィッシング等に悪用される可能性がある。管理画面には運営（サイト管理者）向けの強制非公開化・削除UIは無い（各利用者は自分のクリップのみ操作可能）ため、通報を受けた場合は以下の手順でD1に対して直接操作する。
+
+1. `/p/[uuid]`・`/c/[uuid]`フッターの「このコンテンツの問題を報告する」リンク、または`/contact`経由で通報を受け付ける（`CONTACT_EMAIL_TO`宛にメールが届く）
+2. 通報されたURLからuuidを特定する
+3. 内容を確認し、規約違反（利用規約第4条）と判断した場合、対象を非公開化する
+
+   ```bash
+   # クリップの場合
+   npx wrangler d1 execute clipnote-db --remote \
+     --command "UPDATE pages SET visibility = 'private' WHERE id = '<uuid>'"
+
+   # コレクションの場合
+   npx wrangler d1 execute clipnote-db --remote \
+     --command "UPDATE collections SET visibility = 'private' WHERE id = '<uuid>'"
+   ```
+
+   非公開化ではなくクリップ自体の削除が必要な場合（フィッシング等、悪意が明白なケース）は`pages`から該当行を削除する（`page_versions`・所属コレクションとの関連付けはON DELETE CASCADEで連動削除される。design.md4章参照）。
+
+   ```bash
+   npx wrangler d1 execute clipnote-db --remote \
+     --command "DELETE FROM pages WHERE id = '<uuid>'"
+   ```
+
+4. 悪質なアカウントについては、繰り返しの違反があれば当該`users`行の削除も検討する（関連するクリップ・APIキー・OAuth連携もカスケード削除される）
+5. 通報者に対応結果を任意で返信する（`/contact`送信時に入力されたメールアドレス宛）
+
+このフローは応急対応であり、利用者が増えてきた段階では管理画面上に運営向けの強制非公開化UIを設けることを検討する（本書スコープ外）。
+
+## 本番環境のシークレット投入
+
+`apps/web`が使うシークレット（`BETTER_AUTH_SECRET`・`CONTENT_TOKEN_SECRET`）は`wrangler.jsonc`の`vars`には書かず、Cloudflare側に`wrangler secret put`で個別に投入する。**本番デプロイ前に一度だけ必要な作業**で、`.env.local`・`.dev.vars`のセットアップ（前述）とは別物。
+
+```bash
+# apps/webディレクトリで実行
+npx wrangler secret put BETTER_AUTH_SECRET
+npx wrangler secret put CONTENT_TOKEN_SECRET
+
+# apps/contentディレクトリで実行（apps/webと同じ値を使うこと。設計書4-4節）
+npx wrangler secret put CONTENT_TOKEN_SECRET
+```
+
+`apps/mcp`は追加のシークレットを必要としない（development.md冒頭参照）。
+
+値は`openssl rand -hex 32`等で生成したランダム文字列を使う。`CONTACT_EMAIL_TO`はメールアドレスであり機密情報ではないため、`wrangler.jsonc`の`vars`にそのままコミットしている。
+
+### ローテーション方針
+
+| シークレット | ローテーションの影響 | 方針 |
+| --- | --- | --- |
+| `CONTENT_TOKEN_SECRET` | ローテーション直後、更新前に発行済みの短命トークン（有効期限2分）のみ検証エラーになる。iframeは90秒間隔で自動更新するため、通常は次回更新時に新トークンへ切り替わり、利用者影響はごく短時間に限られる | 漏洩が疑われる場合は速やかにローテーションする（apps/web・apps/content両方を同時に、同じ値で） |
+| `BETTER_AUTH_SECRET` | ローテーションすると、既存のセッションCookieの署名検証が無効になり全利用者が強制ログアウトされる。JWKS（`jwks`テーブル）の秘密鍵はこの値で暗号化して保存されているため復号できなくなり、OAuth 2.1（MCP連携）のアクセストークン発行・検証もやり直しが必要になる。APIキー方式のMCP認証（`api_keys`テーブル、独自ハッシュ）はこの値に依存しないため影響を受けない | 漏洩が疑われる場合のみ実施する。トラフィックの少ない時間帯に行い、事前に告知する |
 
 ## その他
 

@@ -81,6 +81,17 @@ export const verifications = sqliteTable("verifications", {
   ...timestamps,
 });
 
+// better-authのrateLimitプラグイン設定（storage: "database"）用のテーブル
+// （src/lib/auth.tsのbetterAuth()参照）。Cloudflare Workersはリクエストごと
+// にisolateが再利用されるとは限らずstorage: "memory"（既定）ではカウントが
+// 揮発するため、D1に永続化する必要がある（サインアップの悪用対策）。
+export const rateLimits = sqliteTable("rate_limits", {
+  id: id(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  lastRequest: integer("last_request", { mode: "timestamp_ms" }).notNull(),
+});
+
 export const pages = sqliteTable(
   "pages",
   {
@@ -99,6 +110,10 @@ export const pages = sqliteTable(
       .default("private"),
     pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
     archivedAt: integer("archived_at", { mode: "timestamp" }),
+    // ゴミ箱機能（docs/design-trash.md）。非nullなら論理削除済み。物理削除
+    // （page_versions・collection_pagesのカスケード削除含む）は30日後の自動
+    // パージ、または「完全に削除」操作でのみ発生する。
+    deletedAt: integer("deleted_at", { mode: "timestamp" }),
     ...timestamps,
   },
   (table) => [

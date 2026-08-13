@@ -23,12 +23,9 @@ const FORMATS = [
 function PlainTextPreview() {
   return (
     <div className="rounded-xl border border-border bg-background p-4">
-      <div className="flex flex-col gap-1.5 font-mono text-[11px] leading-[1.7] text-foreground">
-        <p>会議メモ</p>
-        <p className="text-secondary-foreground">・A社と14時に打ち合わせ</p>
-        <p className="text-secondary-foreground">・資料は事前送付済み</p>
-        <p className="text-secondary-foreground">・次回は来月頭</p>
-      </div>
+      <p className="text-[11px] leading-[1.8] whitespace-pre-wrap text-foreground">
+        来週の京都旅行、初日は京都駅から東本願寺と西本願寺を歩いて回る。お昼は錦市場で食べ歩き。午後は伏見稲荷に移動して、千本鳥居を上まで登れたら登る。
+      </p>
     </div>
   );
 }
@@ -36,25 +33,27 @@ function PlainTextPreview() {
 function MarkdownPreview() {
   return (
     <div className="rounded-xl border border-border bg-background p-4">
-      <p className="text-sm font-extrabold text-foreground">進捗まとめ</p>
+      <p className="text-sm font-extrabold text-foreground">読書メモ：『思考の整理学』</p>
       <ul className="mt-2 flex flex-col gap-1 text-[11px] text-foreground">
         <li className="flex items-center gap-1.5">
-          <span className="size-1 shrink-0 rounded-full bg-primary" />
-          設計レビュー：完了
+          <span className="flex size-3 shrink-0 items-center justify-center rounded-[3px] border border-primary bg-primary text-[8px] text-primary-foreground">
+            ✓
+          </span>
+          気になった本はすぐメモを取る
         </li>
-        <li className="flex items-center gap-1.5">
-          <span className="size-1 shrink-0 rounded-full bg-primary" />
-          実装：進行中
+        <li className="flex items-center gap-1.5 text-secondary-foreground">
+          <span className="size-3 shrink-0 rounded-[3px] border border-border" />
+          寝かせる時間を意識して見直す
         </li>
       </ul>
       <div className="mt-2.5 overflow-hidden rounded-md border border-border text-[10px]">
         <div className="grid grid-cols-2 divide-x divide-border border-b border-border bg-secondary font-bold text-secondary-foreground">
-          <span className="px-2 py-1">項目</span>
+          <span className="px-2 py-1">メモ</span>
           <span className="px-2 py-1">状態</span>
         </div>
         <div className="grid grid-cols-2 divide-x divide-border text-foreground">
-          <span className="px-2 py-1">公開</span>
-          <span className="px-2 py-1">未着手</span>
+          <span className="px-2 py-1">アウトプット大全</span>
+          <span className="px-2 py-1">読了</span>
         </div>
       </div>
     </div>
@@ -65,12 +64,25 @@ function HtmlPreview() {
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       <div className="bg-gradient-to-br from-primary to-accent-foreground p-4">
-        <p className="text-xs font-extrabold text-primary-foreground">秋の新商品案内</p>
-        <p className="mt-1 text-[10px] text-primary-foreground/85">
-          レイアウトも装飾も、そのまま。
+        <p className="text-[9px] font-extrabold tracking-wide text-primary-foreground/80">
+          EVENT INVITATION
         </p>
+        <p className="mt-1 text-xs font-extrabold text-primary-foreground">
+          AI Builders Night Vol.3
+        </p>
+        <p className="mt-1 text-[10px] text-primary-foreground/85">9/12（土）19:00〜</p>
+        <div className="mt-2.5 flex gap-1">
+          {["12", "05", "30"].map((n) => (
+            <span
+              key={n}
+              className="rounded-md bg-white/15 px-1.5 py-1 font-mono text-[10px] font-bold text-primary-foreground"
+            >
+              {n}
+            </span>
+          ))}
+        </div>
         <span className="mt-2.5 inline-block rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-primary">
-          詳しく見る
+          参加登録する →
         </span>
       </div>
     </div>

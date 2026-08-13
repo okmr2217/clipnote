@@ -1,7 +1,11 @@
 # Clipnote 設計書（共通）
 
-> 最終更新：2026-08-07（v15）
+> 最終更新：2026-08-13（v17）
 > 対象：要件定義書 v9 の詳細設計のうち、複数アプリ（`apps/web` / `apps/content` / `apps/mcp`）に共通する内容（用語整理／ドメイン構成／データモデル索引／削除カスケード／セキュリティまとめ／将来検討／モノレポ構成）
+> v17での変更点：
+> - `page_versions`に更新元記録用の`source`列を追加（要件定義書v13）。詳細は`docs/design-web.md`9章・`docs/design-mcp.md`8章
+> v16での変更点：
+> - クリップの「削除」をゴミ箱方式の論理削除に変更（要件定義書v12・4章）。詳細は`docs/design-trash.md`
 > v15での変更点：
 > - 対応コンテンツ形式にプレーンテキストを追加（要件定義書v9・1章）。`pages`/`page_versions`の`content_type`にDB制約レベルで`plaintext`を追加した（詳細は`docs/design-web.md`9章）
 > v14での変更点：
@@ -69,6 +73,7 @@ DBスキーマ本体（`packages/db`）は全アプリ共有だが、テーブ�
 | `oauth_refresh_tokens` | `apps/web`（OAuth認可サーバー） | `docs/design-mcp.md`7章 |
 | `oauth_access_tokens` | `apps/web`（OAuth認可サーバー） | `docs/design-mcp.md`7章 |
 | `oauth_consents` | `apps/web`（OAuth認可サーバー） | `docs/design-mcp.md`7章 |
+| `rate_limits`（better-auth管理） | `apps/web` | `docs/design-web.md`9章 |
 
 `apps/content`はいずれのテーブルも`pages`の読み取り以外は行わない（`docs/design-content.md`5章参照）。
 
@@ -82,9 +87,11 @@ DBスキーマ本体（`packages/db`）は全アプリ共有だが、テーブ�
 
 ## 4. 削除時のカスケード挙動
 
+**クリップの「削除」はv12でゴミ箱方式の論理削除（`pages.deleted_at`）に変更した。** 下表は30日経過後の自動パージ、またはゴミ箱からの「完全に削除」操作で発生する物理削除時の挙動を示す。詳細は`docs/design-trash.md`を参照。
+
 | 削除対象 | 影響範囲 |
 | --- | --- |
-| クリップを削除 | `page_versions`（履歴）も連動削除。所属していた全コレクションの`collection_pages`からも自動的に外れる（コレクション自体は残る） |
+| クリップをゴミ箱から完全に削除（自動パージ／手動） | `page_versions`（履歴）も連動削除。所属していた全コレクションの`collection_pages`からも自動的に外れる（コレクション自体は残る） |
 | コレクションを削除 | `collection_pages`の関連付けのみ削除。**所属していたクリップ自体は削除されない** |
 | ユーザーを削除（想定上） | 所有する`pages`・`collections`・`api_keys`・`oauth_clients`・`oauth_access_tokens`・`oauth_refresh_tokens`・`oauth_consents`も連動削除（`ON DELETE CASCADE`） |
 | 連携中のアプリを失効（`docs/design-mcp.md`6章参照） | 該当ユーザー×クライアントの`oauth_consents`・`oauth_refresh_tokens`・`oauth_access_tokens`行を削除。`oauth_clients`自体は残す |
@@ -117,6 +124,8 @@ DB制約としては、`collection_pages.page_id`・`collection_pages.collection
 | パスワードリセットによるメールアドレス列挙 | `/forgot-password`は登録有無に関わらず同一の成功メッセージを返す。トークンはbetter-authが`verifications`テーブルで単回使用・有効期限付きで管理 | `docs/design-web.md`11-1節 |
 | メール確認・リセットトークンの悪用 | いずれもbetter-authのコア機能が生成する単回使用・短命トークンで、独自実装は行わない | `docs/design-web.md`11-2節 |
 | メール送信基盤（ドメイン）未有効化時の情報漏洩 | 開発環境・未有効化時はコンソールログへのフォールバックのみで、外部への誤送信は発生しない設計 | `docs/design-web.md`11-4節 |
+| 捨てアドレスでの大量サインアップ・APIキー発行の踏み台化 | better-authの`rateLimit`（`storage: "database"`）で`/sign-up/email`を1時間5回に制限 | `docs/design-web.md`4-8節 |
+| 公開クリップ・コレクションを通じた違法／権利侵害コンテンツの拡散 | `/p/[uuid]`・`/c/[uuid]`に通報導線（`/contact`）を設置し、運営が手動で強制非公開化する運用手順を整備 | `docs/development.md`「公開コンテンツの通報対応」 |
 
 ---
 

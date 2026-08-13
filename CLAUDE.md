@@ -1,7 +1,7 @@
 # CLAUDE.md（プロジェクトルートに配置）
 
 ## プロジェクト概要
-Clipnote: AI生成のHTML/Markdownを保存・公開管理するツール
+Clipnote: AIとのやり取りで生成したHTML/Markdown/プレーンテキストを保存・公開管理するツール
 
 ## 必読ドキュメント
 - 要件定義: docs/requirements.md

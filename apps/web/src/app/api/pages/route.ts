@@ -1,5 +1,5 @@
 import { collectionPages, collections, pages } from "@clipnote/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
@@ -78,12 +78,31 @@ export async function POST(request: Request) {
   });
 
   if (validCollectionIds.length > 0) {
+    // コレクションはクリップを都度追加していくタイムライン的な使い方を
+    // 想定しており、新規クリップは各コレクションで既存クリップより前
+    // （先頭）に追加する。選択したコレクション配列内でのインデックスを
+    // sort_orderに使うと、そのコレクション内の既存クリップと衝突・矛盾
+    // するため、コレクションごとの現在の最小sort_orderを基準に算出する。
+    const minSortOrderRows = await db
+      .select({
+        collectionId: collectionPages.collectionId,
+        minSortOrder: sql<number>`min(${collectionPages.sortOrder})`,
+      })
+      .from(collectionPages)
+      .where(inArray(collectionPages.collectionId, validCollectionIds))
+      .groupBy(collectionPages.collectionId);
+    const minSortOrderByCollection = new Map(
+      minSortOrderRows.map((row) => [row.collectionId, row.minSortOrder]),
+    );
+
     const collectionPagesInsert = db.insert(collectionPages).values(
-      validCollectionIds.map((collectionId, index) => ({
+      validCollectionIds.map((collectionId) => ({
         id: crypto.randomUUID(),
         collectionId,
         pageId: id,
-        sortOrder: index,
+        sortOrder: minSortOrderByCollection.has(collectionId)
+          ? minSortOrderByCollection.get(collectionId)! - 1
+          : 0,
       })),
     );
     await db.batch([pageInsert, collectionPagesInsert]);

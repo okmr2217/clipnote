@@ -1,7 +1,7 @@
 # Clipnote 設計書：apps/mcp（mcp.clipnote.paritto.dev）
 
 > 最終更新：2026-08-13
-> v12での変更点：`get_page`の返り値に所属コレクションの`id`・`name`・`description`を追加し、`update_page`で`page_versions.source`（更新元）を記録するようにした（8章）。要件定義書v12を参照
+> v13での変更点：`get_page`の返り値に所属コレクションの`id`・`name`・`description`を追加し、`update_page`で`page_versions.source`（更新元）を記録するようにした（8章）。要件定義書v13を参照
 > 位置づけ：`docs/design.md`（共通設計書）の詳細版。`apps/mcp`固有の内容（MCPツール定義・APIキー認証・OAuth 2.1認可フロー・OAuth関連データモデル・連携管理画面）を集約する。
 > クリップ・コレクションのデータモデル本体は`docs/design-web.md`、コンテンツ配信の隔離モデルは`docs/design-content.md`を参照。
 
@@ -257,7 +257,7 @@ MCPクライアント（claude.ai等）が`/oauth2/authorize`にアクセスす�
 ### `get_page`
 
 - 引数：`uuid`（必須）
-- 返り値：`uuid`・`title`・`content`（本文）・`content_type`・`visibility`・`updated_at`・`collections`（**v12で追加**。所属コレクションの`id`・`name`・`description`の配列。0件なら空配列）
+- 返り値：`uuid`・`title`・`content`（本文）・`content_type`・`visibility`・`updated_at`・`collections`（**v13で追加**。所属コレクションの`id`・`name`・`description`の配列。0件なら空配列）
 - 対象クリップが存在しない、または他ユーザーのものである場合はエラー（存在の有無を区別しないメッセージにし、他ユーザーのクリップの存在を推測されないようにする）
 - `collections`は読み取り専用の付随情報であり、コレクションへの割当・作成・編集を行うものではない（引き続きMVPの範囲外、10章参照）。コレクションの説明文を、そのクリップが属す文脈の手がかりとしてAIに渡すことを意図している
 
@@ -276,7 +276,7 @@ MCPクライアント（claude.ai等）が`/oauth2/authorize`にアクセスす�
 
 - 引数：`uuid`（必須）、`content`（必須、全文差し替え）
 - 内部処理：更新前の本文を`page_versions`へ退避してから`pages.content`を更新（`docs/design-web.md`6-4節・9章の`page_versions`運用方針と同じロジックを共有関数として再利用する）
-- 退避される`page_versions`行の`source`（**v12で追加**）には、この接続の認証方式をそのまま記録する：APIキー方式なら`api_key`、OAuth 2.1方式なら`oauth`（4章参照）。管理画面の更新履歴（`docs/design-web.md`6-5節）にバッジ表示される
+- 退避される`page_versions`行の`source`（**v13で追加**）には、この接続の認証方式をそのまま記録する：APIキー方式なら`api_key`、OAuth 2.1方式なら`oauth`（4章参照）。管理画面の更新履歴（`docs/design-web.md`6-5節）にバッジ表示される
 - バリデーションは`upload_page`と共通
 - 対象クリップが他ユーザーのものである場合はエラー
 - 返り値：`uuid`、公開URL
