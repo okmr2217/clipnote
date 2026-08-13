@@ -7,7 +7,9 @@ import { requireSessionUser } from "@/lib/auth";
 // コレクション詳細の「クリップを追加」ダイアログから、選択済みidの集合を
 // まとめて受け取り、既存の所属関係との差分だけ追加/削除する（設計書7-4節：
 // チェックの付け外しで追加/除外の両方を1つのUIで扱う）。既存メンバーの
-// sort_orderは変更せず、新規追加分だけ末尾に積む。
+// sort_orderは変更せず、新規追加分は先頭（一覧の最新側）に積む。公開
+// コレクションはクリップを都度追加していくタイムライン的な使い方を想定し、
+// 追加した順に先頭へ並ぶ挙動を仕様とする。
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ uuid: string }> },
@@ -59,7 +61,8 @@ export async function PATCH(
 
   const toRemove = existing.filter((row) => !desiredSet.has(row.pageId)).map((row) => row.pageId);
   const toAdd = desiredIds.filter((id) => !existingIds.has(id));
-  const maxSortOrder = existing.reduce((max, row) => Math.max(max, row.sortOrder), -1);
+  const existingSortOrders = existing.map((row) => row.sortOrder);
+  const minSortOrder = existingSortOrders.length > 0 ? Math.min(...existingSortOrders) : 0;
 
   const deleteStmt =
     toRemove.length > 0
@@ -76,7 +79,8 @@ export async function PATCH(
             id: crypto.randomUUID(),
             collectionId: uuid,
             pageId,
-            sortOrder: maxSortOrder + 1 + index,
+            sortOrder:
+              existingSortOrders.length > 0 ? minSortOrder - toAdd.length + index : index,
           })),
         )
       : null;

@@ -1,5 +1,5 @@
 import { collectionPages, collections, pages } from "@clipnote/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
@@ -110,28 +110,69 @@ export async function PATCH(
         return NextResponse.json({ error: "invalid_collection_ids" }, { status: 400 });
       }
     }
-    validCollectionIds = collectionIds;
+    validCollectionIds = [...new Set(collectionIds)];
   }
 
   const pageUpdate = db.update(pages).set(update).where(eq(pages.id, uuid));
 
   if (validCollectionIds !== null) {
-    const deleteExisting = db
-      .delete(collectionPages)
+    // 所属コレクションの差分だけを追加/削除する。既存の所属関係の
+    // sort_orderは変更せず、新規に加わったコレクションでは各コレクション内の
+    // 既存クリップより前（最小sort_order-1）に追加する。公開コレクションは
+    // クリップを都度追加していくタイムライン的な使い方を想定し、追加した
+    // クリップが先頭に来る挙動を仕様とする（8-4節の考え方をこの仕様に合わせて更新）。
+    const existingMemberships = await db
+      .select({ collectionId: collectionPages.collectionId })
+      .from(collectionPages)
       .where(eq(collectionPages.pageId, uuid));
+    const existingCollectionIds = new Set(existingMemberships.map((row) => row.collectionId));
+    const desiredCollectionIds = new Set(validCollectionIds);
 
-    if (validCollectionIds.length > 0) {
-      const insertNew = db.insert(collectionPages).values(
-        validCollectionIds.map((collectionId, index) => ({
+    const toRemove = [...existingCollectionIds].filter((id) => !desiredCollectionIds.has(id));
+    const toAdd = validCollectionIds.filter((id) => !existingCollectionIds.has(id));
+
+    const deleteRemoved =
+      toRemove.length > 0
+        ? db
+            .delete(collectionPages)
+            .where(
+              and(eq(collectionPages.pageId, uuid), inArray(collectionPages.collectionId, toRemove)),
+            )
+        : null;
+
+    let insertAdded = null;
+    if (toAdd.length > 0) {
+      const minSortOrderRows = await db
+        .select({
+          collectionId: collectionPages.collectionId,
+          minSortOrder: sql<number>`min(${collectionPages.sortOrder})`,
+        })
+        .from(collectionPages)
+        .where(inArray(collectionPages.collectionId, toAdd))
+        .groupBy(collectionPages.collectionId);
+      const minSortOrderByCollection = new Map(
+        minSortOrderRows.map((row) => [row.collectionId, row.minSortOrder]),
+      );
+      insertAdded = db.insert(collectionPages).values(
+        toAdd.map((collectionId) => ({
           id: crypto.randomUUID(),
           collectionId,
           pageId: uuid,
-          sortOrder: index,
+          sortOrder: minSortOrderByCollection.has(collectionId)
+            ? minSortOrderByCollection.get(collectionId)! - 1
+            : 0,
         })),
       );
-      await db.batch([pageUpdate, deleteExisting, insertNew]);
+    }
+
+    if (deleteRemoved && insertAdded) {
+      await db.batch([pageUpdate, deleteRemoved, insertAdded]);
+    } else if (deleteRemoved) {
+      await db.batch([pageUpdate, deleteRemoved]);
+    } else if (insertAdded) {
+      await db.batch([pageUpdate, insertAdded]);
     } else {
-      await db.batch([pageUpdate, deleteExisting]);
+      await pageUpdate;
     }
   } else {
     await pageUpdate;
