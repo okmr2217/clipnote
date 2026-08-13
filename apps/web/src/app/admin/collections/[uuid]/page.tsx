@@ -1,5 +1,5 @@
 import { collectionPages, collections, pages } from "@clipnote/db/schema";
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getAuth } from "@/lib/auth";
@@ -43,7 +43,7 @@ export default async function AdminCollectionDetailPage({
       })
       .from(collectionPages)
       .innerJoin(pages, eq(collectionPages.pageId, pages.id))
-      .where(eq(collectionPages.collectionId, uuid))
+      .where(and(eq(collectionPages.collectionId, uuid), isNull(pages.deletedAt)))
       .orderBy(asc(collectionPages.sortOrder)),
     db
       .select({
@@ -53,7 +53,7 @@ export default async function AdminCollectionDetailPage({
         archivedAt: pages.archivedAt,
       })
       .from(pages)
-      .where(eq(pages.userId, userId))
+      .where(and(eq(pages.userId, userId), isNull(pages.deletedAt)))
       .orderBy(desc(pages.updatedAt)),
   ]);
 

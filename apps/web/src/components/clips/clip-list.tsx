@@ -16,7 +16,6 @@ import { ClipCard } from "@/components/clips/clip-card";
 import { NewClipDialog } from "@/components/clips/new-clip-dialog";
 import { EditMetadataDialog } from "@/components/clips/edit-metadata-dialog";
 import { UpdateContentDialog } from "@/components/clips/update-content-dialog";
-import { DeleteClipAlert } from "@/components/clips/delete-clip-alert";
 import { useClipToggles } from "@/components/clips/use-clip-toggles";
 import type { ClipRow, CollectionOption } from "@/components/clips/types";
 
@@ -24,7 +23,6 @@ type DialogState =
   | { type: "new" }
   | { type: "edit-metadata"; clip: ClipRow }
   | { type: "update-content"; clip: ClipRow }
-  | { type: "delete"; clip: ClipRow }
   | null;
 
 export function ClipList({
@@ -41,7 +39,7 @@ export function ClipList({
   const [collectionFilter, setCollectionFilter] = useState("all");
   const [archiveFilter, setArchiveFilter] = useState<"active" | "archived" | "all">("active");
   const [dialog, setDialog] = useState<DialogState>(null);
-  const { resolvedClips, handleToggleVisibility, handleTogglePin, handleToggleArchive } =
+  const { resolvedClips, handleToggleVisibility, handleTogglePin, handleToggleArchive, handleTrash } =
     useClipToggles(clips);
 
   function refresh() {
@@ -171,7 +169,7 @@ export function ClipList({
             onUpdateContent={(clip) => setDialog({ type: "update-content", clip })}
             onTogglePin={handleTogglePin}
             onToggleArchive={handleToggleArchive}
-            onDelete={(clip) => setDialog({ type: "delete", clip })}
+            onDelete={handleTrash}
           />
           <ClipCard
             clips={visibleClips}
@@ -180,7 +178,7 @@ export function ClipList({
             onUpdateContent={(clip) => setDialog({ type: "update-content", clip })}
             onTogglePin={handleTogglePin}
             onToggleArchive={handleToggleArchive}
-            onDelete={(clip) => setDialog({ type: "delete", clip })}
+            onDelete={handleTrash}
           />
         </>
       )}
@@ -203,11 +201,6 @@ export function ClipList({
         clip={dialog?.type === "update-content" ? dialog.clip : null}
         onOpenChange={(open) => !open && setDialog(null)}
         onUpdated={refresh}
-      />
-      <DeleteClipAlert
-        clip={dialog?.type === "delete" ? dialog.clip : null}
-        onOpenChange={(open) => !open && setDialog(null)}
-        onDeleted={refresh}
       />
     </div>
   );

@@ -110,6 +110,10 @@ export const pages = sqliteTable(
       .default("private"),
     pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
     archivedAt: integer("archived_at", { mode: "timestamp" }),
+    // ゴミ箱機能（docs/design-trash.md）。非nullなら論理削除済み。物理削除
+    // （page_versions・collection_pagesのカスケード削除含む）は30日後の自動
+    // パージ、または「完全に削除」操作でのみ発生する。
+    deletedAt: integer("deleted_at", { mode: "timestamp" }),
     ...timestamps,
   },
   (table) => [

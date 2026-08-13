@@ -37,7 +37,7 @@ export async function PATCH(
   if (!body || typeof body !== "object") {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
-  const { title, visibility, collectionIds, pinned, archived } = body as Record<
+  const { title, visibility, collectionIds, pinned, archived, deleted } = body as Record<
     string,
     unknown
   >;
@@ -47,6 +47,7 @@ export async function PATCH(
     visibility?: "private" | "public";
     pinned?: boolean;
     archivedAt?: Date | null;
+    deletedAt?: Date | null;
     updatedAt: Date;
   } = {
     updatedAt: new Date(),
@@ -78,6 +79,16 @@ export async function PATCH(
       return NextResponse.json({ error: "invalid_archived" }, { status: 400 });
     }
     update.archivedAt = archived ? new Date() : null;
+  }
+
+  // ゴミ箱への移動／復元（docs/design-trash.md 3-1節・2-3節）。移動は即時
+  // 反映・確認ダイアログ不要（クライアント側でUndoトーストを出す）。復元は
+  // pinned/archivedAtの値をそのまま残すため、ここでは他のフィールドに触れない。
+  if (deleted !== undefined) {
+    if (typeof deleted !== "boolean") {
+      return NextResponse.json({ error: "invalid_deleted" }, { status: 400 });
+    }
+    update.deletedAt = deleted ? new Date() : null;
   }
 
   let validCollectionIds: string[] | null = null;
@@ -143,6 +154,14 @@ export async function DELETE(
   const existing = await loadOwnedPage(db, uuid, user.id);
   if (!existing) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
+  }
+
+  // 「削除」操作自体は論理削除（PATCH { deleted: true }）に変更したため、
+  // このエンドポイントはゴミ箱からの「完全に削除」専用となる（設計書
+  // docs/design-trash.md 4章）。ゴミ箱に入っていないクリップの直接ハード
+  // 削除は許可しない。
+  if (existing.deletedAt === null) {
+    return NextResponse.json({ error: "not_in_trash" }, { status: 400 });
   }
 
   // page_versions・collection_pagesはON DELETE CASCADEで自動的に削除される

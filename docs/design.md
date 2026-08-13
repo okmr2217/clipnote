@@ -1,7 +1,9 @@
 # Clipnote 設計書（共通）
 
-> 最終更新：2026-08-07（v15）
+> 最終更新：2026-08-13（v16）
 > 対象：要件定義書 v9 の詳細設計のうち、複数アプリ（`apps/web` / `apps/content` / `apps/mcp`）に共通する内容（用語整理／ドメイン構成／データモデル索引／削除カスケード／セキュリティまとめ／将来検討／モノレポ構成）
+> v16での変更点：
+> - クリップの「削除」をゴミ箱方式の論理削除に変更（要件定義書v12・4章）。詳細は`docs/design-trash.md`
 > v15での変更点：
 > - 対応コンテンツ形式にプレーンテキストを追加（要件定義書v9・1章）。`pages`/`page_versions`の`content_type`にDB制約レベルで`plaintext`を追加した（詳細は`docs/design-web.md`9章）
 > v14での変更点：
@@ -83,9 +85,11 @@ DBスキーマ本体（`packages/db`）は全アプリ共有だが、テーブ�
 
 ## 4. 削除時のカスケード挙動
 
+**クリップの「削除」はv12でゴミ箱方式の論理削除（`pages.deleted_at`）に変更した。** 下表は30日経過後の自動パージ、またはゴミ箱からの「完全に削除」操作で発生する物理削除時の挙動を示す。詳細は`docs/design-trash.md`を参照。
+
 | 削除対象 | 影響範囲 |
 | --- | --- |
-| クリップを削除 | `page_versions`（履歴）も連動削除。所属していた全コレクションの`collection_pages`からも自動的に外れる（コレクション自体は残る） |
+| クリップをゴミ箱から完全に削除（自動パージ／手動） | `page_versions`（履歴）も連動削除。所属していた全コレクションの`collection_pages`からも自動的に外れる（コレクション自体は残る） |
 | コレクションを削除 | `collection_pages`の関連付けのみ削除。**所属していたクリップ自体は削除されない** |
 | ユーザーを削除（想定上） | 所有する`pages`・`collections`・`api_keys`・`oauth_clients`・`oauth_access_tokens`・`oauth_refresh_tokens`・`oauth_consents`も連動削除（`ON DELETE CASCADE`） |
 | 連携中のアプリを失効（`docs/design-mcp.md`6章参照） | 該当ユーザー×クライアントの`oauth_consents`・`oauth_refresh_tokens`・`oauth_access_tokens`行を削除。`oauth_clients`自体は残す |

@@ -11,6 +11,13 @@ export type ClipRow = {
   collections: { id: string; name: string }[];
 };
 
+export type TrashRow = {
+  id: string;
+  title: string;
+  contentType: ContentType;
+  deletedAt: Date;
+};
+
 export type CollectionOption = {
   id: string;
   name: string;
