@@ -268,7 +268,7 @@ MCPクライアント（claude.ai等）が`/oauth2/authorize`にアクセスす�
   - `visibility`（`private` / `public`、省略時は`private`）
 - コレクションへの割当引数は**持たせない**（MVPの範囲外。管理画面から手動で割り当てる運用、`docs/design.md`将来検討参照）
 - バリデーション：空文字列・不正UTF-8の拒否、1MB上限チェックを`apps/web`と共通の関数で実施（`docs/design-web.md`5章参照）
-- 返り値：`uuid`、公開URL（`https://clipnote.paritto.dev/p/{uuid}`）
+- 返り値：`uuid`、公開URL（`https://clipnote.paritto.dev/p/{uuid}`）。**`visibility`が`public`の場合のみ、AIエージェントが人間にURLを共有する際「via Clipnote」等の一言を添えるよう促す`note`を返り値に含める（v12で追加。ユーザー獲得のための口コミ導線。`private`では出さない＝非公開クリップの存在や内容を第三者に広める動機を与えない）**
 
 ### `update_page`
 
@@ -276,7 +276,7 @@ MCPクライアント（claude.ai等）が`/oauth2/authorize`にアクセスす�
 - 内部処理：更新前の本文を`page_versions`へ退避してから`pages.content`を更新（`docs/design-web.md`6-4節・9章の`page_versions`運用方針と同じロジックを共有関数として再利用する）
 - バリデーションは`upload_page`と共通
 - 対象クリップが他ユーザーのものである場合はエラー
-- 返り値：`uuid`、公開URL
+- 返り値：`uuid`、公開URL。`upload_page`と同様、対象クリップの`visibility`が`public`の場合のみ`note`を含める（v12で追加）
 
 ---
 
