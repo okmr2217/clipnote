@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { headers } from "next/headers";
+import { getAuth } from "@/lib/auth";
 import { LpNav } from "@/components/marketing/lp-nav";
 import { LpFooter } from "@/components/marketing/lp-footer";
 
@@ -10,10 +12,13 @@ export const metadata: Metadata = {
 // 公開前チェックリスト対応（design.md5章）。法務レビュー前提の初版ドラフト。
 const LAST_UPDATED = "2026-08-12";
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const auth = await getAuth();
+  const session = await auth.api.getSession({ headers: await headers() });
+
   return (
     <>
-      <LpNav />
+      <LpNav isLoggedIn={Boolean(session)} />
       <main className="mx-auto w-full max-w-[760px] px-5 py-16 md:px-8 md:py-24">
         <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-foreground">
           プライバシーポリシー

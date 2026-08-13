@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+import { getAuth } from "@/lib/auth";
 import { LpNav } from "@/components/marketing/lp-nav";
 import { LpHero } from "@/components/marketing/lp-hero";
 import { LpCapabilities } from "@/components/marketing/lp-capabilities";
@@ -15,10 +17,16 @@ import { LpFooter } from "@/components/marketing/lp-footer";
 // LP（要件定義書1章の訴求ポイント・Claude Designハンドオフバンドル
 // 「Clipnote Landing Page」に準拠）。管理画面はshadcn/uiだが、LPはカスタム
 // Tailwind実装とする方針（設計書2章）のため、shadcnのButton等は使わない。
-export default function Home() {
+export default async function Home() {
+  // ログイン済みユーザーがLPの入り口をそのまま管理画面への導線として使える
+  // よう、ヘッダーCTAのみ出し分ける（LP自体はログイン有無に関わらず表示する
+  // ―― 見返したいケースを潰さないため、`/`から`/admin`への強制リダイレクトはしない）。
+  const auth = await getAuth();
+  const session = await auth.api.getSession({ headers: await headers() });
+
   return (
     <main className="flex flex-col">
-      <LpNav />
+      <LpNav isLoggedIn={Boolean(session)} />
       <LpHero />
       <LpCapabilities />
       <LpStages />
