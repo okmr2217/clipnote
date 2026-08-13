@@ -13,6 +13,7 @@ import {
 import { CopyUrlButton } from "@/components/clips/copy-url-button";
 import { EditCollectionDialog } from "@/components/collections/edit-collection-dialog";
 import { DeleteCollectionAlert } from "@/components/collections/delete-collection-alert";
+import { PublishMembersAlert } from "@/components/collections/publish-members-alert";
 import { CollectionMembers } from "@/components/collections/collection-members";
 import type {
   ClipOption,
@@ -41,6 +42,7 @@ export function CollectionDetail({
   const [members, setMembers] = useState(initialMembers);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [publishMembersOpen, setPublishMembersOpen] = useState(false);
 
   const isPublic = collection.visibility === "public";
   const privateMemberCount = members.filter((member) => member.visibility === "private").length;
@@ -115,9 +117,18 @@ export function CollectionDetail({
       {isPublic && privateMemberCount > 0 && (
         <div className="mt-5 flex items-start gap-2.5 rounded-xl bg-secondary p-3.5">
           <TriangleAlertIcon className="mt-0.5 size-3.5 shrink-0 text-accent-foreground" />
-          <p className="text-sm leading-relaxed text-accent-foreground">
-            このコレクションは公開ですが、非公開のクリップが{privateMemberCount}件含まれています。公開URLの一覧からは自動的に除外されます。
-          </p>
+          <div className="flex-1">
+            <p className="text-sm leading-relaxed text-accent-foreground">
+              このコレクションは公開ですが、非公開のクリップが{privateMemberCount}件含まれています。公開URLの一覧からは自動的に除外されます。
+            </p>
+            <button
+              type="button"
+              onClick={() => setPublishMembersOpen(true)}
+              className="mt-2 text-sm font-bold text-accent-foreground underline underline-offset-2 hover:text-foreground"
+            >
+              非公開クリップをすべて公開にする
+            </button>
+          </div>
         </div>
       )}
 
@@ -170,6 +181,20 @@ export function CollectionDetail({
         collectionName={collection.name}
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
+      />
+      <PublishMembersAlert
+        collectionId={collection.id}
+        privateMemberCount={privateMemberCount}
+        open={publishMembersOpen}
+        onOpenChange={setPublishMembersOpen}
+        onPublished={(publishedIds) => {
+          const publishedIdSet = new Set(publishedIds);
+          setMembers((prev) =>
+            prev.map((member) =>
+              publishedIdSet.has(member.id) ? { ...member, visibility: "public" } : member,
+            ),
+          );
+        }}
       />
     </div>
   );
