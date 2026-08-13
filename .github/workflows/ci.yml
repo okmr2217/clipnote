@@ -33,9 +33,14 @@ jobs:
       # ため、ここで個別にtsc --noEmitを回す（development.md参照）。
       - run: pnpm build
 
-      - run: npx tsc --noEmit -p apps/content/tsconfig.json
+      # npx tscは、typescriptがworkspace内にしかインストールされていない場合
+      # ローカルのバイナリを解決できず、同名の無関係なnpmパッケージ（"tsc"、
+      # 中身は空のジョークパッケージ）を取得してしまうことがある。
+      # pnpm --filter経由のexecであれば、そのパッケージのdevDependencies
+      # （typescript）を確実に解決できる。
+      - run: pnpm --filter content exec tsc --noEmit -p tsconfig.json
 
-      - run: npx tsc --noEmit -p apps/mcp/tsconfig.json
+      - run: pnpm --filter mcp exec tsc --noEmit -p tsconfig.json
 
       - run: pnpm --filter @clipnote/db test
 

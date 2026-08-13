@@ -93,8 +93,8 @@ pnpm --filter web preview
 `apps/content`・`apps/mcp`は`wrangler deploy`（esbuildによるトランスパイルのみ）で型検査をしないため、変更時は個別に`tsc --noEmit`を回すこと。
 
 ```bash
-npx tsc --noEmit -p apps/content/tsconfig.json
-npx tsc --noEmit -p apps/mcp/tsconfig.json
+pnpm --filter content exec tsc --noEmit -p tsconfig.json
+pnpm --filter mcp exec tsc --noEmit -p tsconfig.json
 ```
 
 ### CI / CD
