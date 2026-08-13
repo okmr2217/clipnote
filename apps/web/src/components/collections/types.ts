@@ -29,4 +29,5 @@ export type ClipOption = {
   id: string;
   title: string;
   contentType: ContentType;
+  archivedAt: Date | null;
 };
