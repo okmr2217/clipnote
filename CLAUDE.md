@@ -9,6 +9,7 @@ Clipnote: AIとのやり取りで生成したHTML/Markdown/プレーンテキス
 - 詳細設計（apps/web）: docs/design-web.md
 - 詳細設計（apps/content）: docs/design-content.md
 - 詳細設計（apps/mcp）: docs/design-mcp.md
+- 開発・デプロイ手順: docs/development.md
 実装前に必ずdocs/design.mdと対象アプリの詳細設計書を確認すること。特にセキュリティ設計（docs/design.md5章、および各詳細設計書のセキュリティ関連章）は絶対に省略しない。
 
 ## 技術スタック
@@ -20,3 +21,4 @@ Clipnote: AIとのやり取りで生成したHTML/Markdown/プレーンテキス
 ## 規約
 - DB内部名は`pages`のまま。UI表示名は「クリップ」を使う（docs/design.md 1章）
 - 新規作成・編集は専用ページではなくダイアログで実装する（docs/design-web.md 6章・8章）
+- 機能ブランチ→`development`→`main`の順にマージする。`main`は本番デプロイ済みの内容を表し、pushすると自動デプロイ（CI/CD）が走るため、直接コミットしない（docs/development.md）
