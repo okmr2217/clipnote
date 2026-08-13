@@ -90,6 +90,17 @@ pnpm --filter @clipnote/db test   # vitest run
 pnpm --filter web preview
 ```
 
+`apps/content`・`apps/mcp`は`wrangler deploy`（esbuildによるトランスパイルのみ）で型検査をしないため、変更時は個別に`tsc --noEmit`を回すこと。
+
+```bash
+npx tsc --noEmit -p apps/content/tsconfig.json
+npx tsc --noEmit -p apps/mcp/tsconfig.json
+```
+
+### CI
+
+`.github/workflows/ci.yml`で、`development`・`main`へのpushとPull Requestのたびに上記（lint・build・型検査・`packages/db`のテスト）を自動実行する。デプロイの自動化（CD）は行っていない（本書冒頭の通り、デプロイは手動で`pnpm run deploy`を実行する運用）。
+
 ## デプロイ
 
 ルートから全workspaceをまとめてデプロイする場合。`pnpm deploy`はpnpm自体の組み込みコマンド（プロジェクトのデプロイ用ディレクトリ生成機能）と名前が衝突し何も実行されないため、`run`を省略しないこと。
@@ -124,6 +135,43 @@ git push origin main
 ```
 
 `main`への直接コミットはせず、必ず`development`（または各機能ブランチ）経由でマージする。
+
+## D1のバックアップ・復旧
+
+D1データベース（`clipnote-db`）は利用者のアカウント情報・クリップ本文を保持する唯一のデータストアであり、消失・破損時の復旧手段を2段構えで用意する。
+
+### 1. Time Travel（自動・平常時の主な復旧手段）
+
+D1は追加設定なしで直近の変更履歴を保持しており、特定時点の状態を確認・復元できる（[Cloudflare公式ドキュメント](https://developers.cloudflare.com/d1/reference/time-travel/)記載の保持期間内）。誤ったマイグレーション適用・アプリ側の不具合によるデータ破損など、通常の障害対応はまずこちらを使う。
+
+```bash
+# 現在のbookmark（復元ポイントの識別子）を確認
+npx wrangler d1 time-travel info clipnote-db --remote
+
+# 特定時刻（UTC）に復元
+npx wrangler d1 time-travel restore clipnote-db --remote --timestamp="2026-08-01T00:00:00Z"
+
+# 特定bookmarkに復元
+npx wrangler d1 time-travel restore clipnote-db --remote --bookmark=<bookmark>
+```
+
+復元はデータベース全体を対象時点の状態に**上書き**する（復元後に発生した変更は失われる）ため、実行前に対象時点で問題ないか`time-travel info`で確認すること。
+
+### 2. 手動エクスポート（Cloudflareアカウント自体の障害・誤操作に備えたオフプラットフォームの控え）
+
+Time Travelはあくまで同一Cloudflareアカウント内の機能のため、アカウント誤操作・契約解除等に備えて、これとは別に定期的な手動エクスポートを推奨する。頻度の目安は月1回程度、または大きめのマイグレーションを本番適用する直前。
+
+```bash
+npx wrangler d1 export clipnote-db --remote --output=clipnote-db-$(date +%Y%m%d).sql
+```
+
+**出力ファイルには利用者のクリップ本文・メールアドレス等がそのまま含まれる。** Gitリポジトリやパブリックな場所には絶対に置かず、暗号化した上でパスワードマネージャーの添付ファイルやプライベートなストレージ等、機密情報を扱える手段で保管する。不要になった古い世代のバックアップは削除する。
+
+復元時は、対象クリップノートDB（別のD1インスタンス、または`--local`のローカルSQLite）に対してエクスポートしたSQLを流し込む。
+
+```bash
+npx wrangler d1 execute clipnote-db --remote --file=clipnote-db-20260801.sql
+```
 
 ## wrangler.jsonc について
 

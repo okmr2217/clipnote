@@ -120,6 +120,7 @@ DB制約としては、`collection_pages.page_id`・`collection_pages.collection
 | メール送信基盤（ドメイン）未有効化時の情報漏洩 | 開発環境・未有効化時はコンソールログへのフォールバックのみで、外部への誤送信は発生しない設計 | `docs/design-web.md`11-4節 |
 | 捨てアドレスでの大量サインアップ・APIキー発行の踏み台化 | better-authの`rateLimit`（`storage: "database"`）で`/sign-up/email`を1時間5回に制限 | `docs/design-web.md`4-8節 |
 | 公開クリップ・コレクションを通じた違法／権利侵害コンテンツの拡散 | `/p/[uuid]`・`/c/[uuid]`に通報導線（`/contact`）を設置し、運営が手動で強制非公開化する運用手順を整備 | `docs/development.md`「公開コンテンツの通報対応」 |
+| D1データベースの消失・破損（誤操作・アプリ不具合・アカウント障害） | Time Travel（自動の時点復元）に加え、月次を目安にした手動エクスポートをオフプラットフォームの控えとして運用 | `docs/development.md`「D1のバックアップ・復旧」 |
 
 ---
 

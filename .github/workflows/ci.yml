@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [development, main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+
+      # apps/web（Next.js）はビルド自体が型検査を兼ねる。apps/content・apps/mcp
+      # （wrangler deploy）はesbuildによるトランスパイルのみで型検査をしない
+      # ため、ここで個別にtsc --noEmitを回す（development.md参照）。
+      - run: pnpm build
+
+      - run: npx tsc --noEmit -p apps/content/tsconfig.json
+
+      - run: npx tsc --noEmit -p apps/mcp/tsconfig.json
+
+      - run: pnpm --filter @clipnote/db test

@@ -9,9 +9,14 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".open-next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // `wrangler types`が生成する型定義（development.md参照）。14000行超の
+    // 生成物で、先頭の`/* eslint-disable */`だけではパース自体は避けられず
+    // lintが大幅に遅くなるため、next-env.d.ts同様に除外する。
+    "cloudflare-env.d.ts",
   ]),
 ]);
 
