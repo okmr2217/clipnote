@@ -50,6 +50,13 @@
       "when": 1786652187537,
       "tag": "0006_plain_bloodaxe",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1786653767615,
+      "tag": "0007_smooth_gunslinger",
+      "breakpoints": true
     }
   ]
 }

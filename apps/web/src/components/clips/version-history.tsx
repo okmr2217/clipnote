@@ -10,7 +10,7 @@ import { FormatBadge } from "@/components/clips/format-badge";
 import { VersionPreviewDialog, type PreviewTarget } from "@/components/clips/version-preview-dialog";
 import { RestoreVersionAlert } from "@/components/clips/restore-version-alert";
 import type { ClipDetail, PageVersionRow } from "@/components/clips/types";
-import type { ContentType } from "@clipnote/pages/validation";
+import type { ContentType, UpdateSource } from "@clipnote/pages/validation";
 
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   year: "numeric",
@@ -39,6 +39,13 @@ const MIME_TYPE_BY_CONTENT_TYPE: Record<ContentType, string> = {
 function extensionFor(contentType: ContentType): string {
   return EXTENSION_BY_CONTENT_TYPE[contentType];
 }
+
+// この更新がどこ経由で行われたかの表示ラベル（設計書v13 9章）。
+const SOURCE_LABEL: Record<UpdateSource, string> = {
+  web: "管理画面",
+  api_key: "MCP（APIキー）",
+  oauth: "MCP（OAuth）",
+};
 
 // サーバー通信なしでダウンロードさせる（設計書6-5節）：表示のためにすでに
 // クライアント側へ渡っているテキストをBlob化してaタグ経由で保存するだけで、
@@ -136,6 +143,7 @@ export function VersionHistory({
                 <span className="size-2 rounded-full bg-muted-foreground/40" aria-hidden />
                 <span className="font-bold text-foreground">v{version.versionNumber}</span>
                 <span className="text-muted-foreground">{dateFormatter.format(version.createdAt)}</span>
+                <Badge variant="outline">{SOURCE_LABEL[version.source]}</Badge>
               </div>
               <div className="flex flex-wrap gap-2">
                 <Button

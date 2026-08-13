@@ -13,12 +13,16 @@ import {
   validateContent,
 } from "@clipnote/pages/validation";
 import { replacePageContent } from "@clipnote/pages/page-versions";
+import type { UpdateSource } from "@clipnote/pages/validation";
 
 interface Env {
   DB: D1Database;
 }
 interface Variables {
   userId: string;
+  // この接続の認証方式。page_versionsへの退避時にsourceとして記録する
+  // （設計書v13 9章）。
+  updateSource: UpdateSource;
 }
 
 type AppEnv = { Bindings: Env; Variables: Variables };
@@ -106,6 +110,7 @@ app.use("/mcp", async (c, next) => {
     );
 
     c.set("userId", apiKey.userId);
+    c.set("updateSource", "api_key");
     await next();
     return;
   }
@@ -119,6 +124,7 @@ app.use("/mcp", async (c, next) => {
       return unauthorized(c);
     }
     c.set("userId", payload.sub);
+    c.set("updateSource", "oauth");
     await next();
   } catch {
     return unauthorized(c);
@@ -127,6 +133,7 @@ app.use("/mcp", async (c, next) => {
 
 app.all("/mcp", async (c) => {
   const userId = c.get("userId");
+  const updateSource = c.get("updateSource");
   const db = createDb(c.env.DB);
 
   // リクエストごとに新規McpServer/Transportを生成する。ツールのクロージャが
@@ -164,7 +171,8 @@ app.all("/mcp", async (c) => {
   server.registerTool(
     "get_page",
     {
-      description: "uuidを指定してクリップの本文を含む内容を取得する。",
+      description:
+        "uuidを指定してクリップの本文を含む内容を取得する。所属コレクションの名前・説明も併せて返す（コレクションの説明は、そのコレクションに含まれるクリップの傾向・書き方の指針としてAIが参考にすることを想定）。",
       inputSchema: { uuid: z.string() },
     },
     async ({ uuid }) => {
@@ -175,6 +183,21 @@ app.all("/mcp", async (c) => {
       if (!page) {
         return { content: [{ type: "text", text: NOT_FOUND_MESSAGE }], isError: true };
       }
+
+      // コレクションの割当・作成・編集はMCPの対象外だが、既に割り当てられて
+      // いるコレクションの名前・説明を読み取り専用で渡すことで、AIがそのクリ
+      // ップの位置づけ（どういう文脈のコレクションに属しているか）を踏まえた
+      // 更新を行えるようにする（設計書v13 8章）。
+      const collectionRows = await db
+        .select({
+          id: schema.collections.id,
+          name: schema.collections.name,
+          description: schema.collections.description,
+        })
+        .from(schema.collectionPages)
+        .innerJoin(schema.collections, eq(schema.collections.id, schema.collectionPages.collectionId))
+        .where(eq(schema.collectionPages.pageId, uuid));
+
       return {
         content: [
           {
@@ -186,6 +209,11 @@ app.all("/mcp", async (c) => {
               contentType: page.contentType,
               visibility: page.visibility,
               updatedAt: page.updatedAt,
+              collections: collectionRows.map((c) => ({
+                id: c.id,
+                name: c.name,
+                description: c.description,
+              })),
             }),
           },
         ],
@@ -248,7 +276,7 @@ app.all("/mcp", async (c) => {
         return { content: [{ type: "text", text: contentErrorMessage(content, contentError) }], isError: true };
       }
 
-      await replacePageContent(db, page, { content, contentType: page.contentType });
+      await replacePageContent(db, page, { content, contentType: page.contentType }, updateSource);
 
       return {
         content: [

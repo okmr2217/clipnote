@@ -1,4 +1,4 @@
-import type { ContentType } from "@clipnote/pages/validation";
+import type { ContentType, UpdateSource } from "@clipnote/pages/validation";
 
 export type ClipRow = {
   id: string;
@@ -42,4 +42,5 @@ export type PageVersionRow = {
   contentType: ContentType;
   content: string;
   createdAt: Date;
+  source: UpdateSource;
 };

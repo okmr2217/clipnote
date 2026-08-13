@@ -241,6 +241,39 @@ describe("clipnote schema", () => {
     expect(page?.contentType).toBe("plaintext");
   });
 
+  it("defaults page_versions.source to 'web' and rejects an invalid value via the CHECK constraint", async () => {
+    const userId = await createTestUser(db);
+
+    await db.insert(pages).values({
+      id: "page-6",
+      userId,
+      title: "T6",
+      content: "c",
+      contentType: "html",
+      visibility: "private",
+    });
+    await db.insert(pageVersions).values({
+      id: "version-2",
+      pageId: "page-6",
+      content: "old content",
+      contentType: "html",
+      versionNumber: 1,
+    });
+
+    const [version] = await db.select().from(pageVersions).where(eq(pageVersions.id, "version-2"));
+    expect(version?.source).toBe("web");
+
+    // Raw SQL bypasses Drizzle's TS enum typing, exercising the actual
+    // CHECK constraint that guards source in SQLite.
+    await expect(
+      env.DB.prepare(
+        "INSERT INTO page_versions (id, page_id, content, content_type, version_number, source) VALUES (?, ?, ?, ?, ?, ?)",
+      )
+        .bind("version-invalid", "page-6", "c", "html", 2, "cli")
+        .run(),
+    ).rejects.toThrow();
+  });
+
   it("rejects an invalid content_type value at the DB level via the CHECK constraint", async () => {
     const userId = await createTestUser(db);
 
