@@ -1,5 +1,5 @@
 import { collectionPages, collections, pages } from "@clipnote/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
@@ -78,12 +78,28 @@ export async function POST(request: Request) {
   });
 
   if (validCollectionIds.length > 0) {
+    // 新規クリップは各コレクションで既存クリップの後ろ（末尾）に追加する。
+    // 選択したコレクション配列内でのインデックスをsort_orderに使うと、
+    // そのコレクション内の既存クリップと衝突・矛盾するため、
+    // コレクションごとの現在の最大sort_orderを基準に算出する。
+    const maxSortOrderRows = await db
+      .select({
+        collectionId: collectionPages.collectionId,
+        maxSortOrder: sql<number>`max(${collectionPages.sortOrder})`,
+      })
+      .from(collectionPages)
+      .where(inArray(collectionPages.collectionId, validCollectionIds))
+      .groupBy(collectionPages.collectionId);
+    const maxSortOrderByCollection = new Map(
+      maxSortOrderRows.map((row) => [row.collectionId, row.maxSortOrder]),
+    );
+
     const collectionPagesInsert = db.insert(collectionPages).values(
-      validCollectionIds.map((collectionId, index) => ({
+      validCollectionIds.map((collectionId) => ({
         id: crypto.randomUUID(),
         collectionId,
         pageId: id,
-        sortOrder: index,
+        sortOrder: (maxSortOrderByCollection.get(collectionId) ?? -1) + 1,
       })),
     );
     await db.batch([pageInsert, collectionPagesInsert]);

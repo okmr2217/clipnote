@@ -74,18 +74,18 @@ export function PublicCollectionGrid({
   }
 
   return (
-    <ul className="grid grid-cols-1 gap-[18px] sm:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       {members.map((member) => (
         <li key={member.id}>
           <Link
             href={`/p/${member.id}?from=${collectionId}`}
-            className="group flex h-full flex-col gap-3.5 rounded-2xl border border-border bg-card p-[22px] shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_16px_32px_-16px_rgba(43,35,32,0.22)]"
+            className="group flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_16px_32px_-16px_rgba(43,35,32,0.22)]"
           >
             <ContentTypeTag contentType={member.contentType} />
-            <p className="text-[16px] leading-snug font-bold tracking-[-0.01em] text-foreground">
+            <p className="min-w-0 flex-1 truncate text-[15px] leading-snug font-bold tracking-[-0.01em] text-foreground">
               {member.title}
             </p>
-            <div className="mt-auto flex items-center justify-between border-t border-border pt-3 text-[12.5px] font-medium text-muted-foreground">
+            <div className="flex shrink-0 items-center gap-2.5 text-[12.5px] font-medium text-muted-foreground">
               <span>{shortDateFormatter.format(member.updatedAt)}</span>
               <span className="-translate-x-1 font-bold text-primary opacity-0 transition-[opacity,transform] duration-150 group-hover:translate-x-0 group-hover:opacity-100">
                 開く →
