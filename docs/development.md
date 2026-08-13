@@ -97,9 +97,28 @@ npx tsc --noEmit -p apps/content/tsconfig.json
 npx tsc --noEmit -p apps/mcp/tsconfig.json
 ```
 
-### CI
+### CI / CD
 
-`.github/workflows/ci.yml`で、`development`・`main`へのpushとPull Requestのたびに上記（lint・build・型検査・`packages/db`のテスト）を自動実行する。デプロイの自動化（CD）は行っていない（本書冒頭の通り、デプロイは手動で`pnpm run deploy`を実行する運用）。
+`.github/workflows/ci.yml`は2つのジョブで構成する。
+
+| ジョブ | トリガー | 内容 |
+| --- | --- | --- |
+| `verify` | `development`・`main`へのpush、および全Pull Request | lint・build（型検査兼）・`apps/content`/`apps/mcp`の`tsc --noEmit`・`packages/db`のテスト |
+| `deploy` | `main`へのpush（かつ`verify`が成功した場合のみ） | リモートD1マイグレーション適用（`db:migrate:remote`）→`pnpm run deploy`（web・content・mcpを本番デプロイ） |
+
+`main`は「現在本番にデプロイされている内容」を表すブランチという位置づけ（本書冒頭）のため、`development`を`main`にマージしてpushすると、そのまま自動で本番デプロイまで実行される。**本番への自動適用**であることに留意し、`main`への直接pushは避け、必ず`development`側でCIを通してからマージすること。
+
+#### 事前準備（初回のみ）
+
+`deploy`ジョブは以下のリポジトリシークレットを使用する。**GitHubリポジトリの Settings → Secrets and variables → Actions で手動追加する必要がある**（このリポジトリはpublicのため、シークレットが未設定のままだと`deploy`ジョブは認証エラーで失敗するだけで、値が漏れることはない）。
+
+| シークレット名 | 値 |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | Workers Scripts編集・D1編集権限を持つCloudflare APIトークン（本書「本番環境のシークレット投入」で使うものと同じ権限で発行できる） |
+
+Cloudflareアカウント ID（`55b4467be01cbb1f5104758b2a728da9`）は秘匿情報ではないため`ci.yml`に直書きしている。
+
+デプロイ前に人の承認を挟みたくなった場合は、GitHubリポジトリの Settings → Environments で`production`という名前のEnvironmentを作成し、Required reviewersを設定すればよい（`ci.yml`の`deploy`ジョブは`environment: production`を指定済みのため、ワークフロー側の変更は不要）。
 
 ## デプロイ
 

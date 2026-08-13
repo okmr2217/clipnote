@@ -7,10 +7,12 @@ on:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # main（本番デプロイ）へのpushはデプロイ実行中に後続pushでキャンセルされる
+  # と困るため、キャンセル対象からは除外する。
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  ci:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,3 +38,41 @@ jobs:
       - run: npx tsc --noEmit -p apps/mcp/tsconfig.json
 
       - run: pnpm --filter @clipnote/db test
+
+  # mainへのpush（＝development.mdの運用手順に沿ったマージ後）でのみ、検証を
+  # 通過したコミットを本番へ自動デプロイする。development等の他ブランチへの
+  # push・Pull Requestではverifyのみで、このジョブは実行しない。
+  deploy:
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      # 同時に2つのデプロイが走ってD1マイグレーション適用やWorkerへの
+      # アップロードが競合しないよう、mainへの複数pushでもデプロイは直列化する
+      # （待機させるだけでキャンセルはしない）。
+      group: deploy-production
+      cancel-in-progress: false
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      # アカウントIDは秘匿情報ではない（ダッシュボードURLにも表れる）ためシー
+      # クレットにはせずここに直書きする。docs/development.md参照。
+      CLOUDFLARE_ACCOUNT_ID: "55b4467be01cbb1f5104758b2a728da9"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      # スキーマ変更を伴うリリースでもデプロイ前に必ずリモートマイグレーション
+      # を適用する（development.md「デプロイ」節と同じ手順）。未適用の
+      # マイグレーションが無ければ何もしない（冪等）。
+      - run: pnpm --filter @clipnote/db db:migrate:remote
+
+      - run: pnpm run deploy
