@@ -68,6 +68,8 @@ function LoginForm() {
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <AuthField
           id="email"
+          name="email"
+          autoComplete="username"
           label="メールアドレス"
           type="email"
           placeholder="you@example.com"
@@ -80,6 +82,8 @@ function LoginForm() {
         />
         <AuthField
           id="password"
+          name="password"
+          autoComplete="current-password"
           label="パスワード"
           type="password"
           placeholder="••••••••"

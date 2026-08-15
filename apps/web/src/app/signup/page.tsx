@@ -81,6 +81,8 @@ function SignupForm() {
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <AuthField
           id="name"
+          name="name"
+          autoComplete="name"
           label="名前"
           type="text"
           value={name}
@@ -92,6 +94,8 @@ function SignupForm() {
         />
         <AuthField
           id="email"
+          name="email"
+          autoComplete="username"
           label="メールアドレス"
           type="email"
           placeholder="you@example.com"
@@ -104,6 +108,8 @@ function SignupForm() {
         />
         <AuthField
           id="password"
+          name="password"
+          autoComplete="new-password"
           label="パスワード"
           type="password"
           placeholder="••••••••"
@@ -116,6 +122,8 @@ function SignupForm() {
         />
         <AuthField
           id="confirm-password"
+          name="confirm-password"
+          autoComplete="new-password"
           label="パスワード（確認）"
           type="password"
           placeholder="••••••••"

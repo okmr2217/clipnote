@@ -55,6 +55,8 @@ export default function ForgotPasswordPage() {
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <AuthField
           id="email"
+          name="email"
+          autoComplete="username"
           label="メールアドレス"
           type="email"
           placeholder="you@example.com"
