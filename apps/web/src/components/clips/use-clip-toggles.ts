@@ -6,8 +6,7 @@ import { useToast } from "@/components/ui/toast";
 import type { ClipRow } from "@/components/clips/types";
 
 // 公開設定・固定・アーカイブ・ゴミ箱の楽観的トグルをまとめたフック。
-// ClipList（旧一覧）とClipWorkspace（2カラム新レイアウト）の両方から使う
-// 共通ロジック。
+// ClipWorkspace（/adminの一覧＋プレビュー）が使う共通ロジック。
 export function useClipToggles(clips: ClipRow[]) {
   const router = useRouter();
   const toast = useToast();

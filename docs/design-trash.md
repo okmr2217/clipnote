@@ -45,7 +45,7 @@
 | --- | --- | --- |
 | `deleted_at` | timestamp, nullable | 論理削除日時。非nullならゴミ箱内。既定`null` |
 
-`pinned`・`archived_at`（v10で追加）と同様の非破壊フラグと位置づける。ただし**削除は他の状態より優先される**（3-3節参照）。
+`pinned`・`archived_at`（v10で追加）と同様の非破壊フラグと位置づける。ただし**削除は他の状態より優先される**（3-2節参照）。
 
 ### 2-2. 既存カスケード挙動への影響（`docs/design.md`4章の更新）
 
@@ -65,17 +65,13 @@
 
 ## 3. 各画面への影響
 
-### 3-1. クリップ一覧（`/admin`、`docs/design-web.md`6-1節）
+### 3-1. クリップ一覧＋プレビュー（`/admin`、`docs/design-web.md`6-1節）
 
 - オーバーフローメニューの「削除」を実行すると、**確認ダイアログなしで即座にゴミ箱へ移動**する（4章で理由を説明）。実行後はトースト通知で「ゴミ箱に移動しました」＋「元に戻す」のワンクリック取り消しリンクを表示する（Undoトースト、数秒間のみ有効。取り消しはトースト表示中のみ、`deleted_at`を`null`に戻すだけの軽量操作）
 - 一覧のクエリに`deleted_at IS NULL`を常時追加する。既存の「状態」フィルタ（アクティブのみ／アーカイブ済みのみ／すべて）は**ゴミ箱内クリップを一切含まない**（「すべて」はアーカイブ済みを含む＝現行の「非削除クリップすべて」の意味を維持し、ゴミ箱は別画面として完全に分離する）
+- 右ペインで表示中のクリップが削除された場合、選択を解除する
 
-### 3-2. クリップ一覧＋プレビュー（`/admin/clips`、`docs/design-web.md`6-6節）
-
-- 同様に`deleted_at IS NULL`を常時適用
-- 右ペインで表示中のクリップが削除された場合、選択を解除する挙動（既存の6-6節の記述と同じ扱い）
-
-### 3-3. ゴミ箱画面（`/admin/trash`、新規）
+### 3-2. ゴミ箱画面（`/admin/trash`、新規）
 
 一覧画面（6-1節）と似た構成だが、操作を「復元」「完全に削除」の2つに絞る。
 
@@ -104,10 +100,10 @@
 ```
 
 - 空の場合は「ゴミ箱は空です」を表示
-- クリップ一覧（6-1節）・クリップ一覧＋プレビュー（6-6節）のヘッダーから「ゴミ箱」への導線リンクを追加する。バッジ等での件数表示は行わない（過剰な訴求を避ける。将来検討）
-- モバイル：クリップ一覧のカード形式（6-1節）と同様のカードレイアウトで対応する
+- クリップ一覧＋プレビュー（6-1節）のヘッダーから「ゴミ箱」への導線リンクを追加する。バッジ等での件数表示は行わない（過剰な訴求を避ける。将来検討）
+- モバイル：クリップ一覧の全画面プレビュー表示（6-1節）とは別に、独立したカードレイアウトで対応する
 
-### 3-4. コレクション詳細・公開ページへの影響
+### 3-3. コレクション詳細・公開ページへの影響
 
 - `collection_pages`は削除時に変更しないため、ゴミ箱内クリップも関連付けとしてはDB上残り続ける
 - ただし**コレクション詳細画面・公開ページ（`/c/[uuid]`）のクエリには`deleted_at IS NULL`を追加**し、ゴミ箱内クリップは所有者本人の閲覧時も含めて一覧から完全に除外する（公開コレクションの非公開クリップ除外と同じ「存在の痕跡を残さない」方針を踏襲。`docs/design.md`5章のセキュリティ表と同様の考え方）
@@ -171,7 +167,7 @@
 | --- | --- |
 | ゴミ箱へ移動／復元 | `PATCH /api/pages/[uuid]`（既存の固定・アーカイブと同じエンドポイント）に`{ deleted: true / false }`を追加。ボディの他フィールド（`pinned`・`archivedAt`等）はこの操作では変更しない |
 | 完全に削除 | `DELETE /api/pages/[uuid]`。**実装時の決定**：ゴミ箱に入っていない（`deletedAt === null`）クリップへの直接ハード削除は`400 not_in_trash`で拒否し、必ずゴミ箱経由でのみ物理削除できるようにした（誤操作防止の多層防御） |
-| 一覧からの除外 | `apps/web/src/lib/clips.ts`の`loadClipWorkspaceData`（`/admin`・`/admin/clips`共通）・`apps/web/src/lib/public-access.ts`（`/p/`・`/c/`）・コレクション詳細/追加ダイアログの各クエリに`isNull(pages.deletedAt)`を追加 |
+| 一覧からの除外 | `apps/web/src/lib/clips.ts`の`loadClipWorkspaceData`（`/admin`が使用）・`apps/web/src/lib/public-access.ts`（`/p/`・`/c/`）・コレクション詳細/追加ダイアログの各クエリに`isNull(pages.deletedAt)`を追加 |
 | ゴミ箱画面 | `/admin/trash`（`apps/web/src/lib/trash.ts`の`loadTrashData` + `apps/web/src/components/clips/trash-list.tsx`） |
 | Undoトースト | `@base-ui/react`の`Toast`プリミティブを`apps/web/src/components/ui/toast.tsx`でラップし、`AdminLayout`に`ToastProvider`/`Toaster`を設置。`use-clip-toggles.ts`の`handleTrash`が使う |
 | 自動パージ | `apps/web/src/custom-worker.ts`＋`wrangler.jsonc`の`triggers.crons`（6章参照） |

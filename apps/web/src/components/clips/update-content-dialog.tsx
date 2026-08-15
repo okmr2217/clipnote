@@ -28,7 +28,7 @@ export function UpdateContentDialog({
   onOpenChange: (open: boolean) => void;
   onUpdated: () => void;
 }) {
-  // 呼び出し側（ClipList）がclip.idをkeyにして描画するため、開くたびにこの
+  // 呼び出し側（ClipWorkspace）がclip.idをkeyにして描画するため、開くたびにこの
   // コンポーネント自体が再マウントされ、useStateの初期値だけでリセットできる。
   const [content, setContent] = useState("");
   const [contentType, setContentType] = useState<ContentType>(clip?.contentType ?? "html");
