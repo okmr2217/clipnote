@@ -69,6 +69,8 @@ function ResetPasswordForm() {
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <AuthField
           id="password"
+          name="password"
+          autoComplete="new-password"
           label="新しいパスワード"
           type="password"
           placeholder="••••••••"
@@ -81,6 +83,8 @@ function ResetPasswordForm() {
         />
         <AuthField
           id="confirmPassword"
+          name="confirmPassword"
+          autoComplete="new-password"
           label="新しいパスワード（確認）"
           type="password"
           placeholder="••••••••"
