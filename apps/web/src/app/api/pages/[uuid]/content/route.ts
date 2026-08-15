@@ -31,6 +31,7 @@ export async function GET(
     contentType: page.contentType,
     updatedAt: page.updatedAt,
     contentByteLength: getUtf8ByteLength(page.content),
+    content: page.content,
   });
 }
 

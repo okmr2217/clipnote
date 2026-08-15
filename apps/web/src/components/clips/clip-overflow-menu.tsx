@@ -1,6 +1,14 @@
 "use client";
 
-import { ArchiveIcon, ArchiveRestoreIcon, EllipsisIcon, PinIcon, PinOffIcon } from "lucide-react";
+import {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
+  ClipboardCopyIcon,
+  DownloadIcon,
+  EllipsisIcon,
+  PinIcon,
+  PinOffIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,20 +24,20 @@ export function ClipOverflowMenu({
   clip,
   onEditMetadata,
   onUpdateContent,
+  onCopyContent,
+  onDownloadContent,
   onTogglePin,
   onToggleArchive,
   onDelete,
-  showHistoryLink = true,
 }: {
   clip: ClipRow;
   onEditMetadata: () => void;
   onUpdateContent: () => void;
+  onCopyContent: () => void;
+  onDownloadContent: () => void;
   onTogglePin?: () => void;
   onToggleArchive: () => void;
   onDelete: () => void;
-  // ヘッダー側に既に「更新履歴」リンクがある呼び出し元（ClipWorkspace）では
-  // 重複表示を避けるためfalseを渡す。
-  showHistoryLink?: boolean;
 }) {
   const isArchived = clip.archivedAt !== null;
 
@@ -50,11 +58,16 @@ export function ClipOverflowMenu({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onEditMetadata}>メタデータ編集</DropdownMenuItem>
         <DropdownMenuItem onClick={onUpdateContent}>コンテンツ更新</DropdownMenuItem>
-        {showHistoryLink && (
-          <DropdownMenuItem render={<Link href={`/admin/pages/${clip.id}`} />}>
-            更新履歴
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem render={<Link href={`/admin/pages/${clip.id}`} />}>
+          更新履歴
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onCopyContent}>
+          <ClipboardCopyIcon /> コンテンツをコピー
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onDownloadContent}>
+          <DownloadIcon /> コンテンツをダウンロード
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {onTogglePin && (
           <DropdownMenuItem onClick={onTogglePin}>
@@ -76,11 +89,10 @@ export function ClipOverflowMenu({
             </>
           ) : (
             <>
-              <ArchiveIcon /> アーカイブする
+              <ArchiveIcon /> アーカイブ
             </>
           )}
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
           削除
         </DropdownMenuItem>

@@ -10,7 +10,8 @@ import { FormatBadge } from "@/components/clips/format-badge";
 import { VersionPreviewDialog, type PreviewTarget } from "@/components/clips/version-preview-dialog";
 import { RestoreVersionAlert } from "@/components/clips/restore-version-alert";
 import type { ClipDetail, PageVersionRow } from "@/components/clips/types";
-import type { ContentType, UpdateSource } from "@clipnote/pages/validation";
+import type { UpdateSource } from "@clipnote/pages/validation";
+import { downloadAsFile, sanitizeForFileName } from "@/lib/content-file";
 
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   year: "numeric",
@@ -20,46 +21,12 @@ const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   minute: "2-digit",
 });
 
-function sanitizeForFileName(value: string): string {
-  return value.replace(/[\\/:*?"<>|]/g, "_").trim() || "clip";
-}
-
-const EXTENSION_BY_CONTENT_TYPE: Record<ContentType, string> = {
-  html: "html",
-  markdown: "md",
-  plaintext: "txt",
-};
-
-const MIME_TYPE_BY_CONTENT_TYPE: Record<ContentType, string> = {
-  html: "text/html",
-  markdown: "text/markdown",
-  plaintext: "text/plain",
-};
-
-function extensionFor(contentType: ContentType): string {
-  return EXTENSION_BY_CONTENT_TYPE[contentType];
-}
-
 // この更新がどこ経由で行われたかの表示ラベル（設計書v13 9章）。
 const SOURCE_LABEL: Record<UpdateSource, string> = {
   web: "管理画面",
   api_key: "MCP（APIキー）",
   oauth: "MCP（OAuth）",
 };
-
-// サーバー通信なしでダウンロードさせる（設計書6-5節）：表示のためにすでに
-// クライアント側へ渡っているテキストをBlob化してaタグ経由で保存するだけで、
-// 追加のfetchは発生しない。
-function downloadAsFile(fileNameBase: string, contentType: ContentType, content: string) {
-  const mimeType = MIME_TYPE_BY_CONTENT_TYPE[contentType];
-  const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `${fileNameBase}.${extensionFor(contentType)}`;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
 
 export function VersionHistory({
   clip,
