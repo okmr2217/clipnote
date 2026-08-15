@@ -24,10 +24,10 @@ export function LpShare() {
       <div className="grid gap-12 md:grid-cols-2 md:items-center md:gap-16">
         <div>
           <h2 className="text-[26px] font-extrabold tracking-tight text-foreground md:text-[30px]">
-            見せたくなったら、URLひとつで。
+            書いたら、そのまま見せられる。
           </h2>
           <p className="mt-4 max-w-[420px] text-[15px] leading-[1.8] text-secondary-foreground">
-            保存したクリップは、公開URLを発行してすぐに共有できます。
+            Markdownで書いた記録も、AIに作らせたHTMLも、そのままURLで共有できます。
           </p>
           <ul className="mt-7 flex flex-col gap-5">
             {POINTS.map(({ icon: Icon, title, description }) => (

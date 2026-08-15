@@ -17,6 +17,12 @@ const USE_CASES = [
     description:
       "AIに考えてもらった旅行プランや解説を、メモ帳感覚でそのまま保存。あとから自分のライブラリで一覧して見返せる。",
   },
+  {
+    format: "MIX",
+    title: "複数のAIで作った成果物を、ひとつのライブラリに集約",
+    description:
+      "ChatGPTで下書きしてClaudeで整形、のように使うAIを使い分けても、保存先はClipnoteひとつ。あとから一覧で管理できる。",
+  },
 ];
 
 export function LpUseCases() {
