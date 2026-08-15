@@ -89,7 +89,12 @@ export const rateLimits = sqliteTable("rate_limits", {
   id: id(),
   key: text("key").notNull().unique(),
   count: integer("count").notNull(),
-  lastRequest: integer("last_request", { mode: "timestamp_ms" }).notNull(),
+  // better-authのrate-limiterはlastRequestをDate.now()由来の生のミリ秒数値
+  // として読み書きし、数値比較（now - data.lastRequest等）に使う。mode:
+  // "timestamp_ms"にするとDrizzleがDateオブジェクトへ変換してしまい、
+  // better-auth側の数値演算と型が噛み合わずリクエストのたびに例外になる
+  // （/login含む全認証エンドポイントが500になる原因）。
+  lastRequest: integer("last_request").notNull(),
 });
 
 export const pages = sqliteTable(
