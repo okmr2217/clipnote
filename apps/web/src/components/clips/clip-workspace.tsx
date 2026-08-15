@@ -3,7 +3,16 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeftIcon, EllipsisIcon, Link2Icon, PinIcon, PinOffIcon, PlusIcon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  EllipsisIcon,
+  EyeIcon,
+  EyeOffIcon,
+  Link2Icon,
+  PinIcon,
+  PinOffIcon,
+  PlusIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
@@ -16,6 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { FormatBadge } from "@/components/clips/format-badge";
+import { VisibilityBadge } from "@/components/clips/visibility-badge";
 import { CollectionChips } from "@/components/clips/collection-chips";
 import { CopyButton } from "@/components/ui/copy-button";
 import { ContentFrame } from "@/components/public/content-frame";
@@ -283,7 +293,20 @@ export function ClipWorkspace({
                 </button>
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <h1 className="text-lg font-extrabold tracking-tight text-balance">{selectedClip.title}</h1>
-                  <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+                    <Button
+                      variant={selectedClip.visibility === "public" ? "default" : "outline"}
+                      size="sm"
+                      className="h-auto gap-1.5 rounded-full px-3 py-1.5 text-xs"
+                      onClick={() => handleToggleVisibility(selectedClip)}
+                    >
+                      {selectedClip.visibility === "public" ? (
+                        <EyeOffIcon className="size-3.5" />
+                      ) : (
+                        <EyeIcon className="size-3.5" />
+                      )}
+                      {selectedClip.visibility === "public" ? "非公開にする" : "公開する"}
+                    </Button>
                     <Button
                       variant={selectedClip.pinned ? "default" : "outline"}
                       size="sm"
@@ -303,27 +326,11 @@ export function ClipWorkspace({
                     />
                   </div>
                 </div>
-                {/* 状態：クリックできない情報バッジと、状態を兼ねる公開設定トグルのみを並べる */}
+                {/* 状態：形式・公開設定・所属コレクションはすべて同じ見た目のバッジで揃え、クリック操作を持たない
+                    純粋な情報表示にする。公開設定の切替はタイトル行の専用トグルボタンでのみ行う */}
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
                   <FormatBadge contentType={selectedClip.contentType} />
-                  <button
-                    type="button"
-                    onClick={() => handleToggleVisibility(selectedClip)}
-                    className={cn(
-                      "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold whitespace-nowrap",
-                      selectedClip.visibility === "public"
-                        ? "border-primary/40 text-primary"
-                        : "border-border text-secondary-foreground",
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "size-1.5 rounded-full",
-                        selectedClip.visibility === "public" ? "bg-primary" : "bg-muted-foreground/50",
-                      )}
-                    />
-                    {selectedClip.visibility === "public" ? "公開" : "非公開"}
-                  </button>
+                  <VisibilityBadge visibility={selectedClip.visibility} />
                   <CollectionChips collections={selectedClip.collections} />
                 </div>
                 {/* 操作・メタ情報：この画面から動かせる二次的な操作と更新日時 */}
