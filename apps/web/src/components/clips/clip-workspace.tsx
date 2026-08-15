@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import {
   ArrowLeftIcon,
   EllipsisIcon,
@@ -34,7 +33,9 @@ import { EditMetadataDialog } from "@/components/clips/edit-metadata-dialog";
 import { UpdateContentDialog } from "@/components/clips/update-content-dialog";
 import { ClipOverflowMenu } from "@/components/clips/clip-overflow-menu";
 import { useClipToggles } from "@/components/clips/use-clip-toggles";
+import { downloadAsFile, sanitizeForFileName } from "@/lib/content-file";
 import type { ClipRow, CollectionOption } from "@/components/clips/types";
+import type { ContentType } from "@clipnote/pages/validation";
 
 const shortDateFormatter = new Intl.DateTimeFormat("ja-JP", { month: "numeric", day: "numeric" });
 const fullDateFormatter = new Intl.DateTimeFormat("ja-JP", {
@@ -131,6 +132,25 @@ export function ClipWorkspace({
   function handleContentUpdated() {
     setPreviewNonce((n) => n + 1);
     refresh();
+  }
+
+  async function fetchClipContent(clip: ClipRow) {
+    const response = await fetch(`/api/pages/${clip.id}/content`);
+    if (!response.ok) return null;
+    const data = (await response.json()) as { content: string; contentType: ContentType };
+    return data;
+  }
+
+  async function handleCopyContent(clip: ClipRow) {
+    const data = await fetchClipContent(clip);
+    if (!data) return;
+    await navigator.clipboard.writeText(data.content);
+  }
+
+  async function handleDownloadContent(clip: ClipRow) {
+    const data = await fetchClipContent(clip);
+    if (!data) return;
+    downloadAsFile(sanitizeForFileName(clip.title), data.contentType, data.content);
   }
 
   async function handleDelete(clip: ClipRow) {
@@ -320,9 +340,10 @@ export function ClipWorkspace({
                       clip={selectedClip}
                       onEditMetadata={() => setDialog({ type: "edit-metadata", clip: selectedClip })}
                       onUpdateContent={() => setDialog({ type: "update-content", clip: selectedClip })}
+                      onCopyContent={() => handleCopyContent(selectedClip)}
+                      onDownloadContent={() => handleDownloadContent(selectedClip)}
                       onToggleArchive={() => handleToggleArchive(selectedClip)}
                       onDelete={() => handleDelete(selectedClip)}
-                      showHistoryLink={false}
                     />
                   </div>
                 </div>
@@ -343,12 +364,6 @@ export function ClipWorkspace({
                       showLabel
                     />
                   )}
-                  <Link
-                    href={`/admin/pages/${selectedClip.id}`}
-                    className="text-xs font-semibold text-secondary-foreground hover:text-foreground"
-                  >
-                    更新履歴
-                  </Link>
                   <span className="ml-auto text-xs text-muted-foreground">
                     {fullDateFormatter.format(selectedClip.updatedAt)} 更新
                   </span>
