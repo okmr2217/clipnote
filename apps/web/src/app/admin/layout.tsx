@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="flex min-h-screen flex-col">
         <AdminHeader user={{ name: session.user.name, email: session.user.email }} />
         {!session.user.emailVerified && <EmailVerificationBanner email={session.user.email} />}
-        <div className="flex-1 bg-background">{children}</div>
+        <div className="min-h-0 flex-1 bg-background">{children}</div>
         <AdminFooter />
       </div>
       <Toaster />
