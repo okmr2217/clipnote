@@ -3,10 +3,10 @@ import { and, desc, eq, inArray, isNull } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import type { ClipRow, CollectionOption } from "@/components/clips/types";
 
-// /admin（旧一覧）・/admin/clips（2カラム新レイアウト）の両方から使う共通の
-// データ取得。並び順は固定→更新日時降順（design-web.md 6-1節）。ゴミ箱内
-// （deleted_at IS NOT NULL）のクリップは常に除外する（docs/design-trash.md
-// 3-1節・3-2節）。ゴミ箱自体の一覧は@/lib/trashのloadTrashDataを使う。
+// /admin（一覧＋プレビューのClipWorkspace）が使うデータ取得。並び順は
+// 固定→更新日時降順（design-web.md 6-1節）。ゴミ箱内（deleted_at IS NOT
+// NULL）のクリップは常に除外する（docs/design-trash.md 3-1節）。ゴミ箱
+// 自体の一覧は@/lib/trashのloadTrashDataを使う。
 export async function loadClipWorkspaceData(
   userId: string,
 ): Promise<{ clips: ClipRow[]; collectionOptions: CollectionOption[] }> {

@@ -21,10 +21,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <ToastProvider>
-      <div className="flex min-h-screen flex-col">
+      <div className="flex h-dvh flex-col overflow-hidden">
         <AdminHeader user={{ name: session.user.name, email: session.user.email }} />
         {!session.user.emailVerified && <EmailVerificationBanner email={session.user.email} />}
-        <div className="flex-1 bg-background">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto bg-background">{children}</div>
         <AdminFooter />
       </div>
       <Toaster />

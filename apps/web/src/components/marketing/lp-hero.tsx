@@ -12,12 +12,15 @@ export function LpHero() {
     <section className="mx-auto grid max-w-[1160px] gap-12 px-5 py-16 md:grid-cols-2 md:items-center md:gap-16 md:px-8 md:py-24">
       <div>
         <h1 className="text-[32px] leading-[1.25] font-extrabold tracking-tight text-foreground md:text-[48px]">
-          AIとのやり取りを、
+          そのチャット、
           <br />
-          ちゃんと残せる場所に。
+          閉じたら消える。
         </h1>
+        <p className="mt-3 text-[15px] font-bold text-primary md:text-base">
+          AIとのやり取りを、資産として残す場所。
+        </p>
         <p className="mt-6 max-w-[440px] text-[17px] leading-[1.8] text-secondary-foreground">
-          ChatGPT・Gemini・Claudeとの会話でできたメモや資料を、貼り付けるだけで保存。メモ帳のように、あとから見返せます。
+          ChatGPT・Gemini・Claudeで作った成果物を、貼り付けるだけで保存。使うAIを変えても、置き場所はひとつのままです。
         </p>
         <Link
           href="/signup"

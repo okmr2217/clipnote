@@ -19,9 +19,7 @@ const NAV_ITEMS = [
     href: "/admin",
     label: "クリップ",
     isActive: (pathname: string) =>
-      pathname === "/admin" ||
-      pathname.startsWith("/admin/pages") ||
-      pathname.startsWith("/admin/clips"),
+      pathname === "/admin" || pathname.startsWith("/admin/pages"),
   },
   {
     href: "/admin/collections",

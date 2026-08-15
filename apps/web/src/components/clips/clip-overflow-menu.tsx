@@ -19,13 +19,17 @@ export function ClipOverflowMenu({
   onTogglePin,
   onToggleArchive,
   onDelete,
+  showHistoryLink = true,
 }: {
   clip: ClipRow;
   onEditMetadata: () => void;
   onUpdateContent: () => void;
-  onTogglePin: () => void;
+  onTogglePin?: () => void;
   onToggleArchive: () => void;
   onDelete: () => void;
+  // ヘッダー側に既に「更新履歴」リンクがある呼び出し元（ClipWorkspace）では
+  // 重複表示を避けるためfalseを渡す。
+  showHistoryLink?: boolean;
 }) {
   const isArchived = clip.archivedAt !== null;
 
@@ -46,21 +50,25 @@ export function ClipOverflowMenu({
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onEditMetadata}>メタデータ編集</DropdownMenuItem>
         <DropdownMenuItem onClick={onUpdateContent}>コンテンツ更新</DropdownMenuItem>
-        <DropdownMenuItem render={<Link href={`/admin/pages/${clip.id}`} />}>
-          更新履歴
-        </DropdownMenuItem>
+        {showHistoryLink && (
+          <DropdownMenuItem render={<Link href={`/admin/pages/${clip.id}`} />}>
+            更新履歴
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onTogglePin}>
-          {clip.pinned ? (
-            <>
-              <PinOffIcon /> 固定を解除
-            </>
-          ) : (
-            <>
-              <PinIcon /> 固定する
-            </>
-          )}
-        </DropdownMenuItem>
+        {onTogglePin && (
+          <DropdownMenuItem onClick={onTogglePin}>
+            {clip.pinned ? (
+              <>
+                <PinOffIcon /> 固定を解除
+              </>
+            ) : (
+              <>
+                <PinIcon /> 固定する
+              </>
+            )}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem onClick={onToggleArchive}>
           {isArchived ? (
             <>

@@ -38,7 +38,7 @@ export function LpCapabilities() {
           できること。
         </h2>
         <p className="mt-3 text-sm leading-[1.8] text-secondary-foreground">
-          AIとのやり取りを、保存してから育てるまで。Clipnoteでひとつながりにできます。
+          AIとのやり取りを、消費物で終わらせない。保存してから育てるまで、ひとつながりにできます。
         </p>
       </div>
 

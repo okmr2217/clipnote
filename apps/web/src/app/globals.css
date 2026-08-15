@@ -142,3 +142,27 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  /* 管理画面の内部スクロール領域（クリップ一覧の左ペイン等）向けの、主張の
+     少ない細身スクロールバー。既定のOS標準スクロールバーは太く目立つため、
+     常時表示される内部パネルでは圧迫感が出る。 */
+  .scrollbar-minimal {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .scrollbar-minimal::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-minimal::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-minimal::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 999px;
+  }
+  .scrollbar-minimal::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted-foreground);
+  }
+}
