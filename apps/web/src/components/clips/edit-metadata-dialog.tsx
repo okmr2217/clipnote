@@ -27,7 +27,7 @@ export function EditMetadataDialog({
   collectionOptions: CollectionOption[];
   onUpdated: () => void;
 }) {
-  // 呼び出し側（ClipList）がclip.idをkeyにして描画するため、開くたびにこの
+  // 呼び出し側（ClipWorkspace）がclip.idをkeyにして描画するため、開くたびにこの
   // コンポーネント自体が再マウントされる。そのためuseStateの初期値だけで
   // クリップごとの初期表示ができ、リセット用のuseEffectは不要。
   const [title, setTitle] = useState(clip?.title ?? "");

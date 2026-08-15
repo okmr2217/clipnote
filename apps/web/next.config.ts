@@ -15,4 +15,4 @@ import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 // ローカルD1を永続化する。指定しないとこのディレクトリ配下の.wrangler/state
 // に独立したDBができてしまい、webで作成したclipがcontent側から見えず
 // （逆も同様）常に404になる。
-initOpenNextCloudflareForDev({ persist: { path: "../../.wrangler/state" } });
+initOpenNextCloudflareForDev({ persist: { path: "../../.wrangler/state/v3" } });

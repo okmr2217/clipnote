@@ -3,15 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  ArchiveIcon,
-  ArchiveRestoreIcon,
-  ArrowLeftIcon,
-  Link2Icon,
-  PinIcon,
-  PinOffIcon,
-  PlusIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, Link2Icon, PinIcon, PinOffIcon, PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
@@ -23,6 +15,7 @@ import { ContentFrame } from "@/components/public/content-frame";
 import { NewClipDialog } from "@/components/clips/new-clip-dialog";
 import { EditMetadataDialog } from "@/components/clips/edit-metadata-dialog";
 import { UpdateContentDialog } from "@/components/clips/update-content-dialog";
+import { ClipOverflowMenu } from "@/components/clips/clip-overflow-menu";
 import { useClipToggles } from "@/components/clips/use-clip-toggles";
 import type { ClipRow, CollectionOption } from "@/components/clips/types";
 
@@ -152,12 +145,6 @@ export function ClipWorkspace({
                 <PlusIcon className="size-4" />
               </Button>
             </div>
-            <Link
-              href="/admin"
-              className="text-[11px] font-semibold text-muted-foreground hover:text-primary"
-            >
-              ← 旧レイアウトに戻る
-            </Link>
             <Input
               placeholder="タイトルで検索"
               value={search}
@@ -220,6 +207,7 @@ export function ClipWorkspace({
                         clip={clip}
                         selected={selected?.id === clip.id}
                         onSelect={() => handleSelect(clip)}
+                        onToggleVisibility={() => handleToggleVisibility(clip)}
                       />
                     ))}
                   </>
@@ -233,6 +221,7 @@ export function ClipWorkspace({
                     clip={clip}
                     selected={selected?.id === clip.id}
                     onSelect={() => handleSelect(clip)}
+                    onToggleVisibility={() => handleToggleVisibility(clip)}
                   />
                 ))}
               </>
@@ -259,7 +248,7 @@ export function ClipWorkspace({
                 </button>
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <h1 className="text-lg font-extrabold tracking-tight text-balance">{selectedClip.title}</h1>
-                  <div className="flex flex-wrap items-center gap-1.5 md:shrink-0">
+                  <div className="flex shrink-0 items-center gap-1.5">
                     <Button
                       variant={selectedClip.pinned ? "default" : "outline"}
                       size="sm"
@@ -269,43 +258,14 @@ export function ClipWorkspace({
                       {selectedClip.pinned ? <PinOffIcon className="size-3.5" /> : <PinIcon className="size-3.5" />}
                       {selectedClip.pinned ? "固定を解除" : "固定する"}
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-auto rounded-full px-3 py-1.5 text-xs"
-                      onClick={() => setDialog({ type: "update-content", clip: selectedClip })}
-                    >
-                      コンテンツ更新
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-auto rounded-full px-3 py-1.5 text-xs"
-                      onClick={() => setDialog({ type: "edit-metadata", clip: selectedClip })}
-                    >
-                      メタデータ編集
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-auto gap-1.5 rounded-full px-3 py-1.5 text-xs"
-                      onClick={() => handleToggleArchive(selectedClip)}
-                    >
-                      {selectedClip.archivedAt ? (
-                        <ArchiveRestoreIcon className="size-3.5" />
-                      ) : (
-                        <ArchiveIcon className="size-3.5" />
-                      )}
-                      {selectedClip.archivedAt ? "アーカイブを解除" : "アーカイブする"}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-auto rounded-full px-3 py-1.5 text-xs text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(selectedClip)}
-                    >
-                      削除
-                    </Button>
+                    <ClipOverflowMenu
+                      clip={selectedClip}
+                      onEditMetadata={() => setDialog({ type: "edit-metadata", clip: selectedClip })}
+                      onUpdateContent={() => setDialog({ type: "update-content", clip: selectedClip })}
+                      onToggleArchive={() => handleToggleArchive(selectedClip)}
+                      onDelete={() => handleDelete(selectedClip)}
+                      showHistoryLink={false}
+                    />
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -399,18 +359,27 @@ function ClipIndexRow({
   clip,
   selected,
   onSelect,
+  onToggleVisibility,
 }: {
   clip: ClipRow;
   selected: boolean;
   onSelect: () => void;
+  onToggleVisibility: () => void;
 }) {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
       className={cn(
         "flex w-full items-start gap-2.5 rounded-xl border border-transparent px-2.5 py-2 text-left",
-        "hover:bg-background",
+        "cursor-pointer hover:bg-background",
         selected && "border-primary/30 bg-primary/10",
         clip.archivedAt && "opacity-60",
       )}
@@ -419,21 +388,38 @@ function ClipIndexRow({
         {clip.contentType === "html" ? "HTML" : clip.contentType === "markdown" ? "MD" : "TXT"}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1">
-          {clip.pinned && <PinIcon className="size-3 shrink-0 text-primary" aria-label="固定済み" />}
-          <span className="truncate text-[13.5px] font-bold">{clip.title}</span>
+        <span className="flex items-start gap-1">
+          {clip.pinned && <PinIcon className="mt-0.5 size-3 shrink-0 text-primary" aria-label="固定済み" />}
+          <span className="line-clamp-2 text-[13.5px] font-bold">{clip.title}</span>
         </span>
-        <span className="mt-0.5 flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
-          <span
-            className={cn(
-              "size-1.5 rounded-full",
-              clip.visibility === "public" ? "bg-primary" : "bg-muted-foreground/50",
-            )}
-          />
-          {clip.visibility === "public" ? "公開" : "非公開"}・{shortDateFormatter.format(clip.updatedAt)}更新
+        <span className="mt-0.5 block text-[11.5px] text-muted-foreground">
+          {shortDateFormatter.format(clip.updatedAt)}更新
           {clip.archivedAt && "・アーカイブ済み"}
         </span>
+        {clip.collections.length > 0 && (
+          <span className="mt-1 block">
+            <CollectionChips collections={clip.collections} />
+          </span>
+        )}
       </span>
-    </button>
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          onToggleVisibility();
+        }}
+        className="flex shrink-0 items-center gap-1 self-start rounded-full border border-border bg-background px-2 py-1 text-[11px] font-semibold text-muted-foreground hover:bg-muted"
+        aria-label={clip.visibility === "public" ? "非公開に切り替え" : "公開に切り替え"}
+        title={clip.visibility === "public" ? "非公開に切り替え" : "公開に切り替え"}
+      >
+        <span
+          className={cn(
+            "size-1.5 rounded-full",
+            clip.visibility === "public" ? "bg-primary" : "bg-muted-foreground/50",
+          )}
+        />
+        {clip.visibility === "public" ? "公開" : "非公開"}
+      </button>
+    </div>
   );
 }
