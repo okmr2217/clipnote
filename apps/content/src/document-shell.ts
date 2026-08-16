@@ -58,6 +58,12 @@ export const DOCUMENT_STYLE = `
   .hljs-variable, .hljs-template-variable, .hljs-attribute { color: #6b5d52; }
   .hljs-deletion { color: #a0432e; }
   .hljs-type, .hljs-class .hljs-title { color: #7a3226; font-weight: 600; }
+  /* Markdownのfront matter（"---"区切りのYAML）のうちtitle以外のキーを
+     表示するメタデータ欄（markdown.ts）。本文と区別できるよう控えめな
+     カード状にし、キー・値を2カラムのグリッドで並べる。 */
+  .frontmatter { display: grid; grid-template-columns: auto 1fr; column-gap: 0.75em; row-gap: 0.35em; margin: 0 0 2em; padding: 1em 1.25em; border: 1px solid #e8dcd0; border-radius: 0.75rem; background: #f1e7db; font-size: 0.875em; }
+  .frontmatter dt { font-weight: 700; color: #2b2320; }
+  .frontmatter dd { margin: 0; color: #6b5d52; word-break: break-word; }
   /* プレーンテキストバリアント（plaintext.ts）：コードブロックのpreとは異なり、
      背景ボックスを持たせず本文と同じフォント・サイズで、改行・空白だけを
      そのまま保持する（設計書5-1節「改行と文字だけ」の表記方針）。 */
