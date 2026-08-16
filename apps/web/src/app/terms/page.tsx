@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: "利用規約 | Clipnote",
 };
 
+// セッション状態でナビ表示が変わるため、ビルド時の静的プリレンダーは行わ
+// ない（並列ビルドワーカーが同一ローカルD1へ同時アクセスしSQLITE_BUSYで
+// workerdがクラッシュする不具合の回避）。
+export const dynamic = "force-dynamic";
+
 // 公開前チェックリスト対応（design.md5章）。法務レビュー前提の初版ドラフト。
 // 内容の追加・変更時は本文だけでなく「最終更新日」も更新すること。
 const LAST_UPDATED = "2026-08-12";

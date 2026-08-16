@@ -11,6 +11,14 @@ import { ToastProvider, Toaster } from "@/components/ui/toast";
 // Next.js 16's Node.js-runtime Proxy; this layout's full session validation
 // (signature + expiry, backed by a D1 read) was already the authoritative
 // check, so no coverage is lost.
+//
+// Session-gated content must never be statically prerendered at build time:
+// besides being meaningless for per-user content, next build spawns
+// parallel workers that would each open their own local D1 connection and
+// crash workerd with SQLITE_BUSY. force-dynamic here also covers every
+// nested /admin/* page/layout that doesn't set its own dynamic config.
+export const dynamic = "force-dynamic";
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const auth = await getAuth();
   const session = await auth.api.getSession({ headers: await headers() });
