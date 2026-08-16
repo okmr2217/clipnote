@@ -14,6 +14,12 @@ import { LpFaq } from "@/components/marketing/lp-faq";
 import { LpFinalCta } from "@/components/marketing/lp-final-cta";
 import { LpFooter } from "@/components/marketing/lp-footer";
 
+// セッション状態（ログイン有無）でナビ表示が変わるため、ビルド時の静的
+// プリレンダーは行わずリクエスト毎に動的レンダリングする（D1参照を
+// ビルド中に発生させない。並列ビルドワーカーが同一ローカルD1へ同時
+// アクセスしSQLITE_BUSYでworkerdがクラッシュする不具合の回避）。
+export const dynamic = "force-dynamic";
+
 // LP（要件定義書1章の訴求ポイント・Claude Designハンドオフバンドル
 // 「Clipnote Landing Page」に準拠）。管理画面はshadcn/uiだが、LPはカスタム
 // Tailwind実装とする方針（設計書2章）のため、shadcnのButton等は使わない。
