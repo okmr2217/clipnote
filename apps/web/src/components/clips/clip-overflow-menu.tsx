@@ -8,6 +8,7 @@ import {
   EllipsisIcon,
   PinIcon,
   PinOffIcon,
+  Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -94,7 +95,7 @@ export function ClipOverflowMenu({
           )}
         </DropdownMenuItem>
         <DropdownMenuItem variant="destructive" onClick={onDelete}>
-          削除
+          <Trash2Icon /> 削除
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
