@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeftIcon,
@@ -12,6 +12,7 @@ import {
   PinOffIcon,
   PlusIcon,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
@@ -107,8 +108,7 @@ export function ClipWorkspace({
 
   const selectedClip = selected ? (resolvedClips.find((clip) => clip.id === selected.id) ?? null) : null;
 
-  async function handleSelect(clip: ClipRow) {
-    setMobileDetailOpen(true);
+  async function selectClip(clip: ClipRow) {
     if (selected?.id === clip.id || loadingId === clip.id) return;
     setLoadingId(clip.id);
     try {
@@ -124,6 +124,30 @@ export function ClipWorkspace({
       setLoadingId(null);
     }
   }
+
+  async function handleSelect(clip: ClipRow) {
+    setMobileDetailOpen(true);
+    await selectClip(clip);
+  }
+
+  // 選択中のクリップを削除（ゴミ箱へ移動）すると選択が解除される
+  // （docs/design-trash.md 3-1節）。その直後に一覧が空でなければ、初回表示時
+  // と同じ「空のプレビューを見せない」方針（design-web.md 6-1節）に倣い、
+  // 先頭のクリップを自動選択する。デスクトップは常に右ペインが見えているため
+  // ここでプレビューを補充する意味があるが、モバイルは「一覧に戻る」操作を
+  // 邪魔しないよう`mobileDetailOpen`はここでは変更しない（詳細画面へは
+  // 遷移させない）。
+  useEffect(() => {
+    if (selected || loadingId) return;
+    const fallback = visibleClips[0];
+    if (!fallback) return;
+    // selectClip内の最初のsetState（setLoadingId）がエフェクト本体から同期的に
+    // 呼ばれるのを避けるため、マイクロタスクへ逃がす。
+    queueMicrotask(() => {
+      void selectClip(fallback);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, loadingId, visibleClips]);
 
   function handleUpdated() {
     refresh();
@@ -352,6 +376,11 @@ export function ClipWorkspace({
                 <div className="mt-3 flex flex-wrap items-center gap-1.5">
                   <FormatBadge contentType={selectedClip.contentType} />
                   <VisibilityBadge visibility={selectedClip.visibility} />
+                  {selectedClip.archivedAt && (
+                    <Badge variant="secondary" className="gap-1.5 bg-muted font-bold">
+                      アーカイブ済み
+                    </Badge>
+                  )}
                   <CollectionChips collections={selectedClip.collections} />
                 </div>
                 {/* 操作・メタ情報：この画面から動かせる二次的な操作と更新日時 */}
