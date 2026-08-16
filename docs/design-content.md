@@ -1,6 +1,8 @@
 # Clipnote 設計書：apps/content（content.clipnote.paritto.dev）
 
-> 最終更新：2026-08-07
+> 最終更新：2026-08-16
+> v3での変更点：Markdownのfront matterの値を、本文冒頭のメタデータ欄として表示するようにした（4章）。`title`キーは`pages.title`として既に別枠（`PublicHeader`等）で表示されているため重複を避けて除外し、それ以外のキー・値をキー名そのままで一覧表示する
+> v2での変更点：Markdown→HTML変換パイプラインに`remark-frontmatter`を追加し、本文先頭のYAML front matterブロックをレンダリング結果から除外するようにした（4章）。タイトルとしての読み取りは`apps/web`側（貼り付け時点）のみで行い、`apps/content`側では読み取り・利用は行わない（`docs/design-web.md`5-4節参照）
 > 位置づけ：`docs/design.md`（共通設計書）の詳細版。`apps/content`固有の内容（コンテンツ配信・XSS隔離モデル・トークン検証）を集約する。
 > トークン生成側（`apps/web`）の実装は`docs/design-web.md`、共通の脅威一覧は`docs/design.md`のセキュリティまとめを参照。
 
@@ -74,7 +76,21 @@ token   = base64url("{payload}:{sig}")
    ← ここはD1への読み取りアクセスが必要（トークン検証とは独立した処理）
 ④ content_typeに応じて出力：
    - html：pages.contentをそのままレスポンス（Content-Type: text/html）
-   - markdown：unified/remark/rehypeでHTMLに変換してからレスポンス
+   - markdown：unified/remark/rehypeでHTMLに変換してからレスポンス。
+     本文先頭にYAML front matter（`---`区切り）がある場合、
+     `remark-frontmatter`でmdastノードとして切り出し、本文（Markdown
+     由来のHTML）からは除外する（**v2で追加**。front matterはメタデータ
+     であり本文ではないため、素通しで水平線＋テキストとして表示されて
+     しまう不具合を防ぐ）。切り出したYAMLは別途`yaml`パッケージで
+     パースし、`title`キーを除く各キー・値を本文冒頭の`<dl class=
+     "frontmatter">`（キー名と値を並べただけの簡易なメタデータ欄。
+     値の意味解釈やMarkdown/HTMLとしてのレンダリングはせず、常に
+     プレーンテキストとしてHTMLエスケープして表示する）として表示する
+     （**v3で追加**）。パースに失敗した場合・トップレベルがオブジェクト
+     でない場合・表示可能なキーが1つもない場合は何も表示せず、本文の
+     レンダリング自体は継続する。値が配列（スカラーのみ）の場合は
+     読点区切りで表示し、ネストしたオブジェクト・配列はJSON文字列として
+     表示する（構造の解釈はしない）
    - plaintext（v9で追加）：構文はいっさい解釈せず、HTML特殊文字（`&` `<` `>`）
      のみエスケープしたうえで、改行・空白を保持する`<pre>`要素に埋め込んで
      レスポンス（`white-space: pre-wrap`で折り返す）
