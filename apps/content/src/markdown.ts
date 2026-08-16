@@ -1,5 +1,6 @@
 import { unified } from "unified";
 import remarkParse from "remark-parse";
+import remarkFrontmatter from "remark-frontmatter";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import remarkEmoji from "remark-emoji";
@@ -14,6 +15,12 @@ import { wrapHtmlDocument } from "./document-shell";
 // iframeの別ドメイン配信+sandbox属性で担保する設計のため）。
 // allowDangerousHtml: Markdown本文中に埋め込まれた生HTMLをそのまま通す
 // （falseだと剥ぎ取られてしまい、無害化ではなく機能欠落になるため必須）。
+// remarkFrontmatter: 本文先頭のYAML front matter（`---`区切り）を
+// メタデータブロックとして切り出す。タイトル抽出は`apps/web`側（貼り付け
+// 時点）でのみ行うため、ここではブロックをmdastノードとして認識させ、
+// remarkRehypeが未知のノード型として無視する（＝出力から除外する）ことで、
+// 本文中に生のfront matterテキストがそのまま表示されてしまう不具合を防ぐ
+// 目的だけに使う（設計書design-content.md 4章）。
 // remarkGfm: 表・取り消し線・タスクリスト・オートリンク・脚注などGFM拡張に
 // 対応する（プレーンなremark-parseだけではCommonMark範囲のみで表などが
 // 素通りしてしまう）。footnoteLabel/footnoteBackLabelは英語既定のままだと
@@ -23,6 +30,7 @@ import { wrapHtmlDocument } from "./document-shell";
 // （言語未指定のコードブロックはそのまま、detect:trueにはしない）。
 const processor = unified()
   .use(remarkParse)
+  .use(remarkFrontmatter, ["yaml"])
   .use(remarkGfm)
   .use(remarkMath)
   .use(remarkEmoji)

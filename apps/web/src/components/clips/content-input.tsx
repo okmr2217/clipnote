@@ -101,11 +101,43 @@ function extractHtmlTitle(html: string): string | null {
   return h1Text || null;
 }
 
-// 本文先頭の`# 見出し`（H1）のみをタイトル候補として扱う。見出し以外の
-// 先頭行（表・コードブロックの断片等）をタイトル扱いにすると誤検知しやすい
-// ため、フォールバックはしない。
+// 本文が先頭行から`---`で始まる場合のみYAML front matterとみなし、対応する
+// 閉じ`---`までのブロックを本文から切り離す。それ以外（`---`が先頭行でない、
+// 閉じの`---`が無い等）はfront matterとして扱わない（Markdownの区切り線・
+// 表記法との誤判定を避けるため）。
+function stripFrontMatter(markdown: string): { block: string | null; body: string } {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/.exec(markdown);
+  if (!match) return { block: null, body: markdown };
+  return { block: match[1], body: markdown.slice(match[0].length) };
+}
+
+// front matterブロック内から`title:`行のみを読み取る（他キーは対象外。
+// タイトル欄と重複するdescription/tags等は要件定義書5-7節でMVP対象外の
+// ため扱わない）。YAMLパーサは導入せず、単純な`key: value`一行のみを
+// 対象にする最小限の抽出に留める。前後のクォート（`"`/`'`）は取り除く。
+function extractFrontMatterTitle(block: string): string | null {
+  const titleLine = block.split(/\r?\n/).find((line) => /^title\s*:/.test(line.trim()));
+  if (!titleLine) return null;
+  const value = titleLine
+    .trim()
+    .replace(/^title\s*:\s*/, "")
+    .trim()
+    .replace(/^(["'])([\s\S]*)\1$/, "$2")
+    .trim();
+  return value || null;
+}
+
+// タイトル候補は、本文先頭のYAML front matterの`title:`があればそれを
+// 最優先とする（HTMLの`<title>`タグに相当する、明示的なメタデータのため）。
+// 無ければfront matter除去後の本文で、先頭の`# 見出し`（H1）のみを候補と
+// する。見出し以外の先頭行（表・コードブロックの断片等）をタイトル扱いに
+// すると誤検知しやすいため、フォールバックはしない。
 function extractMarkdownTitle(markdown: string): string | null {
-  for (const line of markdown.split(/\r?\n/)) {
+  const { block, body } = stripFrontMatter(markdown);
+  const frontMatterTitle = block ? extractFrontMatterTitle(block) : null;
+  if (frontMatterTitle) return frontMatterTitle;
+
+  for (const line of body.split(/\r?\n/)) {
     const trimmed = line.trim();
     if (!trimmed) continue;
     const headingMatch = /^#\s+(.+)$/.exec(trimmed);

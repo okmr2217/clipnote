@@ -1,6 +1,7 @@
 # Clipnote 設計書：apps/content（content.clipnote.paritto.dev）
 
-> 最終更新：2026-08-07
+> 最終更新：2026-08-16
+> v2での変更点：Markdown→HTML変換パイプラインに`remark-frontmatter`を追加し、本文先頭のYAML front matterブロックをレンダリング結果から除外するようにした（4章）。タイトルとしての読み取りは`apps/web`側（貼り付け時点）のみで行い、`apps/content`側では読み取り・利用は行わない（`docs/design-web.md`5-4節参照）
 > 位置づけ：`docs/design.md`（共通設計書）の詳細版。`apps/content`固有の内容（コンテンツ配信・XSS隔離モデル・トークン検証）を集約する。
 > トークン生成側（`apps/web`）の実装は`docs/design-web.md`、共通の脅威一覧は`docs/design.md`のセキュリティまとめを参照。
 
@@ -74,7 +75,12 @@ token   = base64url("{payload}:{sig}")
    ← ここはD1への読み取りアクセスが必要（トークン検証とは独立した処理）
 ④ content_typeに応じて出力：
    - html：pages.contentをそのままレスポンス（Content-Type: text/html）
-   - markdown：unified/remark/rehypeでHTMLに変換してからレスポンス
+   - markdown：unified/remark/rehypeでHTMLに変換してからレスポンス。
+     本文先頭にYAML front matter（`---`区切り）がある場合、
+     `remark-frontmatter`でmdastノードとして切り出し、レンダリング結果
+     から除外する（**v2で追加**。front matterはメタデータであり本文
+     ではないため、素通しで水平線＋テキストとして表示されてしまう
+     不具合を防ぐ。値の読み取り・活用はここでは行わない）
    - plaintext（v9で追加）：構文はいっさい解釈せず、HTML特殊文字（`&` `<` `>`）
      のみエスケープしたうえで、改行・空白を保持する`<pre>`要素に埋め込んで
      レスポンス（`white-space: pre-wrap`で折り返す）
