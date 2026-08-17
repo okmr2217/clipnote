@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 import { PublicCollectionGrid } from "@/components/public/public-collection-grid";
 import { PublicFooter } from "@/components/public/public-footer";
 import { PublicCollectionHeader } from "@/components/public/public-header";
+import { jsonLdScriptProps } from "@/lib/json-ld";
 import { buildPublicMetadata } from "@/lib/public-metadata";
 import { loadPublicCollection } from "@/lib/public-access";
+import { getSiteOrigin } from "@/lib/site-origin";
 
 const fullDateFormatter = new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "long", day: "numeric" });
 
@@ -37,8 +39,29 @@ export default async function PublicCollectionPage({
   const { collection, ownerName, members } = result;
   const isPublic = collection.visibility === "public";
 
+  // AIO/LLMO対策（docs/design-web.md 4-9節）。/p/[uuid]と同じ理由でpublicの
+  // 場合のみ出力する。所属クリップの一覧はここまでの時点で既に非公開分を
+  // 除外済み（loadPublicCollection参照）のため、そのままhasPartに列挙できる。
+  const origin = await getSiteOrigin();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: collection.name,
+    description: collection.description ?? undefined,
+    url: `${origin}/c/${uuid}`,
+    dateModified: collection.updatedAt.toISOString(),
+    isPartOf: { "@type": "WebSite", name: "Clipnote", url: origin },
+    hasPart: members.map((member) => ({
+      "@type": "CreativeWork",
+      name: member.title,
+      url: `${origin}/p/${member.id}`,
+    })),
+  };
+
   return (
     <div className="flex min-h-dvh flex-col bg-background">
+      {isPublic && <script {...jsonLdScriptProps(jsonLd)} />}
+
       <PublicCollectionHeader ownerName={ownerName} />
 
       <main className="flex-1">
