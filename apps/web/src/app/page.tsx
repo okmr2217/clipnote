@@ -1,5 +1,7 @@
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 import { getAuth } from "@/lib/auth";
+import { getSiteOrigin } from "@/lib/site-origin";
 import { LpNav } from "@/components/marketing/lp-nav";
 import { LpHero } from "@/components/marketing/lp-hero";
 import { LpCapabilities } from "@/components/marketing/lp-capabilities";
@@ -19,6 +21,23 @@ import { LpFooter } from "@/components/marketing/lp-footer";
 // ビルド中に発生させない。並列ビルドワーカーが同一ローカルD1へ同時
 // アクセスしSQLITE_BUSYでworkerdがクラッシュする不具合の回避）。
 export const dynamic = "force-dynamic";
+
+// og:image等の絶対URLはWorkers環境ではリクエスト到達前にmetadataBaseが
+// 評価される恐れがあるため（lib/site-origin.ts参照）、generateMetadataで
+// リクエスト時に組み立てる。og:imageは/p・/c同様、固定のブランド画像を使う。
+export async function generateMetadata(): Promise<Metadata> {
+  const origin = await getSiteOrigin();
+  const title = "Clipnote";
+  const description = "AIとのやり取りをメモ帳のように保存・共有できるツール";
+
+  return {
+    openGraph: {
+      title,
+      description,
+      images: [{ url: `${origin}/og-image.png`, width: 1200, height: 630 }],
+    },
+  };
+}
 
 // LP（要件定義書1章の訴求ポイント・Claude Designハンドオフバンドル
 // 「Clipnote Landing Page」に準拠）。管理画面はshadcn/uiだが、LPはカスタム
