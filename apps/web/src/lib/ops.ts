@@ -1,5 +1,5 @@
 import { pages, users } from "@clipnote/db/schema";
-import { and, asc, count, desc, eq, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNotNull, isNull } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 
 export type OpsUserRow = {
@@ -36,7 +36,18 @@ export type OpsPublicClipRow = {
   createdAt: Date;
   updatedAt: Date;
   viewCount: number;
+  archivedAt: Date | null;
 };
+
+export const OPS_PUBLIC_CLIPS_STATUSES = ["active", "archived", "all"] as const;
+export type OpsPublicClipsStatus = (typeof OPS_PUBLIC_CLIPS_STATUSES)[number];
+export const OPS_PUBLIC_CLIPS_DEFAULT_STATUS: OpsPublicClipsStatus = "active";
+
+const OPS_PUBLIC_CLIPS_STATUS_CONDITION = {
+  active: isNull(pages.archivedAt),
+  archived: isNotNull(pages.archivedAt),
+  all: undefined,
+} as const;
 
 export const OPS_PUBLIC_CLIPS_SORTS = [
   "created_desc",
@@ -63,9 +74,11 @@ const OPS_PUBLIC_CLIPS_ORDER_BY = {
 // を横断して公開中（visibility='public'、ゴミ箱内を除く）のクリップとその
 // プレビュー数（pages.view_count）を並び替え可能な一覧として返す。既定は
 // 作成日時が新しい順。ownerIdを指定すると、その所有者のクリップのみに絞り込む。
+// statusはアーカイブ状態での絞り込み（既定：active＝未アーカイブのみ）。
 export async function loadOpsPublicClips(
   sort: OpsPublicClipsSort = OPS_PUBLIC_CLIPS_DEFAULT_SORT,
   ownerId?: string,
+  status: OpsPublicClipsStatus = OPS_PUBLIC_CLIPS_DEFAULT_STATUS,
 ): Promise<OpsPublicClipRow[]> {
   const db = await getDb();
 
@@ -77,6 +90,7 @@ export async function loadOpsPublicClips(
       createdAt: pages.createdAt,
       updatedAt: pages.updatedAt,
       viewCount: pages.viewCount,
+      archivedAt: pages.archivedAt,
     })
     .from(pages)
     .innerJoin(users, eq(pages.userId, users.id))
@@ -85,6 +99,7 @@ export async function loadOpsPublicClips(
         eq(pages.visibility, "public"),
         isNull(pages.deletedAt),
         ownerId ? eq(pages.userId, ownerId) : undefined,
+        OPS_PUBLIC_CLIPS_STATUS_CONDITION[status],
       ),
     )
     .orderBy(OPS_PUBLIC_CLIPS_ORDER_BY[sort]);
