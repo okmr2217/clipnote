@@ -33,20 +33,26 @@ export type OpsPublicClipRow = {
   id: string;
   title: string;
   ownerEmail: string;
+  createdAt: Date;
   updatedAt: Date;
   viewCount: number;
 };
 
 export const OPS_PUBLIC_CLIPS_SORTS = [
+  "created_desc",
+  "created_asc",
   "updated_desc",
   "updated_asc",
   "views_desc",
   "views_asc",
 ] as const;
 export type OpsPublicClipsSort = (typeof OPS_PUBLIC_CLIPS_SORTS)[number];
-export const OPS_PUBLIC_CLIPS_DEFAULT_SORT: OpsPublicClipsSort = "updated_desc";
+// デフォルトは作成日時が新しい順。
+export const OPS_PUBLIC_CLIPS_DEFAULT_SORT: OpsPublicClipsSort = "created_desc";
 
 const OPS_PUBLIC_CLIPS_ORDER_BY = {
+  created_desc: desc(pages.createdAt),
+  created_asc: asc(pages.createdAt),
   updated_desc: desc(pages.updatedAt),
   updated_asc: asc(pages.updatedAt),
   views_desc: desc(pages.viewCount),
@@ -56,9 +62,10 @@ const OPS_PUBLIC_CLIPS_ORDER_BY = {
 // 運営向け内部管理画面の「公開クリップ一覧」（design-web.md 4-10節）。全ユーザー
 // を横断して公開中（visibility='public'、ゴミ箱内を除く）のクリップとその
 // プレビュー数（pages.view_count）を並び替え可能な一覧として返す。既定は
-// 更新日時が新しい順。
+// 作成日時が新しい順。ownerIdを指定すると、その所有者のクリップのみに絞り込む。
 export async function loadOpsPublicClips(
   sort: OpsPublicClipsSort = OPS_PUBLIC_CLIPS_DEFAULT_SORT,
+  ownerId?: string,
 ): Promise<OpsPublicClipRow[]> {
   const db = await getDb();
 
@@ -67,11 +74,36 @@ export async function loadOpsPublicClips(
       id: pages.id,
       title: pages.title,
       ownerEmail: users.email,
+      createdAt: pages.createdAt,
       updatedAt: pages.updatedAt,
       viewCount: pages.viewCount,
     })
     .from(pages)
     .innerJoin(users, eq(pages.userId, users.id))
-    .where(and(eq(pages.visibility, "public"), isNull(pages.deletedAt)))
+    .where(
+      and(
+        eq(pages.visibility, "public"),
+        isNull(pages.deletedAt),
+        ownerId ? eq(pages.userId, ownerId) : undefined,
+      ),
+    )
     .orderBy(OPS_PUBLIC_CLIPS_ORDER_BY[sort]);
+}
+
+export type OpsPublicClipOwner = {
+  id: string;
+  email: string;
+};
+
+// 所有者フィルターの選択肢。公開クリップを1件以上持つ所有者のみを列挙する
+// （フィルターしても0件になる選択肢を出さないため）。
+export async function loadOpsPublicClipOwners(): Promise<OpsPublicClipOwner[]> {
+  const db = await getDb();
+
+  return db
+    .selectDistinct({ id: users.id, email: users.email })
+    .from(pages)
+    .innerJoin(users, eq(pages.userId, users.id))
+    .where(and(eq(pages.visibility, "public"), isNull(pages.deletedAt)))
+    .orderBy(asc(users.email));
 }

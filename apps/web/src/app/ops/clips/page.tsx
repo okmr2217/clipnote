@@ -8,9 +8,11 @@ import {
 } from "@/components/ui/table";
 import { OpsNav } from "@/components/ops/ops-nav";
 import { PublicClipsSortSelect } from "@/components/ops/public-clips-sort-select";
+import { PublicClipsOwnerSelect } from "@/components/ops/public-clips-owner-select";
 import {
   OPS_PUBLIC_CLIPS_DEFAULT_SORT,
   OPS_PUBLIC_CLIPS_SORTS,
+  loadOpsPublicClipOwners,
   loadOpsPublicClips,
   type OpsPublicClipsSort,
 } from "@/lib/ops";
@@ -32,26 +34,34 @@ function parseSort(value: string | undefined): OpsPublicClipsSort {
 export default async function OpsClipsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string }>;
+  searchParams: Promise<{ sort?: string; owner?: string }>;
 }) {
-  const { sort: sortParam } = await searchParams;
+  const { sort: sortParam, owner: ownerParam } = await searchParams;
   const sort = parseSort(sortParam);
-  const clips = await loadOpsPublicClips(sort);
+  const owners = await loadOpsPublicClipOwners();
+  // ownerパラメータが実在する所有者と一致しない場合（削除済み・改ざん等）は
+  // フィルターなし扱いにする。
+  const ownerId = owners.some((owner) => owner.id === ownerParam) ? ownerParam : undefined;
+  const clips = await loadOpsPublicClips(sort, ownerId);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
+    <div className="mx-auto max-w-5xl px-6 py-10">
       <OpsNav current="clips" />
       <h1 className="text-xl font-bold">公開クリップ一覧</h1>
-      <div className="mt-1 flex items-center justify-between">
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">全{clips.length}件</p>
-        <PublicClipsSortSelect sort={sort} />
+        <div className="flex flex-wrap items-center gap-2">
+          <PublicClipsOwnerSelect owners={owners} ownerId={ownerId} />
+          <PublicClipsSortSelect sort={sort} />
+        </div>
       </div>
       <div className="mt-6 overflow-x-auto">
-        <Table className="min-w-[640px]">
+        <Table className="min-w-[800px]">
           <TableHeader>
             <TableRow>
               <TableHead>タイトル</TableHead>
               <TableHead>所有者</TableHead>
+              <TableHead>作成日時</TableHead>
               <TableHead>更新日時</TableHead>
               <TableHead className="text-right">プレビュー数</TableHead>
             </TableRow>
@@ -70,6 +80,9 @@ export default async function OpsClipsPage({
                   </a>
                 </TableCell>
                 <TableCell className="text-muted-foreground">{clip.ownerEmail}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
+                  {dateFormatter.format(clip.createdAt)}
+                </TableCell>
                 <TableCell className="whitespace-nowrap text-muted-foreground">
                   {dateFormatter.format(clip.updatedAt)}
                 </TableCell>
