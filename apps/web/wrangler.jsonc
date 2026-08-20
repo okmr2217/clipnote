@@ -26,8 +26,8 @@
     // （JWT検証用の公開鍵取得先・Access Application識別子）ためvarsで管理
     // する。Zero Trustダッシュボードの対象Applicationの「Overview」タブ
     // から実際の値に置き換えること。
-    "CF_ACCESS_TEAM_DOMAIN": "your-team.cloudflareaccess.com",
-    "CF_ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD_TAG"
+    "CF_ACCESS_TEAM_DOMAIN": "wispy-snowflake-121e.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "5a59d8f504b95f066771f54c6e84aa9bf9a06652d9d67f7cdfc0877109bf8d40"
   },
   "assets": {
     "directory": ".open-next/assets",
