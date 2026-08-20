@@ -7,7 +7,7 @@ import { getContentOrigin, issueContentToken } from "@/lib/content-token";
 import { jsonLdScriptProps } from "@/lib/json-ld";
 import { extractPlainText } from "@/lib/plain-text";
 import { buildPublicMetadata } from "@/lib/public-metadata";
-import { loadPublicCollection, loadPublicPage } from "@/lib/public-access";
+import { loadPublicCollection, loadPublicPage, recordPageView } from "@/lib/public-access";
 import { getSiteOrigin } from "@/lib/site-origin";
 
 export async function generateMetadata({
@@ -39,6 +39,7 @@ export default async function PublicClipPage({
   }
 
   const { page, viewerUserId } = result;
+  await recordPageView(page, viewerUserId);
   const token = await issueContentToken(uuid, viewerUserId);
   const contentOrigin = getContentOrigin();
 

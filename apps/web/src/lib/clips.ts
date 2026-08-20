@@ -22,6 +22,7 @@ export async function loadClipWorkspaceData(
         pinned: pages.pinned,
         archivedAt: pages.archivedAt,
         updatedAt: pages.updatedAt,
+        viewCount: pages.viewCount,
       })
       .from(pages)
       .where(and(eq(pages.userId, userId), isNull(pages.deletedAt)))

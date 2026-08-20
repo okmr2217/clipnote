@@ -20,6 +20,7 @@ export default async function AdminCollectionsPage() {
       description: collections.description,
       visibility: collections.visibility,
       updatedAt: collections.updatedAt,
+      viewCount: collections.viewCount,
     })
     .from(collections)
     .where(eq(collections.userId, userId))

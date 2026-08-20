@@ -8,6 +8,7 @@ export type ClipRow = {
   pinned: boolean;
   archivedAt: Date | null;
   updatedAt: Date;
+  viewCount: number;
   collections: { id: string; name: string }[];
 };
 

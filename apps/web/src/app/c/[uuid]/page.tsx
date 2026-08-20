@@ -5,7 +5,7 @@ import { PublicFooter } from "@/components/public/public-footer";
 import { PublicCollectionHeader } from "@/components/public/public-header";
 import { jsonLdScriptProps } from "@/lib/json-ld";
 import { buildPublicMetadata } from "@/lib/public-metadata";
-import { loadPublicCollection } from "@/lib/public-access";
+import { loadPublicCollection, recordCollectionView } from "@/lib/public-access";
 import { getSiteOrigin } from "@/lib/site-origin";
 
 const fullDateFormatter = new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "long", day: "numeric" });
@@ -36,7 +36,8 @@ export default async function PublicCollectionPage({
     notFound();
   }
 
-  const { collection, ownerName, members } = result;
+  const { collection, ownerName, members, viewerUserId } = result;
+  await recordCollectionView(collection, viewerUserId);
   const isPublic = collection.visibility === "public";
 
   // AIO/LLMO対策（docs/design-web.md 4-9節）。/p/[uuid]と同じ理由でpublicの
