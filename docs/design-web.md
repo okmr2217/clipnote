@@ -1,6 +1,7 @@
 # Clipnote 設計書：apps/web（clipnote.paritto.dev）
 
-> 最終更新：2026-08-16
+> 最終更新：2026-08-20
+> v18での変更点：運営者向けの内部管理画面`/ops`を追加した（ユーザー一覧：メール・登録日・クリップ数）。`/admin`とは完全に独立した認証系統とし、better-authのセッションは使わずCloudflare Access（Zero Trust）のJWT検証のみで保護する（2章・4-9節）
 > v17での変更点：クリップのアーカイブ・削除操作後の右ペインの挙動を改善した。状態行にアーカイブ済みバッジを追加し、開いたままのクリップをアーカイブしても状態が視覚的にわかるようにした。また、選択中のクリップを削除（ゴミ箱へ移動）して選択が解除された際、一覧が空でなければ先頭のクリップを自動選択し、右ペインが空のまま残らないようにした（初回表示時と同じ「空のプレビューを見せない」方針を削除後にも適用。6-1節）
 > v17での変更点：Markdownのタイトル自動取得（5-4節）に、本文先頭のYAML front matter（`title:`）を追加した。front matterの`title`があれば最優先で採用し、無ければ従来通り本文先頭のH1にフォールバックする。`description`・`tags`等の他キーはこのタイトル自動取得では読み取らない（タグ機能は要件定義書5-7節でMVP対象外、descriptionに相当するカラムも`pages`に存在しないため）。それらのキーはDBには保存されないが、`title`を除く全キーが`apps/content`側の表示（本文冒頭のメタデータ欄）で読者に見える。front matterブロック自体を本文表示から除外し、値をメタデータ欄として表示する処理は`docs/design-content.md`4章を参照
 > v16での変更点：クリップ詳細（右ペイン）ヘッダーの公開設定の扱いを見直した。状態行の公開設定チップから「クリックでトグル」の挙動を外し、形式バッジ・コレクションチップと同じ見た目の情報表示専用バッジにした上で、タイトル行に公開設定専用のトグルボタン（固定ボタンと同じ位置づけ）を新設した（6-1節）
@@ -42,6 +43,7 @@
 | `/admin/settings` | アカウント設定（パスワード変更等） | 必須 |
 | `/login` `/signup` | 認証 | - |
 | `/forgot-password` `/reset-password` | パスワードリセット | - |
+| `/ops` | 運営者向け内部管理画面（ユーザー一覧：メール・登録日・クリップ数、v18で追加） | Cloudflare Access（better-authのセッションは使わない。4-9節） |
 
 UUIDは自動生成。人間が読めるスラッグは不要。新規作成・編集用の専用ページは設けない（すべてダイアログで完結、詳細は6章・7章）。
 
@@ -176,6 +178,16 @@ better-authの`rateLimit`設定（`src/lib/auth.ts`）を有効化し、捨て�
 - **`/sign-up/email`個別ルール**：同一キー（IPアドレス単位）から1時間5回まで
 - **storage**：`"database"`（`rateLimits`テーブル、9章）。Cloudflare Workersはリクエストごとにisolateが再利用されるとは限らず、既定の`"memory"`ではカウントが揮発してしまうため、D1に永続化する
 - CAPTCHA（Cloudflare Turnstile等）の導入は将来検討。まずはレート制限のみで初期の悪用を抑止する
+
+### 4-9. `/ops`（運営者向け内部管理画面）の認証（v18で追加）
+
+`/ops`は全ユーザーを横断的に閲覧できる画面（ユーザー一覧：メール・登録日・クリップ数）のため、ユーザー本人向けの`/admin`（better-authのセッション認証）とは完全に独立した認証系統とし、権限昇格の経路を作らない。
+
+- **認証方式**：Cloudflare Access（Zero Trust）。Cloudflare側でAccess Applicationとして`/ops`パスを登録し、許可した運営者のIDプロバイダ（Googleアカウント等）でのログインのみ通す。アプリ側でユーザーロール（管理者フラグ等）を`users`テーブルに持たせる設計にはしない
+- **多層防御**：Access Application自体が未認可アクセスをブロックする前提だが、設定ミス等でWorkerに直接到達した場合に備え、アプリ側（`apps/web`の`src/lib/ops-auth.ts`）でもCloudflareが付与する`Cf-Access-Jwt-Assertion`ヘッダーのJWTを検証する（署名・`iss`・`aud`）。検証はAccessチームドメインのJWKS（`https://{team}.cloudflareaccess.com/cdn-cgi/access/certs`）を用いる
+- **未認可時の挙動**：403ではなく404（`notFound()`）を返し、`/ops`の存在自体を外部に示さない
+- **実装箇所の制約**：Next.js 16 + `@opennextjs/cloudflare`の組み合わせでは`proxy.ts`（旧`middleware.ts`）が使えないため（`/admin`の認証ゲートと同じ制約。`src/app/admin/layout.tsx`のコメント参照）、認可チェックは`src/app/ops/layout.tsx`（サーバーコンポーネント）内で行う
+- **設定パラメータ**：Accessチームドメイン・Application識別子（AUDタグ）はいずれも秘密情報ではないため`wrangler.jsonc`の`vars`で管理する（`CF_ACCESS_TEAM_DOMAIN`・`CF_ACCESS_AUD`）
 
 ---
 
