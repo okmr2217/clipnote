@@ -4,8 +4,11 @@ import { ContentFrame } from "@/components/public/content-frame";
 import { PublicFooter } from "@/components/public/public-footer";
 import { PublicHeader } from "@/components/public/public-header";
 import { getContentOrigin, issueContentToken } from "@/lib/content-token";
+import { jsonLdScriptProps } from "@/lib/json-ld";
+import { extractPlainText } from "@/lib/plain-text";
 import { buildPublicMetadata } from "@/lib/public-metadata";
 import { loadPublicCollection, loadPublicPage } from "@/lib/public-access";
+import { getSiteOrigin } from "@/lib/site-origin";
 
 export async function generateMetadata({
   params,
@@ -39,6 +42,23 @@ export default async function PublicClipPage({
   const token = await issueContentToken(uuid, viewerUserId);
   const contentOrigin = getContentOrigin();
 
+  // AIO/LLMO対策（docs/design-web.md 4-9節）。privateクリップは所有者本人の
+  // 閲覧時のみここへ到達しうるが（loadPublicPage参照）、OGP同様クリップ固有
+  // 情報を出すのはpublicの場合に限定する（buildPublicMetadataと同じ方針）。
+  const isPublic = page.visibility === "public";
+  const origin = await getSiteOrigin();
+  const pageUrl = `${origin}/p/${uuid}`;
+  const plainText = isPublic ? extractPlainText(page.content, page.contentType) : null;
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: page.title,
+    url: pageUrl,
+    dateModified: page.updatedAt.toISOString(),
+    datePublished: page.createdAt.toISOString(),
+    isPartOf: { "@type": "WebSite", name: "Clipnote", url: origin },
+  };
+
   // クリップは複数コレクションに属しうる（多対1に限定されない）ため、遷移元
   // コレクションはクエリパラメータで受け取り、所属コレクション一覧からは推測
   // しない。loadPublicCollectionの可視性チェックに乗せ、非公開コレクション
@@ -54,6 +74,8 @@ export default async function PublicClipPage({
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
+      {isPublic && <script {...jsonLdScriptProps(jsonLd)} />}
+
       <PublicHeader title={page.title} visibility={page.visibility} fromCollection={fromCollection} />
 
       <main className="flex-1">
@@ -70,6 +92,12 @@ export default async function PublicClipPage({
         <a href={`${contentOrigin}/${uuid}?t=${encodeURIComponent(token)}`} className="sr-only">
           {page.title}の本文を直接見る
         </a>
+
+        {/* リンクを辿らないクローラー向けの保険として、本文の平文版も同一
+            オリジンにsr-onlyで直接埋め込む（docs/design-web.md 4-9節）。
+            HTMLはタグ除去済みのプレーンテキストのためJSXが自動エスケープ
+            して描画し、実行コンテキストへは影響しない。 */}
+        {plainText && <p className="sr-only">{plainText}</p>}
 
         <ContentFrame
           uuid={uuid}

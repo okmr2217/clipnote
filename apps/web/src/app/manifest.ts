@@ -7,7 +7,11 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Clipnote",
     short_name: "Clipnote",
     description: "AIとのやり取りをメモ帳のように保存・共有できるツール",
-    start_url: "/",
+    // "/"はLP（マーケティングページ）のため、PWAとして起動した際は
+    // アプリ本体（管理画面）に直接入れるよう/adminを起点にする。
+    // /adminは未認証なら/loginへリダイレクトされるため、未ログイン時も
+    // 問題ない（apps/web/src/app/admin/layout.tsx参照）。
+    start_url: "/admin",
     display: "standalone",
     background_color: "#fbf6f0",
     theme_color: "#c1503a",

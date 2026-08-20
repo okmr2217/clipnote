@@ -20,7 +20,14 @@
     "BETTER_AUTH_URL": "https://clipnote.paritto.dev",
     // お問い合わせ・公開コンテンツの通報の送信先（src/lib/email.ts）。機密情報
     // ではないためvarsで管理する。運営が受信できるアドレスに変更可能。
-    "CONTACT_EMAIL_TO": "okumuradaichi2007@gmail.com"
+    "CONTACT_EMAIL_TO": "okumuradaichi2007@gmail.com",
+    // `/ops`（運営者向けユーザー一覧、src/lib/ops-auth.ts）をCloudflare
+    // Accessで保護するための検証パラメータ。いずれも秘密情報ではない
+    // （JWT検証用の公開鍵取得先・Access Application識別子）ためvarsで管理
+    // する。Zero Trustダッシュボードの対象Applicationの「Overview」タブ
+    // から実際の値に置き換えること。
+    "CF_ACCESS_TEAM_DOMAIN": "your-team.cloudflareaccess.com",
+    "CF_ACCESS_AUD": "REPLACE_WITH_ACCESS_APPLICATION_AUD_TAG"
   },
   "assets": {
     "directory": ".open-next/assets",
