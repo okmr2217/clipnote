@@ -4,7 +4,7 @@ import { PublicCollectionGrid } from "@/components/public/public-collection-grid
 import { PublicFooter } from "@/components/public/public-footer";
 import { PublicCollectionHeader } from "@/components/public/public-header";
 import { buildPublicMetadata } from "@/lib/public-metadata";
-import { loadPublicCollection } from "@/lib/public-access";
+import { loadPublicCollection, recordCollectionView } from "@/lib/public-access";
 
 const fullDateFormatter = new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "long", day: "numeric" });
 
@@ -34,7 +34,8 @@ export default async function PublicCollectionPage({
     notFound();
   }
 
-  const { collection, ownerName, members } = result;
+  const { collection, ownerName, members, viewerUserId } = result;
+  await recordCollectionView(collection, viewerUserId);
   const isPublic = collection.visibility === "public";
 
   return (

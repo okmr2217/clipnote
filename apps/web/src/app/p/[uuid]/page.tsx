@@ -5,7 +5,7 @@ import { PublicFooter } from "@/components/public/public-footer";
 import { PublicHeader } from "@/components/public/public-header";
 import { getContentOrigin, issueContentToken } from "@/lib/content-token";
 import { buildPublicMetadata } from "@/lib/public-metadata";
-import { loadPublicCollection, loadPublicPage } from "@/lib/public-access";
+import { loadPublicCollection, loadPublicPage, recordPageView } from "@/lib/public-access";
 
 export async function generateMetadata({
   params,
@@ -36,6 +36,7 @@ export default async function PublicClipPage({
   }
 
   const { page, viewerUserId } = result;
+  await recordPageView(page, viewerUserId);
   const token = await issueContentToken(uuid, viewerUserId);
   const contentOrigin = getContentOrigin();
 

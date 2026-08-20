@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeftIcon,
+  ChartNoAxesColumnIcon,
   EllipsisIcon,
   EyeIcon,
   EyeOffIcon,
@@ -392,6 +393,12 @@ export function ClipWorkspace({
                       icon={<Link2Icon className="size-3.5" />}
                       showLabel
                     />
+                  )}
+                  {selectedClip.visibility === "public" && (
+                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <ChartNoAxesColumnIcon className="size-3.5" />
+                      {selectedClip.viewCount.toLocaleString("ja-JP")}回閲覧
+                    </span>
                   )}
                   <span className="ml-auto text-xs text-muted-foreground">
                     {fullDateFormatter.format(selectedClip.updatedAt)} 更新

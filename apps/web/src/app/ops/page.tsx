@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { OpsNav } from "@/components/ops/ops-nav";
 import { loadOpsUsers } from "@/lib/ops";
 
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
@@ -19,6 +20,7 @@ export default async function OpsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
+      <OpsNav current="users" />
       <h1 className="text-xl font-bold">ユーザー一覧</h1>
       <p className="mt-1 text-sm text-muted-foreground">全{users.length}件</p>
       <div className="mt-6 overflow-x-auto">
