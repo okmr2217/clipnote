@@ -7,6 +7,7 @@ export type CollectionSummary = {
   visibility: "private" | "public";
   updatedAt: Date;
   pageCount: number;
+  viewCount: number;
 };
 
 export type CollectionDetail = {

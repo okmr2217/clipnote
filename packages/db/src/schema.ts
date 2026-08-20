@@ -119,6 +119,10 @@ export const pages = sqliteTable(
     // （page_versions・collection_pagesのカスケード削除含む）は30日後の自動
     // パージ、または「完全に削除」操作でのみ発生する。
     deletedAt: integer("deleted_at", { mode: "timestamp" }),
+    // 公開ページ（/p/[uuid]）の閲覧数（design-web.md 4-10節）。visibilityが
+    // publicの間、所有者以外の閲覧のみカウントする。private時代の蓄積値は
+    // 再公開後も引き継ぐ（履歴として扱う）。
+    viewCount: integer("view_count").notNull().default(0),
     ...timestamps,
   },
   (table) => [
@@ -143,6 +147,9 @@ export const collections = sqliteTable(
     visibility: text("visibility", { enum: ["private", "public"] })
       .notNull()
       .default("private"),
+    // 公開コレクション（/c/[uuid]）の閲覧数（design-web.md 4-10節）。pages
+    // と同じ方針：publicの間、所有者以外の閲覧のみカウントする。
+    viewCount: integer("view_count").notNull().default(0),
     ...timestamps,
   },
   (table) => [

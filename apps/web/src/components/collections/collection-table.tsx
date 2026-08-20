@@ -41,6 +41,7 @@ export function CollectionTable({
             <TableHead>説明</TableHead>
             <TableHead>公開設定</TableHead>
             <TableHead>所属クリップ数</TableHead>
+            <TableHead>閲覧数</TableHead>
             <TableHead>更新日時</TableHead>
             <TableHead className="w-11" />
             <TableHead className="w-11" />
@@ -70,6 +71,11 @@ export function CollectionTable({
                 <Badge variant="secondary" className="bg-muted">
                   {collection.pageCount}件
                 </Badge>
+              </TableCell>
+              <TableCell className="whitespace-nowrap text-muted-foreground">
+                {collection.visibility === "public"
+                  ? `${collection.viewCount.toLocaleString("ja-JP")}回`
+                  : "—"}
               </TableCell>
               <TableCell className="whitespace-nowrap text-muted-foreground">
                 {dateFormatter.format(collection.updatedAt)}

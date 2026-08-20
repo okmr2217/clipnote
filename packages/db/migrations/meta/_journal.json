@@ -57,6 +57,13 @@
       "when": 1786653767615,
       "tag": "0007_smooth_gunslinger",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1787251528662,
+      "tag": "0008_pale_puff_adder",
+      "breakpoints": true
     }
   ]
 }

@@ -50,6 +50,9 @@ export function CollectionCard({
           </p>
           <div className="mb-3 text-xs font-medium text-muted-foreground">
             更新: {dateFormatter.format(collection.updatedAt)}
+            {collection.visibility === "public" && (
+              <> ・ 閲覧数: {collection.viewCount.toLocaleString("ja-JP")}回</>
+            )}
           </div>
           <div className="flex items-center gap-4 border-t border-border pt-2.5">
             {collection.visibility === "public" && (

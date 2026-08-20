@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { collectionPages, collections, pages, users } from "@clipnote/db/schema";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { requireSessionUser } from "@/lib/auth";
 
@@ -63,3 +63,31 @@ export const loadPublicCollection = cache(async (uuid: string) => {
 
   return { collection, ownerName, viewerUserId: user?.id ?? null, isOwner, members: memberRows };
 });
+
+// 閲覧数のカウント（design-web.md 4-10節）。/p/[uuid]・/c/[uuid]のページ
+// コンポーネント本体からのみ呼ぶ（1リクエスト＝1閲覧として数える）。
+// loadPublicPage/loadPublicCollectionには載せない：あちらはgenerateMetadata・
+// トークン自動更新API（POST /api/content-token、90秒毎）・/adminのプレビュー
+// パネルからも共有で呼ばれるため、そこに載せると90秒毎の心拍のような呼び出し
+// や所有者自身の管理画面操作までカウントしてしまう。公開設定がpublicの間、
+// かつ所有者本人以外の閲覧のみを対象にする。
+export async function recordPageView(page: { id: string; visibility: string; userId: string }, viewerUserId: string | null) {
+  if (page.visibility !== "public" || viewerUserId === page.userId) return;
+  const db = await getDb();
+  await db
+    .update(pages)
+    .set({ viewCount: sql`${pages.viewCount} + 1` })
+    .where(eq(pages.id, page.id));
+}
+
+export async function recordCollectionView(
+  collection: { id: string; visibility: string; userId: string },
+  viewerUserId: string | null,
+) {
+  if (collection.visibility !== "public" || viewerUserId === collection.userId) return;
+  const db = await getDb();
+  await db
+    .update(collections)
+    .set({ viewCount: sql`${collections.viewCount} + 1` })
+    .where(eq(collections.id, collection.id));
+}
