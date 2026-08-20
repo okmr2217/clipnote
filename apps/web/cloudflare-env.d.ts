@@ -9,6 +9,8 @@ interface __BaseEnv_CloudflareEnv {
 	BETTER_AUTH_URL: string;
 	CONTENT_TOKEN_SECRET: string;
 	NEXT_PUBLIC_CONTENT_ORIGIN: string;
+	CF_ACCESS_TEAM_DOMAIN: string;
+	CF_ACCESS_AUD: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
