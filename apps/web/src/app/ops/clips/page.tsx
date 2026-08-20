@@ -6,15 +6,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { OpsNav } from "@/components/ops/ops-nav";
 import { PublicClipsSortSelect } from "@/components/ops/public-clips-sort-select";
 import { PublicClipsOwnerSelect } from "@/components/ops/public-clips-owner-select";
+import { PublicClipsStatusSelect } from "@/components/ops/public-clips-status-select";
 import {
   OPS_PUBLIC_CLIPS_DEFAULT_SORT,
+  OPS_PUBLIC_CLIPS_DEFAULT_STATUS,
   OPS_PUBLIC_CLIPS_SORTS,
+  OPS_PUBLIC_CLIPS_STATUSES,
   loadOpsPublicClipOwners,
   loadOpsPublicClips,
   type OpsPublicClipsSort,
+  type OpsPublicClipsStatus,
 } from "@/lib/ops";
 
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
@@ -31,18 +36,25 @@ function parseSort(value: string | undefined): OpsPublicClipsSort {
     : OPS_PUBLIC_CLIPS_DEFAULT_SORT;
 }
 
+function parseStatus(value: string | undefined): OpsPublicClipsStatus {
+  return OPS_PUBLIC_CLIPS_STATUSES.includes(value as OpsPublicClipsStatus)
+    ? (value as OpsPublicClipsStatus)
+    : OPS_PUBLIC_CLIPS_DEFAULT_STATUS;
+}
+
 export default async function OpsClipsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; owner?: string }>;
+  searchParams: Promise<{ sort?: string; owner?: string; status?: string }>;
 }) {
-  const { sort: sortParam, owner: ownerParam } = await searchParams;
+  const { sort: sortParam, owner: ownerParam, status: statusParam } = await searchParams;
   const sort = parseSort(sortParam);
+  const status = parseStatus(statusParam);
   const owners = await loadOpsPublicClipOwners();
   // ownerパラメータが実在する所有者と一致しない場合（削除済み・改ざん等）は
   // フィルターなし扱いにする。
   const ownerId = owners.some((owner) => owner.id === ownerParam) ? ownerParam : undefined;
-  const clips = await loadOpsPublicClips(sort, ownerId);
+  const clips = await loadOpsPublicClips(sort, ownerId, status);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">
@@ -51,6 +63,7 @@ export default async function OpsClipsPage({
       <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">全{clips.length}件</p>
         <div className="flex flex-wrap items-center gap-2">
+          <PublicClipsStatusSelect status={status} />
           <PublicClipsOwnerSelect owners={owners} ownerId={ownerId} />
           <PublicClipsSortSelect sort={sort} />
         </div>
@@ -78,6 +91,11 @@ export default async function OpsClipsPage({
                   >
                     {clip.title}
                   </a>
+                  {clip.archivedAt && (
+                    <Badge variant="secondary" className="ml-2 bg-muted font-bold align-middle">
+                      アーカイブ済み
+                    </Badge>
+                  )}
                 </TableCell>
                 <TableCell className="text-muted-foreground">{clip.ownerEmail}</TableCell>
                 <TableCell className="whitespace-nowrap text-muted-foreground">
