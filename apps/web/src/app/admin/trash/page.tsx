@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getAuth } from "@/lib/auth";
 import { loadTrashData } from "@/lib/trash";
 import { TrashList } from "@/components/clips/trash-list";
+
+export const metadata: Metadata = {
+  title: "ゴミ箱 | Clipnote",
+};
 
 // ゴミ箱画面（docs/design-trash.md 3-3節）。削除したクリップは30日間ここに
 // 保持され、期間が過ぎると自動的に完全削除される（apps/webのCron Trigger）。

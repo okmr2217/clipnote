@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   Table,
   TableBody,
@@ -21,6 +22,10 @@ import {
   type OpsPublicClipsSort,
   type OpsPublicClipsStatus,
 } from "@/lib/ops";
+
+export const metadata: Metadata = {
+  title: "公開クリップ一覧 | Clipnote Ops",
+};
 
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   year: "numeric",

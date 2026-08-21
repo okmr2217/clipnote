@@ -1,10 +1,15 @@
 import { collectionPages, collections } from "@clipnote/db/schema";
 import { desc, eq, inArray, sql } from "drizzle-orm";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getAuth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { CollectionList } from "@/components/collections/collection-list";
 import type { CollectionSummary } from "@/components/collections/types";
+
+export const metadata: Metadata = {
+  title: "コレクション | Clipnote",
+};
 
 export default async function AdminCollectionsPage() {
   // AdminLayoutが未認証を弾いているため、ここではセッションは存在する前提。

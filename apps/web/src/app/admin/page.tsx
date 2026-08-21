@@ -1,8 +1,13 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getAuth } from "@/lib/auth";
 import { loadClipWorkspaceData } from "@/lib/clips";
 import { getContentOrigin, issueContentToken } from "@/lib/content-token";
 import { ClipWorkspace } from "@/components/clips/clip-workspace";
+
+export const metadata: Metadata = {
+  title: "クリップ | Clipnote",
+};
 
 export default async function AdminPage() {
   // AdminLayoutが未認証を弾いているため、ここではセッションは存在する前提。
