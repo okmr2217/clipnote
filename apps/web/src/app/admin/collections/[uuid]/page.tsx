@@ -1,11 +1,34 @@
 import { collectionPages, collections, pages } from "@clipnote/db/schema";
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getAuth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { CollectionDetail } from "@/components/collections/collection-detail";
 import type { ClipOption, CollectionMemberClip } from "@/components/collections/types";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ uuid: string }>;
+}): Promise<Metadata> {
+  const { uuid } = await params;
+
+  const auth = await getAuth();
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return { title: "コレクション | Clipnote" };
+  }
+
+  const db = await getDb();
+  const [collection] = await db
+    .select({ name: collections.name })
+    .from(collections)
+    .where(and(eq(collections.id, uuid), eq(collections.userId, session.user.id)));
+
+  return { title: collection ? `${collection.name} | Clipnote` : "コレクション | Clipnote" };
+}
 
 export default async function AdminCollectionDetailPage({
   params,
