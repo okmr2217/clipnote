@@ -1,10 +1,15 @@
 import { oauthClients } from "@clipnote/db/schema";
 import { eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAuth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { ConsentForm } from "@/components/oauth/consent-form";
+
+export const metadata: Metadata = {
+  title: "連携の許可 | Clipnote",
+};
 
 // /oauth2/authorizeがこのページへリダイレクトする際、元の認可リクエスト一式
 // （client_id・scope・redirect_uri・code_challenge等）を署名付きでクエリに

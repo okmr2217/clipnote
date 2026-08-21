@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   Table,
   TableBody,
@@ -8,6 +9,10 @@ import {
 } from "@/components/ui/table";
 import { OpsNav } from "@/components/ops/ops-nav";
 import { loadOpsUsers } from "@/lib/ops";
+
+export const metadata: Metadata = {
+  title: "ユーザー一覧 | Clipnote Ops",
+};
 
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", {
   year: "numeric",

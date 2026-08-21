@@ -1,5 +1,6 @@
 import { apiKeys, oauthClients, oauthConsents } from "@clipnote/db/schema";
 import { desc, eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getAuth } from "@/lib/auth";
 import { getDb } from "@/lib/db";
@@ -8,6 +9,10 @@ import type { ApiKeyRow } from "@/components/api-keys/types";
 import { ConnectedAppList } from "@/components/connected-apps/connected-app-list";
 import type { ConnectedAppRow } from "@/components/connected-apps/types";
 import { McpConnectGuide } from "@/components/mcp-connect/mcp-connect-guide";
+
+export const metadata: Metadata = {
+  title: "MCP連携 | Clipnote",
+};
 
 export default async function McpPage() {
   // AdminLayoutが未認証を弾いているため、ここではセッションは存在する前提。

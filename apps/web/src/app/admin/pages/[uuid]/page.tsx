@@ -1,5 +1,6 @@
 import { collections, pages, pageVersions } from "@clipnote/db/schema";
 import { and, desc, eq } from "drizzle-orm";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { getAuth } from "@/lib/auth";
@@ -7,6 +8,28 @@ import { getDb } from "@/lib/db";
 import { KEPT_VERSION_COUNT } from "@clipnote/pages/page-versions";
 import { VersionHistory } from "@/components/clips/version-history";
 import type { ClipDetail, PageVersionRow } from "@/components/clips/types";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ uuid: string }>;
+}): Promise<Metadata> {
+  const { uuid } = await params;
+
+  const auth = await getAuth();
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) {
+    return { title: "クリップ | Clipnote" };
+  }
+
+  const db = await getDb();
+  const [page] = await db
+    .select({ title: pages.title })
+    .from(pages)
+    .where(and(eq(pages.id, uuid), eq(pages.userId, session.user.id)));
+
+  return { title: page ? `${page.title} | Clipnote` : "クリップ | Clipnote" };
+}
 
 export default async function AdminPageDetailPage({
   params,

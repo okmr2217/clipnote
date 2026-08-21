@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { getAuth } from "@/lib/auth";
 import { AccountSettings } from "@/components/account/account-settings";
+
+export const metadata: Metadata = {
+  title: "アカウント設定 | Clipnote",
+};
 
 export default async function SettingsPage() {
   // AdminLayoutが未認証を弾いているため、ここではセッションは存在する前提。

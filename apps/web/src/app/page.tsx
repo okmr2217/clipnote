@@ -32,7 +32,7 @@ export const dynamic = "force-dynamic";
 // Clipnoteが何をするツールかを正しく伝えられるようにする。
 export async function generateMetadata(): Promise<Metadata> {
   const origin = await getSiteOrigin();
-  const title = "Clipnote | AIとの会話から生まれたHTML・Markdownを保存・公開";
+  const title = "Clipnote | AIとつながるメモ帳";
   const description =
     "ClaudeなどのAIとの会話で生成したHTML・Markdown・プレーンテキストを、そのままの見た目で保存・整理し、ユニークな公開URLで共有できるツール。MCP連携でAIから直接クリップの作成・更新もできます。";
   const ogImageUrl = `${origin}/og-image.png`;
