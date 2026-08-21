@@ -20,14 +20,19 @@ export function LpHero() {
           AIとのやり取りを、資産として残す場所。
         </p>
         <p className="mt-6 max-w-[440px] text-[17px] leading-[1.8] text-secondary-foreground">
-          ChatGPT・Gemini・Claudeで作った成果物を、貼り付けるだけで保存。使うAIを変えても、置き場所はひとつのままです。
+          AIに「保存して」と言うだけで、その場で残せる。貼り付けるだけでも、もちろんOK。ChatGPTやClaudeとのやり取りを、消える前に資産として残せます。
         </p>
-        <Link
-          href="/signup"
-          className="mt-8 inline-block rounded-xl bg-primary px-[30px] py-[15px] text-[15px] font-bold text-primary-foreground shadow-[var(--shadow-accent)]"
-        >
-          無料で始める
-        </Link>
+        <div className="mt-8 flex flex-wrap items-center gap-4">
+          <Link
+            href="/signup"
+            className="inline-block rounded-xl bg-primary px-[30px] py-[15px] text-[15px] font-bold text-primary-foreground shadow-[var(--shadow-accent)]"
+          >
+            無料で始める
+          </Link>
+          <a href="#mcp" className="text-sm font-bold text-primary underline decoration-primary/40 underline-offset-2">
+            AIに直接保存させる →
+          </a>
+        </div>
       </div>
 
       <div className="rounded-3xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
