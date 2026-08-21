@@ -6,12 +6,13 @@ import { getSiteOrigin } from "@/lib/site-origin";
 import { LpNav } from "@/components/marketing/lp-nav";
 import { LpHero } from "@/components/marketing/lp-hero";
 import { LpCapabilities } from "@/components/marketing/lp-capabilities";
-import { LpStages } from "@/components/marketing/lp-stages";
-import { LpFormats } from "@/components/marketing/lp-formats";
 import { LpMcp } from "@/components/marketing/lp-mcp";
 import { LpWhyHtml } from "@/components/marketing/lp-why-html";
-import { LpShare } from "@/components/marketing/lp-share";
+import { LpFormats } from "@/components/marketing/lp-formats";
+import { LpStages } from "@/components/marketing/lp-stages";
 import { LpCollections } from "@/components/marketing/lp-collections";
+import { LpOrganize } from "@/components/marketing/lp-organize";
+import { LpShare } from "@/components/marketing/lp-share";
 import { LpUseCases } from "@/components/marketing/lp-use-cases";
 import { LpFaq } from "@/components/marketing/lp-faq";
 import { LpFinalCta } from "@/components/marketing/lp-final-cta";
@@ -87,12 +88,13 @@ export default async function Home() {
       <LpNav isLoggedIn={Boolean(session)} />
       <LpHero />
       <LpCapabilities />
-      <LpStages />
-      <LpFormats />
       <LpMcp />
       <LpWhyHtml />
-      <LpShare />
+      <LpFormats />
+      <LpStages />
       <LpCollections />
+      <LpOrganize />
+      <LpShare />
       <LpUseCases />
       <LpFaq />
       <LpFinalCta />
